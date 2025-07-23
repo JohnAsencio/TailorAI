@@ -2,6 +2,7 @@ import { useState } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
 import { generateContent } from "./api";
+import ResumePreview from "./ResumePreview";
 
 // Set workerSrc to local worker for Vite compatibility
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
@@ -95,6 +96,8 @@ Instructions:
 - ONLY make targeted improvements: add relevant keywords, quantify achievements, reword or rearrange bullet points, and re-order sections if it helps.
 - Preserve all original personal information and structure.
 - Output ONLY the improved resume in plain text, ready to use.
+- The resume should be formatted in a professional manner, with clear sections and bullet points. It should remain in the same format as the original resume.
+- The header of each section should be in all caps, bold, and left-aligned. (SUMMARY, SKILLS, EDUCATION, PROFESSIONAL EXPERIENCE, PROJECTS, CERTIFICATIONS, CONTACT, PROFILE, OBJECTIVE, ADDITIONAL, AWARDS, LANGUAGES, INTERESTS, etc, those relevant to the role)
 
 Resume:
 ${resumeText}
@@ -196,11 +199,7 @@ ${jobDesc}
           {/* Output Section */}
           <div>
             <h2 className="text-xl font-semibold mb-3 text-indigo-700">🎯 Tailored Resume Output</h2>
-            <div className="whitespace-pre-wrap p-6 bg-gray-50 border border-gray-200 rounded-lg min-h-[400px] text-base text-gray-800 shadow-inner overflow-auto">
-              {loading
-                ? <p className="text-center text-gray-500">⏳ Generating your tailored resume...</p>
-                : output || <p className="text-center text-gray-500">Your tailored resume will appear here after processing.</p>}
-            </div>
+            <ResumePreview resumeText={output} loading={loading} />
           </div>
         </div>
       </div>
