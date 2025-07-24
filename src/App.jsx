@@ -1,25 +1,50 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
 import { generateContent } from "./api";
 import ResumePreview from "./ResumePreview";
+import ResumeDiffViewerModal from "./ResumeDiffViewerModal";
 
 // Set workerSrc to local worker for Vite compatibility
+// This path refers to pdf.worker.mjs in your public directory
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
 
 function App() {
-  const [resumeText, setResumeText] = useState("");
+  const [resumeText, setResumeText] = useState(""); // This is your ORIGINAL resume text
   const [jobDesc, setJobDesc] = useState("");
-  const [output, setOutput] = useState("");
+  const [output, setOutput] = useState(""); // This is your AI-TAILORED resume text
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [showDiffModal, setShowDiffModal] = useState(false); // State for the diff modal
+  const fileInputRef = useRef();
+  const [dragActive, setDragActive] = useState(false);
 
   const clearMessages = () => {
     setTimeout(() => setErrorMessage(""), 5000);
   };
 
+  // Drag and drop handlers
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload({ target: { files: e.dataTransfer.files } });
+    }
+  };
+
   const handleFileUpload = async (e) => {
-    setErrorMessage("");
+    setErrorMessage(""); // Clear previous errors
     const file = e.target.files[0];
     if (!file) return;
 
@@ -36,6 +61,7 @@ function App() {
           for (let i = 0; i < pdf.numPages; i++) {
             const page = await pdf.getPage(i + 1);
             const content = await page.getTextContent();
+            // Join items with space, and add a newline at the end of each page
             text += content.items.map((item) => item.str).join(" ") + "\n";
           }
           if (!text.trim()) {
@@ -63,7 +89,13 @@ function App() {
       const reader = new FileReader();
       reader.onload = async () => {
         try {
+          // mammoth.extractRawText returns a promise resolving to { value: string, messages: array }
           const result = await mammoth.extractRawText({ arrayBuffer: reader.result });
+          if (!result.value.trim()) {
+             setErrorMessage("The DOCX appears to be empty or could not be read. Try a different file.");
+             clearMessages();
+             return;
+          }
           setResumeText(result.value);
         } catch (error) {
           console.error("Error processing DOCX:", error);
@@ -79,25 +111,40 @@ function App() {
   };
 
   const handleTailor = async () => {
-    setErrorMessage("");
+    setErrorMessage(""); // Clear previous errors
     if (!resumeText || !jobDesc) {
       setErrorMessage("Please upload your resume and enter a job description.");
       clearMessages();
       return;
     }
 
-    setLoading(true);
-    setOutput("");
+    setLoading(true); // Start loading state
+    setOutput(""); // Clear previous output
+    setShowDiffModal(false); // Ensure modal is closed before new generation
 
-    const prompt = `You are an expert resume editor. Your job is to tailor the following resume to better fit the provided job description.
-
+    // Your exact prompt string
+    const prompt = `You are an expert resume editor. Your job is to tailor the following resume to better fit the provided job description and be able to pass ATS systems.
+    This system is geared for technical roles, but may be used for other sectors. For technical roles make sure the candidate looks like a high potential candidate for role.
+    For SWE roles, focus on results, and turn personal projects into real business value statements. 
 Instructions:
 - Do NOT invent or fabricate any experience, education, or personal information.
 - ONLY make targeted improvements: add relevant keywords, quantify achievements, reword or rearrange bullet points, and re-order sections if it helps.
 - Preserve all original personal information and structure.
 - Output ONLY the improved resume in plain text, ready to use.
-- The resume should be formatted in a professional manner, with clear sections and bullet points. It should remain in the same format as the original resume.
-- The header of each section should be in all caps, bold, and left-aligned. (SUMMARY, SKILLS, EDUCATION, PROFESSIONAL EXPERIENCE, PROJECTS, CERTIFICATIONS, CONTACT, PROFILE, OBJECTIVE, ADDITIONAL, AWARDS, LANGUAGES, INTERESTS, etc, those relevant to the role)
+- The resume should be formatted in a professional manner, with clear sections and bullet points.
+- The header of each section should be in all caps, bold, and left-aligned.
+- Be sure to add key words from the job description (from the job description and qualifications) to the resume.
+
+--- SECTION SELECTION GUIDELINES ---
+- **Prioritize sections based on direct relevance to the job description.**
+- **NEVER include a separate 'CONTACT' section.** Contact information should always be part of the resume's top header (name, email, phone, LinkedIn, etc.).
+- For **technical or professional roles**: Focus on sections like PROFESSIONAL EXPERIENCE, PROJECTS, TECHNICAL SKILLS, EDUCATION, CERTIFICATIONS (if relevant).
+    - Only include 'INTERESTS' or 'AWARDS' sections if they directly demonstrate highly relevant skills or achievements for this specific role if not scrap it.
+    - If a 'SKILLS' section is included, ensure it emphasizes abilities directly applicable to the job (e.g., programming languages, software tools for tech roles; customer service, teamwork for service roles) and includes keywords to pass ATS systems.
+- For **customer-facing or service roles (e.g., fast food, retail)**: Sections like relevant experience, customer service skills, teamwork, and transferable soft skills are more important. 'INTERESTS' or 'AWARDS' may be included if they showcase relevant soft skills or dedication
+- For other sectors do the same thing. Only apply sections that are relevant to the job description.
+- Only include sections from the original resume that are truly beneficial for the target job.
+-------------------------------------
 
 Resume:
 ${resumeText}
@@ -108,101 +155,100 @@ ${jobDesc}
 
     try {
       const result = await generateContent(prompt);
-      setOutput(result);
+      setOutput(result); // Set the AI's tailored output
+      setShowDiffModal(true); // Open the diff viewer modal after successful generation
     } catch (error) {
       console.error("Error generating content:", error);
       setErrorMessage("Something went wrong. Please try again.");
       clearMessages();
     } finally {
-      setLoading(false);
+      setLoading(false); // End loading state
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8 flex flex-col items-center font-sans">
-      <h1 className="text-4xl font-extrabold mb-8 text-indigo-800 text-center drop-shadow-sm">
-        📄 AI Resume Tailor
-      </h1>
-
-      <div className="w-full max-w-6xl bg-white p-8 rounded-2xl shadow-xl space-y-8 border border-indigo-200">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center py-8">
+      <header className="mb-8">
+        <h1 className="text-4xl font-extrabold text-indigo-800 flex items-center gap-2">
+          <span role="img" aria-label="Resume">📄</span> AI Resume Tailor
+        </h1>
+        <p className="text-gray-500 mt-2 text-center">Tailor your resume for any job in seconds</p>
+      </header>
+      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl p-8 border border-indigo-100">
         {errorMessage && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6">
             <strong className="font-bold">Error!</strong>
             <span className="block sm:inline ml-2">{errorMessage}</span>
           </div>
         )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Input Section */}
-          <div>
-            <div className="mb-6">
-              <label htmlFor="resume-upload" className="block text-xl font-semibold mb-3 text-indigo-700">
-                Upload Your Resume
-              </label>
-              <input
-                id="resume-upload"
-                type="file"
-                accept=".pdf,.docx"
-                onChange={handleFileUpload}
-                className="block w-full text-lg text-gray-700 file:mr-4 file:py-2 file:px-4
-                           file:rounded-full file:border-0 file:text-lg file:font-semibold
-                           file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200
-                           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
-              />
-            </div>
-
-            {resumeText && (
-              <div className="mt-4 mb-6">
-                <label className="block text-xl font-semibold mb-2 text-indigo-700">
-                  Extracted Resume Preview
-                </label>
-                <pre className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-sm text-gray-800 max-h-60 overflow-auto whitespace-pre-wrap font-mono shadow-inner">
-                  {resumeText}
-                </pre>
-              </div>
-            )}
-
-            <div className="mb-6">
-              <label htmlFor="job-description" className="block text-xl font-semibold mb-3 text-indigo-700">
-                Job Description
-              </label>
-              <textarea
-                id="job-description"
-                value={jobDesc}
-                onChange={(e) => setJobDesc(e.target.value)}
-                rows="10"
-                className="w-full border border-indigo-300 p-4 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 text-lg placeholder-gray-400 shadow-sm"
-                placeholder="Paste the job description here..."
-              />
-            </div>
-
-            <button
-              onClick={handleTailor}
-              className={`w-full py-3 px-6 rounded-xl text-white text-xl font-bold transition duration-300 ease-in-out transform hover:scale-105 shadow-lg
-                ${loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
-              disabled={loading}
-            >
-              {loading ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Tailoring...
-                </span>
-              ) : (
-                "Tailor Resume"
-              )}
-            </button>
-          </div>
-
-          {/* Output Section */}
-          <div>
-            <h2 className="text-xl font-semibold mb-3 text-indigo-700">🎯 Tailored Resume Output</h2>
+        {/* Drag and Drop Upload Area */}
+        <div
+          className={`w-full border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center transition-colors duration-200 ${dragActive ? 'border-indigo-500 bg-indigo-50' : 'border-indigo-200 bg-white'}`}
+          onDragEnter={handleDrag}
+          onDragOver={handleDrag}
+          onDragLeave={handleDrag}
+          onDrop={handleDrop}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.docx"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+          <button
+            type="button"
+            className="mb-2 px-6 py-2 bg-indigo-500 text-white rounded-lg font-semibold shadow hover:bg-indigo-600 transition"
+            onClick={() => fileInputRef.current && fileInputRef.current.click()}
+          >
+            Click to Upload Resume
+          </button>
+          <p className="text-gray-500">or drag and drop a PDF or DOCX file here</p>
+        </div>
+        {/* Job Description Input */}
+        <div className="mt-8">
+          <label className="block text-lg font-semibold mb-2 text-indigo-700">Job Description</label>
+          <textarea
+            value={jobDesc}
+            onChange={(e) => setJobDesc(e.target.value)}
+            rows="8"
+            className="w-full rounded-lg border border-indigo-200 p-4 min-h-[120px] focus:ring-2 focus:ring-indigo-400"
+            placeholder="Paste the job description here..."
+          />
+        </div>
+        {/* Tailor Button */}
+        <button
+          onClick={handleTailor}
+          className={`w-full mt-6 py-3 px-6 rounded-xl text-white text-xl font-bold transition duration-300 ease-in-out transform hover:scale-105 shadow-lg
+            ${loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
+          disabled={loading}
+        >
+          {loading ? (
+            <span className="flex items-center justify-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Tailoring...
+            </span>
+          ) : (
+            "Tailor Resume"
+          )}
+        </button>
+        {/* Output Section */}
+        {output && (
+          <div className="mt-10">
             <ResumePreview resumeText={output} loading={loading} />
           </div>
-        </div>
+        )}
       </div>
+      {/* Diff Viewer Modal */}
+      <ResumeDiffViewerModal
+        originalText={resumeText}
+        tailoredText={output}
+        isOpen={showDiffModal}
+        onClose={() => setShowDiffModal(false)}
+      />
     </div>
   );
 }

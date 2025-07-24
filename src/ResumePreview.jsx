@@ -49,16 +49,6 @@ function ResumePreview({ resumeText, loading }) {
           )
         }
       </PDFDownloadLink>
-
-      {/* Raw Resume Output (for troubleshooting) */}
-      <div className="mt-6 w-full max-w-2xl">
-        <label className="block text-md font-semibold mb-2 text-indigo-700">
-          Raw Resume Output (for troubleshooting)
-        </label>
-        <pre className="bg-gray-100 border border-gray-300 rounded-lg p-4 text-sm text-gray-800 max-h-60 overflow-auto whitespace-pre-wrap font-mono shadow-inner">
-          {resumeText}
-        </pre>
-      </div>
     </div>
   );
 }
