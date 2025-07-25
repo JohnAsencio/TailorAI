@@ -15,9 +15,10 @@
     "html2pdf.js": "^0.10.3",
     "mammoth": "^1.9.1",
     "openai": "^5.10.1",
-    "pdfjs-dist": "^5.3.93",
+    "pdfjs-dist": "^5.3.31",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-pdf": "^10.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

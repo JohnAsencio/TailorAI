@@ -1,42 +1,446 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+/* src/App.css */
+
+/* Overall App Container */
+.app-container {
+  min-height: 100vh;
+  background: linear-gradient(to bottom right, #e0e7ff, #bfdbfe); /* from-indigo-100 to-blue-50 */
+  display: flex;
+  flex-direction: column;
+  padding: 2rem; /* p-8 */
+  align-items: center; /* items-center */
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif; /* font-sans */
+}
+
+/* Header */
+.app-header {
+  position: relative;
+  top: 0;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid #e0e7ff;
+  padding: 1rem 1.5rem; /* py-4 px-6 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem; /* gap-1 */
+  width: 100%; /* Ensure header spans full width */
+}
+
+.app-header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem; /* gap-3 */
+}
+
+/* Specific H1 style for the app title - overrides global h1 */
+.app-header-title {
+  font-size: 2.25rem; /* text-3xl */
+  line-height: 2.5rem; /* leading-10 */
+  font-weight: 800; /* font-extrabold */
+  color: #4338ca; /* text-indigo-800 */
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  letter-spacing: -0.025em; /* tracking-tight */
+}
+@media (min-width: 768px) { /* md: */
+  .app-header-title {
+    font-size: 2.5rem; /* md:text-4xl */
+    line-height: 1;
+  }
+}
+
+.app-header-subtitle {
+  color: #6366f1; /* text-indigo-500 */
+  font-size: 0.875rem; /* text-sm */
+  line-height: 1.25rem;
+  font-weight: 500;
+  margin-top: 0.25rem; /* mt-1 */
+}
+@media (min-width: 768px) { /* md: */
+  .app-header-subtitle {
+    font-size: 1rem; /* md:text-base */
+    line-height: 1.5rem;
+  }
+}
+
+/* Main Content Area */
+.main-content-area {
+  flex: 1; /* flex-1 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%; /* w-full */
+  padding: 0 0.5rem; /* px-2 */
+}
+@media (min-width: 768px) { /* md: */
+  .main-content-area {
+    padding: 0; /* md:px-0 */
+  }
+}
+
+/* Grid Container for Panels */
+.main-grid-container {
+  width: 100%; /* w-full */
+  max-width: 64rem; /* max-w-5xl */
+  display: grid;
+  grid-template-columns: 1fr; /* grid-cols-1 */
+  gap: 2rem; /* gap-8 */
+  padding-top: 2.5rem; /* py-10 */
+  padding-bottom: 2.5rem; /* py-10 */
+}
+@media (min-width: 768px) { /* md: */
+  .main-grid-container {
+    grid-template-columns: repeat(2, 1fr); /* md:grid-cols-2 */
+  }
+}
+
+/* Section Card (Left and Right Panels) */
+.section-card {
+  background-color: #ffffff;
+  border-radius: 1rem; /* rounded-2xl */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+  border: 1px solid #e0e7ff; /* border border-indigo-100 */
+  padding: 2rem; /* p-8 */
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* gap-8 */
+  min-height: 500px; /* min-h-[500px] */
+  /* Removed max-width: 500px; to allow it to expand within the grid */
+}
+/* Specific gap for right panel */
+.section-card.right-panel {
+  gap: 1.5rem; /* gap-6 */
+  overflow-y: auto; /* Allow vertical scrolling for content */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+
+/* Upload Area */
+.upload-area {
+  width: 84%; /* Keep this if you want it narrower than its parent */
+  border: 2px dashed #c7d2fe; /* border-2 border-dashed border-indigo-200 */
+  border-radius: 0.75rem; /* rounded-xl */
+  padding: 2rem; /* p-8 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out; /* transition-colors duration-200 */
+}
+.upload-area.drag-active { /* Class for drag-active state */
+  border-color: #6366f1; /* border-indigo-500 */
+  background-color: #eef2ff; /* bg-indigo-50 */
+}
+
+/* Custom Upload Button - overrides global button style */
+.upload-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* gap-2 */
+  margin-bottom: 0.5rem; /* mb-2 */
+  padding: 0.75rem 1.5rem; /* py-3 px-6 */
+  background: linear-gradient(to right, #6366f1, #3b82f6); /* bg-gradient-to-r from-indigo-500 to-blue-500 */
+  color: #ffffff; /* text-white */
+  border-radius: 0.5rem; /* rounded-lg */
+  font-weight: 600; /* font-semibold */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); /* shadow */
+  transition: transform 0.3s ease-in-out; /* transition transform duration-300 ease-in-out */
+  font-size: 1.125rem; /* text-lg */
+  border: none; /* Override global button border */
+  cursor: pointer;
+}
+.upload-button:hover {
+  transform: scale(1.05);
+}
+.upload-button:active {
+  transform: scale(0.95);
+}
+
+/* Uploaded File Name Display */
+.uploaded-file-name {
+  font-size: 0.875rem; /* text-sm */
+  color: #4b5563; /* text-gray-600 */
+  margin-top: 0.25rem; /* mt-1 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.uploaded-file-name .file-name-medium {
+  font-weight: 500;
+}
+
+/* Error Alert */
+.error-alert {
+  background-color: #fee2e2; /* bg-red-100 */
+  border: 1px solid #ef4444; /* border border-red-400 */
+  color: #b91c1c; /* text-red-700 */
+  padding: 0.75rem 1rem; /* px-4 py-3 */
+  border-radius: 0.25rem; /* rounded */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* gap-2 */
+}
+.error-alert .material-icons {
+  font-size: 1.25rem; /* text-xl */
+}
+
+/* Job Description */
+.job-desc-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* gap-2 */
+}
+.job-desc-label {
+  display: block; /* block */
+  font-size: 1rem; /* text-base */
+  font-weight: 600; /* font-semibold */
+  color: #4338ca; /* text-indigo-700 */
+  margin-bottom: 0.25rem; /* mb-1 */
+}
+.job-desc-textarea {
+  width: 92%; /* Keep this if you want it narrower than its parent */
+  border-radius: 0.5rem; /* rounded-lg */
+  border: 1px solid #a5b4fc; /* border border-indigo-200 */
+  padding: 1rem; /* p-4 */
+  min-height: 120px;
+  font-size: 1rem; /* text-base */
+  color: #FFF; /* text-gray-800 */
+  resize: vertical; /* resize-y */
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06); /* shadow-inner */
+}
+.job-desc-textarea:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #6366f1; /* focus:ring-2 focus:ring-indigo-400 */
+  border-color: transparent;
+}
+.job-desc-textarea::placeholder {
+  color: #9ca3af; /* placeholder-gray-400 */
+}
+
+
+/* Tailor Button - overrides global button style */
+.tailor-button {
+  width: 100%;
+  padding: 0.75rem 1.5rem; /* py-3 px-6 */
+  border-radius: 0.75rem; /* rounded-xl */
+  color: #ffffff;
+  font-size: 1.25rem; /* text-xl */
+  font-weight: 700; /* font-bold */
+  transition: all 0.4s ease-in-out; /* transition duration-300 ease-in-out transform */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+  background: linear-gradient(to right, #2563eb, #4f46e5); /* bg-gradient-to-r from-blue-600 to-indigo-600 */
+  border: none; /* Override global button border */
+  cursor: pointer;
+}
+.tailor-button:hover {
+  background: linear-gradient(to right, #4338ca, #2563eb); /* hover:from-indigo-700 hover:to-blue-700 */
+  transform: scale(1.05);
+}
+.tailor-button:active {
+  transform: scale(0.95);
+}
+.tailor-button.loading {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.tailor-button .spinner {
+  animation: spin 1s linear infinite;
+  height: 1.25rem;
+  width: 1.25rem;
+  color: #ffffff;
+}
+.tailor-button .spinner-path-opacity {
+  opacity: 0.25;
+}
+.tailor-button .spinner-path-fill {
+  opacity: 0.75;
+}
+
+/* PDF Viewer Specific Styles */
+.pdf-viewer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* Align content to top */
+  width: 100%;
+  height: 100%; /* Occupy full height of parent section-card */
+  overflow: auto; /* Enable scrolling for large PDFs */
+  background-color: #f0f0f0;
+  border-radius: 0.75rem; /* rounded-xl */
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06); /* subtle inner shadow */
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.pdf-document {
+  width: 100%;
+  height: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Align pages to top */
+  margin-bottom: 1rem;
+}
+
+.pdf-page {
+  /* react-pdf renders canvas inside, so target canvas directly */
+  width: 100% !important; /* Override inline styles from react-pdf */
+  height: auto !important; /* Override inline styles from react-pdf */
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.pdf-page canvas {
+  width: 100% !important;
+  height: auto !important;
+  border-radius: 0.5rem; /* Apply to the canvas itself */
+}
+
+.pdf-navigation {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #fff;
+  border-radius: 9999px; /* rounded-full */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.pdf-nav-button {
+  background-color: #4f46e5; /* indigo-600 */
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem; /* rounded-lg */
+  font-weight: 600; /* font-semibold */
+  transition: background-color 0.2s ease-in-out;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.pdf-nav-button:hover:not(:disabled) {
+  background-color: #4338ca; /* indigo-700 */
+}
+
+.pdf-nav-button:disabled {
+  background-color: #a78bfa; /* indigo-300 */
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.pdf-page-info {
+  font-size: 0.95rem;
+  color: #4b5563; /* gray-700 */
+  font-weight: 500;
+}
+
+.pdf-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  color: #6b7280; /* gray-500 */
+  font-style: italic;
+  font-size: 1.125rem; /* text-lg */
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Download PDF Button */
+.download-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+  text-decoration: none;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.download-pdf-button {
+  background: linear-gradient(to right, #2563eb, #4f46e5); 
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem; /* rounded-lg */
+  font-weight: 600; /* font-semibold */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* gap-2 */
+  border: none;
+  transition: all 0.4s ease-in-out; /* transition duration-300 ease-in-out transform */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-decoration: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.download-button-container a {
+  text-decoration: none; 
 }
 
-.card {
-  padding: 2em;
+.download-pdf-button:hover {
+  background: linear-gradient(to right, #4338ca, #2563eb); /* hover:from-indigo-700 hover:to-blue-700 */
+  transform: scale(1.05);
 }
 
-.read-the-docs {
-  color: #888;
+.download-pdf-button:disabled {
+  opacity: 0.7;
+}
+
+.download-pdf-button .material-icons {
+  font-size: 1.25rem; /* text-xl */
+}
+
+.right-panel-title {
+  color: #4338ca; /* text-indigo-700 */
+  display: contents;
+}
+
+/* Animations */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Utility classes (from original Tailwind, now custom) */
+.flex-center-gap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Material Icons (ensure this is linked in index.html or equivalent) */
+/* Example: <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> */
+
+/* Summary of Changes Box */
+.summary-of-changes-box {
+  background: #f1f5fd; /* subtle blue-tinted background */
+  border: 1px solid #c7d2fe; /* indigo-200 */
+  border-radius: 0.75rem;
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  color: #1e293b; /* slate-800 for good contrast */
+  box-shadow: 0 2px 8px rgba(67,56,202,0.04);
+}
+.summary-heading {
+  color: #4338ca; /* text-indigo-700, matches job-desc-label */
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.summary-list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+.summary-item {
+  color: #1e293b; /* slate-800 */
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.5;
 }

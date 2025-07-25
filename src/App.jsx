@@ -2,127 +2,150 @@ import { useState, useRef } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
 import { generateContent } from "./api";
-import ResumePreview from "./ResumePreview";
-import ResumeDiffViewerModal from "./ResumeDiffViewerModal";
+import HighlightedResumeDisplay from "./ResumeDisplay";
+import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
+import MyResumePdfDocument from "./MyResumePdfDocument";
+import PdfViewer from "./PdfViewer";
+import './App.css';
 
-// Set workerSrc to local worker for Vite compatibility
-// This path refers to pdf.worker.mjs in your public directory
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
 
 function App() {
-  const [resumeText, setResumeText] = useState(""); // This is your ORIGINAL resume text
+  const [resumeText, setResumeText] = useState("");
+  const [pdfFileUrl, setPdfFileUrl] = useState(null);
+  const [tailoredPdfUrl, setTailoredPdfUrl] = useState(null); // NEW
   const [jobDesc, setJobDesc] = useState("");
-  const [output, setOutput] = useState(""); // This is your AI-TAILORED resume text
+  const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [showDiffModal, setShowDiffModal] = useState(false); // State for the diff modal
-  const fileInputRef = useRef();
-  const [dragActive, setDragActive] = useState(false);
+  const [displayResumeMode, setDisplayResumeMode] = useState('empty');
+  const fileInputRef = useRef(null);
+  const [uploadedFileName, setUploadedFileName] = useState("");
+  const [changeSummary, setChangeSummary] = useState(""); // NEW
 
   const clearMessages = () => {
     setTimeout(() => setErrorMessage(""), 5000);
   };
 
-  // Drag and drop handlers
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload({ target: { files: e.dataTransfer.files } });
     }
   };
 
   const handleFileUpload = async (e) => {
-    setErrorMessage(""); // Clear previous errors
+    setErrorMessage("");
     const file = e.target.files[0];
-    if (!file) return;
-
+    if (!file) {
+      setUploadedFileName("");
+      setResumeText("");
+      setPdfFileUrl(null);
+      setOutput("");
+      setDisplayResumeMode('empty');
+      return;
+    }
+    setUploadedFileName(file.name);
+    setOutput("");
+    setResumeText("");
+    setPdfFileUrl(null);
+    setTailoredPdfUrl(null);
     const fileType = file.name.split(".").pop().toLowerCase();
 
     if (fileType === "pdf") {
+      const fileUrl = URL.createObjectURL(file);
+      setPdfFileUrl(fileUrl);
+      setDisplayResumeMode('original');
       const reader = new FileReader();
       reader.onload = async () => {
         try {
           const typedArray = new Uint8Array(reader.result);
           const pdf = await pdfjsLib.getDocument({ data: typedArray }).promise;
           let text = "";
-
           for (let i = 0; i < pdf.numPages; i++) {
             const page = await pdf.getPage(i + 1);
             const content = await page.getTextContent();
-            // Join items with space, and add a newline at the end of each page
             text += content.items.map((item) => item.str).join(" ") + "\n";
           }
           if (!text.trim()) {
             setErrorMessage("The PDF appears to be empty or could not be read. Try a different file.");
             clearMessages();
+            setPdfFileUrl(null);
+            setUploadedFileName("");
+            setDisplayResumeMode('empty');
             return;
           }
           setResumeText(text);
         } catch (error) {
           console.error("Error processing PDF:", error);
-          let msg = "Failed to process PDF. ";
-          if (error && error.message) msg += error.message;
-          else msg += "Try a different file.";
-          setErrorMessage(msg);
+          setErrorMessage("Failed to extract text from PDF. Try a different file.");
           clearMessages();
+          setPdfFileUrl(null);
+          setUploadedFileName("");
+          setDisplayResumeMode('empty');
         }
       };
       reader.onerror = (err) => {
         console.error("FileReader error:", err);
-        setErrorMessage("Failed to read the PDF file. Try a different file.");
+        setErrorMessage("Failed to read the PDF file.");
         clearMessages();
+        setPdfFileUrl(null);
+        setUploadedFileName("");
+        setDisplayResumeMode('empty');
       };
       reader.readAsArrayBuffer(file);
     } else if (fileType === "docx") {
+      setPdfFileUrl(null);
+      setDisplayResumeMode('original');
       const reader = new FileReader();
       reader.onload = async () => {
         try {
-          // mammoth.extractRawText returns a promise resolving to { value: string, messages: array }
           const result = await mammoth.extractRawText({ arrayBuffer: reader.result });
           if (!result.value.trim()) {
-             setErrorMessage("The DOCX appears to be empty or could not be read. Try a different file.");
-             clearMessages();
-             return;
+            setErrorMessage("The DOCX appears to be empty or could not be read.");
+            clearMessages();
+            setUploadedFileName("");
+            setDisplayResumeMode('empty');
+            return;
           }
           setResumeText(result.value);
         } catch (error) {
           console.error("Error processing DOCX:", error);
           setErrorMessage("Failed to process DOCX. Try a different file.");
           clearMessages();
+          setUploadedFileName("");
+          setDisplayResumeMode('empty');
         }
       };
       reader.readAsArrayBuffer(file);
     } else {
       setErrorMessage("Please upload a PDF or DOCX resume.");
       clearMessages();
+      setUploadedFileName("");
+      setResumeText("");
+      setPdfFileUrl(null);
+      setDisplayResumeMode('empty');
     }
   };
 
   const handleTailor = async () => {
-    setErrorMessage(""); // Clear previous errors
+    setErrorMessage("");
     if (!resumeText || !jobDesc) {
       setErrorMessage("Please upload your resume and enter a job description.");
       clearMessages();
       return;
     }
 
-    setLoading(true); // Start loading state
-    setOutput(""); // Clear previous output
-    setShowDiffModal(false); // Ensure modal is closed before new generation
+    setLoading(true);
+    setOutput("");
+    setTailoredPdfUrl(null);
 
-    // Your exact prompt string
     const prompt = `You are an expert resume editor. Your job is to tailor the following resume to better fit the provided job description and be able to pass ATS systems.
     This system is geared for technical roles, but may be used for other sectors. For technical roles make sure the candidate looks like a high potential candidate for role.
     For SWE roles, focus on results, and turn personal projects into real business value statements. 
@@ -151,104 +174,163 @@ ${resumeText}
 
 Job Description:
 ${jobDesc}
+
+After the resume, add a section titled "Summary of Changes:" and list 2-4 bullet points summarizing the key changes you made. Separate the summary from the resume with the line:
+---SUMMARY OF CHANGES---
 `;
 
     try {
       const result = await generateContent(prompt);
-      setOutput(result); // Set the AI's tailored output
-      setShowDiffModal(true); // Open the diff viewer modal after successful generation
+      const [tailoredResume, summary] = result.split("---SUMMARY OF CHANGES---");
+      setOutput(tailoredResume);
+      setChangeSummary(summary ? summary.trim() : ""); // NEW
+      setDisplayResumeMode('tailored_highlighted');
+
+      const blob = await pdf(<MyResumePdfDocument resumeText={tailoredResume} />).toBlob();
+      const tailoredBlobUrl = URL.createObjectURL(blob);
+      setTailoredPdfUrl(tailoredBlobUrl);
     } catch (error) {
       console.error("Error generating content:", error);
       setErrorMessage("Something went wrong. Please try again.");
       clearMessages();
     } finally {
-      setLoading(false); // End loading state
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center py-8">
-      <header className="mb-8">
-        <h1 className="text-4xl font-extrabold text-indigo-800 flex items-center gap-2">
-          <span role="img" aria-label="Resume">📄</span> AI Resume Tailor
-        </h1>
-        <p className="text-gray-500 mt-2 text-center">Tailor your resume for any job in seconds</p>
+    <div className="app-container animate-fade-in">
+      <header className="app-header animate-fade-in">
+        <div className="app-header-title-group">
+          <h1 className="app-header-title">AI Resume Tailor</h1>
+        </div>
+        <p className="app-header-subtitle">Tailor your resume for any job in seconds</p>
       </header>
-      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl p-8 border border-indigo-100">
-        {errorMessage && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6">
-            <strong className="font-bold">Error!</strong>
-            <span className="block sm:inline ml-2">{errorMessage}</span>
-          </div>
-        )}
-        {/* Drag and Drop Upload Area */}
-        <div
-          className={`w-full border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center transition-colors duration-200 ${dragActive ? 'border-indigo-500 bg-indigo-50' : 'border-indigo-200 bg-white'}`}
-          onDragEnter={handleDrag}
-          onDragOver={handleDrag}
-          onDragLeave={handleDrag}
-          onDrop={handleDrop}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,.docx"
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-          <button
-            type="button"
-            className="mb-2 px-6 py-2 bg-indigo-500 text-white rounded-lg font-semibold shadow hover:bg-indigo-600 transition"
-            onClick={() => fileInputRef.current && fileInputRef.current.click()}
-          >
-            Click to Upload Resume
-          </button>
-          <p className="text-gray-500">or drag and drop a PDF or DOCX file here</p>
+
+      <main className="main-content-area animate-fade-in">
+        <div className="main-grid-container">
+          <section className="section-card">
+            <div
+              className="upload-area"
+              onDragEnter={handleDrag}
+              onDragOver={handleDrag}
+              onDragLeave={handleDrag}
+              onDrop={handleDrop}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx"
+                onChange={handleFileUpload}
+                style={{ display: "none" }}
+              />
+              <button
+                type="button"
+                className="upload-button"
+                onClick={() => fileInputRef.current && fileInputRef.current.click()}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Upload Resume
+              </button>
+              {uploadedFileName && (
+                <div className="uploaded-file-name">
+                  Selected file: <span className="file-name-medium">{uploadedFileName}</span>
+                </div>
+              )}
+            </div>
+            {errorMessage && (
+              <div className="error-alert animate-fade-in">
+                <span className="material-icons">error_outline</span>
+                <span>{errorMessage}</span>
+              </div>
+            )}
+            <div className="job-desc-group">
+              <label className="job-desc-label" htmlFor="job-desc">
+                Job Description
+              </label>
+              <textarea
+                id="job-desc"
+                value={jobDesc}
+                onChange={(e) => setJobDesc(e.target.value)}
+                rows="7"
+                className="job-desc-textarea"
+                placeholder="Paste the job description here..."
+              />
+            </div>
+            <button
+              onClick={handleTailor}
+              className={`tailor-button ${loading ? 'loading' : ''}`}
+              disabled={loading || !resumeText}
+            >
+              {loading ? (
+                <span className="flex-center-gap">
+                  <svg className="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Tailoring...
+                </span>
+              ) : (
+                <span>Tailor Resume</span>
+              )}
+            </button>
+            {/* Summary of Changes Display */}
+            {changeSummary && (
+              <div className="summary-of-changes-box animate-fade-in">
+                <h3 className="summary-heading">Summary of Changes</h3>
+                <ul className="summary-list">
+                  {changeSummary.split(/\n|•/).filter(line => line.trim()).map((line, idx) => (
+                    <li key={idx} className="summary-item">{line.replace(/^[-•\s]+/, '')}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
+
+          <section className="section-card right-panel">
+            <h2 className="right-panel-title">
+              {displayResumeMode === 'empty' && "Your Resume Display"}
+              {displayResumeMode === 'original' && (pdfFileUrl ? "Original Resume" : "Original Resume")}
+              {displayResumeMode === 'tailored_highlighted' && "Tailored Resume"}
+            </h2>
+
+            {(displayResumeMode === 'original' && pdfFileUrl) ? (
+              <PdfViewer pdfFileUrl={pdfFileUrl} />
+            ) : (displayResumeMode === 'tailored_highlighted' && tailoredPdfUrl) ? (
+              <PdfViewer pdfFileUrl={tailoredPdfUrl} />
+            ) : (
+              <HighlightedResumeDisplay
+                originalText={resumeText}
+                tailoredText={output}
+                displayMode={displayResumeMode}
+              />
+            )}
+
+            {output && (
+              <div className="download-button-container">
+                <PDFDownloadLink
+                  document={<MyResumePdfDocument resumeText={output} />}
+                  fileName="tailored_resume.pdf"
+                >
+                  {({ loading }) =>
+                    loading ? (
+                      <button className="download-pdf-button loading" disabled>
+                        Generating Download...
+                      </button>
+                    ) : (
+                      <button className="download-pdf-button">
+                        Download PDF
+                      </button>
+                    )
+                  }
+                </PDFDownloadLink>
+              </div>
+            )}
+          </section>
         </div>
-        {/* Job Description Input */}
-        <div className="mt-8">
-          <label className="block text-lg font-semibold mb-2 text-indigo-700">Job Description</label>
-          <textarea
-            value={jobDesc}
-            onChange={(e) => setJobDesc(e.target.value)}
-            rows="8"
-            className="w-full rounded-lg border border-indigo-200 p-4 min-h-[120px] focus:ring-2 focus:ring-indigo-400"
-            placeholder="Paste the job description here..."
-          />
-        </div>
-        {/* Tailor Button */}
-        <button
-          onClick={handleTailor}
-          className={`w-full mt-6 py-3 px-6 rounded-xl text-white text-xl font-bold transition duration-300 ease-in-out transform hover:scale-105 shadow-lg
-            ${loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
-          disabled={loading}
-        >
-          {loading ? (
-            <span className="flex items-center justify-center">
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              Tailoring...
-            </span>
-          ) : (
-            "Tailor Resume"
-          )}
-        </button>
-        {/* Output Section */}
-        {output && (
-          <div className="mt-10">
-            <ResumePreview resumeText={output} loading={loading} />
-          </div>
-        )}
-      </div>
-      {/* Diff Viewer Modal */}
-      <ResumeDiffViewerModal
-        originalText={resumeText}
-        tailoredText={output}
-        isOpen={showDiffModal}
-        onClose={() => setShowDiffModal(false)}
-      />
+      </main>
     </div>
   );
 }

@@ -1,11 +1,11 @@
+/* index.css - Minimal global styles for a clean slate */
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  /* background-color: #242424; */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -13,21 +13,47 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
+/* Basic body reset to ensure full height and no default margins */
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
+  display: flex; /* Keep display: flex for root app container to fill screen */
   min-width: 320px;
   min-height: 100vh;
+}
+
+/* Ensure the root React app div also takes full space */
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* No global h1 or button styles here - they will be in App.css or component-specific CSS */
+
+/* Keep your custom animations as they are standard CSS */
+.animate-fade-in {
+  animation: fadeIn 1s cubic-bezier(.4,0,.2,1);
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 12s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 6s cubic-bezier(.4,0,.6,1) infinite;
+}
+
+/* This .hidden class is a common utility, keep it if not using Tailwind */
+.hidden {
+  display: none !important;
+}
+
+/* Keyframes for fadeIn animation */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 h1 {
@@ -52,43 +78,4 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.7s cubic-bezier(.4,0,.2,1);
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: none; }
-}
-
-/* Animated gradient background */
-@keyframes gradient-x {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-.animate-gradient-x {
-  background-size: 200% 200%;
-  animation: gradient-x 12s ease-in-out infinite;
-}
-
-@keyframes pulse-slow {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
-}
-.animate-pulse-slow {
-  animation: pulse-slow 6s cubic-bezier(.4,0,.6,1) infinite;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    /* background-color: #ffffff; */
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
 }
