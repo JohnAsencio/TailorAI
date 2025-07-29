@@ -1,155 +1,288 @@
 /* src/App.css */
 
+/* Define CSS Variables for Colors */
+:root {
+  /* Light mode colors */
+  --bg-primary: #e0e7ff; /* light background gradient start */
+  --bg-secondary: #bfdbfe; /* light background gradient end */
+  --header-bg: rgba(255, 255, 255, 0.8);
+  --header-border: #e0e7ff;
+  --header-title-color: #4338ca;
+  --header-subtitle-color: #6366f1;
+
+  --card-bg: #ffffff;
+  --card-border: #e0e7ff;
+
+  --upload-area-border: #c7d2fe;
+  --upload-area-drag-bg: #eef2ff;
+  --upload-area-drag-border: #6366f1;
+
+  --uploaded-file-name-color: #4b5563;
+
+  --error-bg: #fee2e2;
+  --error-border: #ef4444;
+  --error-text: #b91c1c;
+
+  --job-desc-label-color: #4338ca;
+  --job-desc-textarea-border: #a5b4fc;
+  --job-desc-textarea-color: #2c2c2c; /* Original text color for textarea */
+  --job-desc-textarea-placeholder: #9ca3af;
+  --job-desc-textarea-focus-ring: #6366f1;
+
+  --summary-box-bg: #f1f5fd;
+  --summary-box-border: #c7d2fe;
+  --summary-heading-color: #4338ca;
+  --summary-item-color: #1e293b;
+
+  --pdf-viewer-bg: #f0f0f0;
+  --pdf-page-border: #ddd;
+  --pdf-navigation-bg: #fff;
+  --pdf-page-info-color: #4b5563;
+  --pdf-placeholder-color: #6b7280;
+
+  /* Theme toggle button colors */
+  --theme-toggle-button-color: #4338ca;
+  --theme-toggle-button-hover-color: #6366f1;
+}
+
+/* Dark mode colors - applied when .dark class is on body */
+body.dark {
+  --bg-primary: #1a202c; /* Darker background */
+  --bg-secondary: #2d3748; /* Even darker */
+  --header-bg: rgba(45, 55, 72, 0.8);
+  --header-border: #4a5568;
+  --header-title-color: #a78bfa; /* Lighter indigo for dark mode */
+  --header-subtitle-color: #c4b5fd;
+
+  --card-bg: #2d3748; /* Dark card background */
+  --card-border: #4a5568;
+
+  --upload-area-border: #4a5568;
+  --upload-area-drag-bg: #2d3748;
+  --upload-area-drag-border: #667eea;
+
+  --uploaded-file-name-color: #a0aec0;
+
+  --error-bg: #fee2e2; /* Keep error colors consistent for visibility */
+  --error-border: #ef4444;
+  --error-text: #b91c1c;
+
+  --job-desc-label-color: #a78bfa; /* Lighter indigo */
+  --job-desc-textarea-border: #4a5568;
+  --job-desc-textarea-color: #e2e8f0; /* Light text for dark mode */
+  --job-desc-textarea-placeholder: #a0aec0;
+  --job-desc-textarea-focus-ring: #667eea;
+
+  --summary-box-bg: #2a3340;
+  --summary-box-border: #4a5568;
+  --summary-heading-color: #a78bfa;
+  --summary-item-color: #e2e8f0;
+
+  --pdf-viewer-bg: #2a3340; /* Darker background for PDF viewer area */
+  --pdf-page-border: #4a5568;
+  --pdf-navigation-bg: #2d3748;
+  --pdf-page-info-color: #a0aec0;
+  --pdf-placeholder-color: #a0aec0;
+
+  /* Theme toggle button colors */
+  --theme-toggle-button-color: #c4b5fd; /* Lighter color for dark mode button */
+  --theme-toggle-button-hover-color: #a78bfa;
+}
+
 /* Overall App Container */
 .app-container {
   min-height: 100vh;
-  background: linear-gradient(to bottom right, #e0e7ff, #bfdbfe); /* from-indigo-100 to-blue-50 */
+  background: linear-gradient(to bottom right, var(--bg-primary), var(--bg-secondary));
   display: flex;
   flex-direction: column;
-  padding: 2rem; /* p-8 */
-  align-items: center; /* items-center */
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif; /* font-sans */
+  padding: 2rem;
+  align-items: center;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  transition: background 0.5s ease-in-out; /* Smooth transition for background */
 }
+
+/* Theme Toggle Button Container (NEW) */
+.theme-toggle-container {
+  position: fixed; /* Fixes it relative to the viewport */
+  top: 2.5rem; /* Adjust as needed for spacing from top */
+  left: 1.2rem; /* Adjust as needed for spacing from left */
+  z-index: 1000; /* Ensure it's above other content */
+}
+
+/* Theme Toggle Button Style (Adjusted) */
+.theme-toggle-button {
+  background: var(--header-bg); /* Use header background for consistency */
+  border: 1px solid var(--header-border); /* Use header border */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  border-radius: 50%; /* Make it perfectly round */
+  width: 44px; /* Fixed width for a square container */
+  height: 44px; /* Fixed height for a square container */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.5rem; /* Icon size */
+  color: var(--theme-toggle-button-color); /* Icon color */
+  transition: all 0.3s ease; /* Smooth transitions for all properties */
+  padding: 0; /* Remove default button padding */
+}
+
+.theme-toggle-button:hover {
+  background-color: var(--card-bg); /* Slightly different background on hover */
+  color: var(--theme-toggle-button-hover-color);
+  transform: translateY(-2px); /* Subtle lift effect */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* More pronounced shadow on hover */
+}
+
+.theme-toggle-button:focus,
+.theme-toggle-button:active {
+  transform: translateY(0); /* Reset on click */
+  outline: none;
+}
+
 
 /* Header */
 .app-header {
   position: relative;
   top: 0;
   z-index: 10;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: var(--header-bg);
   backdrop-filter: blur(8px);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  border-bottom: 1px solid #e0e7ff;
-  padding: 1rem 1.5rem; /* py-4 px-6 */
+  border-bottom: 1px solid var(--header-border);
+  padding: 1rem 1.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem; /* gap-1 */
-  width: 100%; /* Ensure header spans full width */
+  gap: 0.25rem;
+  width: 100%;
+  transition: background-color 0.3s ease, border-color 0.3s ease; /* Smooth header transitions */
 }
 
 .app-header-title-group {
   display: flex;
   align-items: center;
-  gap: 0.75rem; /* gap-3 */
+  gap: 0.75rem;
 }
 
 /* Specific H1 style for the app title - overrides global h1 */
 .app-header-title {
-  font-size: 2.25rem; /* text-3xl */
-  line-height: 2.5rem; /* leading-10 */
-  font-weight: 800; /* font-extrabold */
-  color: #4338ca; /* text-indigo-800 */
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+  font-weight: 800;
+  color: var(--header-title-color);
   text-align: center;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  letter-spacing: -0.025em; /* tracking-tight */
+  letter-spacing: -0.025em;
+  transition: color 0.3s ease; /* Smooth color transition */
 }
-@media (min-width: 768px) { /* md: */
+@media (min-width: 768px) {
   .app-header-title {
-    font-size: 2.5rem; /* md:text-4xl */
+    font-size: 2.5rem;
     line-height: 1;
   }
 }
 
 .app-header-subtitle {
-  color: #6366f1; /* text-indigo-500 */
-  font-size: 0.875rem; /* text-sm */
+  color: var(--header-subtitle-color);
+  font-size: 0.875rem;
   line-height: 1.25rem;
   font-weight: 500;
-  margin-top: 0.25rem; /* mt-1 */
+  margin-top: 0.25rem;
+  transition: color 0.3s ease; /* Smooth color transition */
 }
-@media (min-width: 768px) { /* md: */
+@media (min-width: 768px) {
   .app-header-subtitle {
-    font-size: 1rem; /* md:text-base */
+    font-size: 1rem;
     line-height: 1.5rem;
   }
 }
 
 /* Main Content Area */
 .main-content-area {
-  flex: 1; /* flex-1 */
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%; /* w-full */
-  padding: 0 0.5rem; /* px-2 */
+  width: 100%;
+  padding: 0 0.5rem;
 }
-@media (min-width: 768px) { /* md: */
+@media (min-width: 768px) {
   .main-content-area {
-    padding: 0; /* md:px-0 */
+    padding: 0;
   }
 }
 
 /* Grid Container for Panels */
 .main-grid-container {
-  width: 100%; /* w-full */
-  max-width: 64rem; /* max-w-5xl */
+  width: 100%;
+  max-width: 80rem; /* Increased max-width */
   display: grid;
-  grid-template-columns: 1fr; /* grid-cols-1 */
-  gap: 2rem; /* gap-8 */
-  padding-top: 2.5rem; /* py-10 */
-  padding-bottom: 2.5rem; /* py-10 */
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  padding-top: 2.5rem;
+  padding-bottom: 2.5rem;
 }
-@media (min-width: 768px) { /* md: */
+@media (min-width: 768px) {
   .main-grid-container {
-    grid-template-columns: repeat(2, 1fr); /* md:grid-cols-2 */
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 /* Section Card (Left and Right Panels) */
 .section-card {
-  background-color: #ffffff;
-  border-radius: 1rem; /* rounded-2xl */
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
-  border: 1px solid #e0e7ff; /* border border-indigo-100 */
-  padding: 2rem; /* p-8 */
+  background-color: var(--card-bg);
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--card-border);
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem; /* gap-8 */
-  min-height: 500px; /* min-h-[500px] */
-  /* Removed max-width: 500px; to allow it to expand within the grid */
+  gap: 2rem;
+  min-height: 500px;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transitions */
 }
 /* Specific gap for right panel */
 .section-card.right-panel {
-  gap: 1.5rem; /* gap-6 */
-  overflow-y: auto; /* Allow vertical scrolling for content */
-  overflow-x: hidden; /* Prevent horizontal scrolling */
+  gap: 1.5rem;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 
 /* Upload Area */
 .upload-area {
-  width: 84%; /* Keep this if you want it narrower than its parent */
-  border: 2px dashed #c7d2fe; /* border-2 border-dashed border-indigo-200 */
-  border-radius: 0.75rem; /* rounded-xl */
-  padding: 2rem; /* p-8 */
+  width: 84%;
+  border: 2px dashed var(--upload-area-border);
+  border-radius: 0.75rem;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease-in-out; /* transition-colors duration-200 */
+  transition: all 0.2s ease-in-out;
 }
-.upload-area.drag-active { /* Class for drag-active state */
-  border-color: #6366f1; /* border-indigo-500 */
-  background-color: #eef2ff; /* bg-indigo-50 */
+.upload-area.drag-active {
+  border-color: var(--upload-area-drag-border);
+  background-color: var(--upload-area-drag-bg);
 }
 
 /* Custom Upload Button - overrides global button style */
 .upload-button {
   display: flex;
   align-items: center;
-  gap: 0.5rem; /* gap-2 */
-  margin-bottom: 0.5rem; /* mb-2 */
-  padding: 0.75rem 1.5rem; /* py-3 px-6 */
-  background: linear-gradient(to right, #6366f1, #3b82f6); /* bg-gradient-to-r from-indigo-500 to-blue-500 */
-  color: #ffffff; /* text-white */
-  border-radius: 0.5rem; /* rounded-lg */
-  font-weight: 600; /* font-semibold */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); /* shadow */
-  transition: transform 0.3s ease-in-out; /* transition transform duration-300 ease-in-out */
-  font-size: 1.125rem; /* text-lg */
-  border: none; /* Override global button border */
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(to right, #6366f1, #3b82f6);
+  color: #ffffff;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s ease-in-out;
+  font-size: 1.125rem;
+  border: none;
   cursor: pointer;
 }
 .upload-button:hover {
@@ -161,13 +294,14 @@
 
 /* Uploaded File Name Display */
 .uploaded-file-name {
-  font-size: 0.875rem; /* text-sm */
-  color: #4b5563; /* text-gray-600 */
-  margin-top: 0.25rem; /* mt-1 */
+  font-size: 0.875rem;
+  color: var(--uploaded-file-name-color);
+  margin-top: 0.25rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  transition: color 0.3s ease;
 }
 .uploaded-file-name .file-name-medium {
   font-weight: 500;
@@ -175,70 +309,74 @@
 
 /* Error Alert */
 .error-alert {
-  background-color: #fee2e2; /* bg-red-100 */
-  border: 1px solid #ef4444; /* border border-red-400 */
-  color: #b91c1c; /* text-red-700 */
-  padding: 0.75rem 1rem; /* px-4 py-3 */
-  border-radius: 0.25rem; /* rounded */
+  background-color: var(--error-bg);
+  border: 1px solid var(--error-border);
+  color: var(--error-text);
+  padding: 0.75rem 1rem;
+  border-radius: 0.25rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem; /* gap-2 */
+  gap: 0.5rem;
 }
 .error-alert .material-icons {
-  font-size: 1.25rem; /* text-xl */
+  font-size: 1.25rem;
 }
 
 /* Job Description */
 .job-desc-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* gap-2 */
+  gap: 0.5rem;
 }
 .job-desc-label {
-  display: block; /* block */
-  font-size: 1rem; /* text-base */
-  font-weight: 600; /* font-semibold */
-  color: #4338ca; /* text-indigo-700 */
-  margin-bottom: 0.25rem; /* mb-1 */
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--job-desc-label-color);
+  margin-bottom: 0.25rem;
+  transition: color 0.3s ease;
 }
 .job-desc-textarea {
-  width: 92%; /* Keep this if you want it narrower than its parent */
-  border-radius: 0.5rem; /* rounded-lg */
-  border: 1px solid #a5b4fc; /* border border-indigo-200 */
-  padding: 1rem; /* p-4 */
+  width: 92%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--job-desc-textarea-border);
+  padding: 1rem;
   min-height: 120px;
-  font-size: 1rem; /* text-base */
-  color: #FFF; /* text-gray-800 */
-  resize: vertical; /* resize-y */
-  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06); /* shadow-inner */
+  font-size: 1rem;
+  color: var(--job-desc-textarea-color); /* Use CSS variable */
+  background-color: var(--card-bg); /* Ensure background changes too */
+  resize: vertical;
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease; /* Smooth transitions */
 }
 .job-desc-textarea:focus {
   outline: 2px solid transparent;
   outline-offset: 2px;
-  box-shadow: 0 0 0 2px #6366f1; /* focus:ring-2 focus:ring-indigo-400 */
+  box-shadow: 0 0 0 2px var(--job-desc-textarea-focus-ring);
   border-color: transparent;
 }
 .job-desc-textarea::placeholder {
-  color: #9ca3af; /* placeholder-gray-400 */
+  color: var(--job-desc-textarea-placeholder);
+  transition: color 0.3s ease;
 }
 
 
 /* Tailor Button - overrides global button style */
 .tailor-button {
   width: 100%;
-  padding: 0.75rem 1.5rem; /* py-3 px-6 */
-  border-radius: 0.75rem; /* rounded-xl */
-  color: #ffffff;
-  font-size: 1.25rem; /* text-xl */
-  font-weight: 700; /* font-bold */
-  transition: all 0.4s ease-in-out; /* transition duration-300 ease-in-out transform */
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
-  background: linear-gradient(to right, #2563eb, #4f46e5); /* bg-gradient-to-r from-blue-600 to-indigo-600 */
-  border: none; /* Override global button border */
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  color: #ffffff; /* Keep white for readability on gradients */
+  font-size: 1.25rem;
+  font-weight: 700;
+  transition: all 0.4s ease-in-out;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(to right, #2563eb, #4f46e5); /* Keep gradient consistent */
+  border: none;
   cursor: pointer;
 }
 .tailor-button:hover {
-  background: linear-gradient(to right, #4338ca, #2563eb); /* hover:from-indigo-700 hover:to-blue-700 */
+  background: linear-gradient(to right, #4338ca, #2563eb);
   transform: scale(1.05);
 }
 .tailor-button:active {
@@ -266,15 +404,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* Align content to top */
+  justify-content: flex-start;
   width: 100%;
-  height: 100%; /* Occupy full height of parent section-card */
-  overflow: auto; /* Enable scrolling for large PDFs */
-  background-color: #f0f0f0;
-  border-radius: 0.75rem; /* rounded-xl */
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06); /* subtle inner shadow */
+  height: 100%;
+  overflow: auto;
+  background-color: var(--pdf-viewer-bg); /* Use CSS variable */
+  border-radius: 0.75rem;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
   padding: 1rem;
   box-sizing: border-box;
+  transition: background-color 0.3s ease, border-color 0.3s ease; /* Smooth transitions */
 }
 
 .pdf-document {
@@ -282,23 +421,23 @@
   height: auto;
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* Align pages to top */
+  align-items: flex-start;
   margin-bottom: 1rem;
 }
 
 .pdf-page {
-  /* react-pdf renders canvas inside, so target canvas directly */
-  width: 100% !important; /* Override inline styles from react-pdf */
-  height: auto !important; /* Override inline styles from react-pdf */
-  border: 1px solid #ddd;
+  width: 100% !important;
+  height: auto !important;
+  border: 1px solid var(--pdf-page-border); /* Use CSS variable */
   border-radius: 0.5rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: border-color 0.3s ease; /* Smooth transition */
 }
 
 .pdf-page canvas {
   width: 100% !important;
   height: auto !important;
-  border-radius: 0.5rem; /* Apply to the canvas itself */
+  border-radius: 0.5rem;
 }
 
 .pdf-navigation {
@@ -307,17 +446,18 @@
   align-items: center;
   margin-top: 1rem;
   padding: 0.5rem 1rem;
-  background-color: #fff;
-  border-radius: 9999px; /* rounded-full */
+  background-color: var(--pdf-navigation-bg); /* Use CSS variable */
+  border-radius: 9999px;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: background-color 0.3s ease; /* Smooth transition */
 }
 
 .pdf-nav-button {
-  background-color: #4f46e5; /* indigo-600 */
+  background-color: #4f46e5;
   color: white;
   padding: 0.5rem 1rem;
-  border-radius: 0.5rem; /* rounded-lg */
-  font-weight: 600; /* font-semibold */
+  border-radius: 0.5rem;
+  font-weight: 600;
   transition: background-color 0.2s ease-in-out;
   border: none;
   cursor: pointer;
@@ -325,19 +465,20 @@
 }
 
 .pdf-nav-button:hover:not(:disabled) {
-  background-color: #4338ca; /* indigo-700 */
+  background-color: #4338ca;
 }
 
 .pdf-nav-button:disabled {
-  background-color: #a78bfa; /* indigo-300 */
+  background-color: #a78bfa;
   cursor: not-allowed;
   opacity: 0.7;
 }
 
 .pdf-page-info {
   font-size: 0.95rem;
-  color: #4b5563; /* gray-700 */
+  color: var(--pdf-page-info-color); /* Use CSS variable */
   font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .pdf-placeholder {
@@ -346,10 +487,11 @@
   justify-content: center;
   height: 100%;
   width: 100%;
-  color: #6b7280; /* gray-500 */
+  color: var(--pdf-placeholder-color); /* Use CSS variable */
   font-style: italic;
-  font-size: 1.125rem; /* text-lg */
+  font-size: 1.125rem;
   text-align: center;
+  transition: color 0.3s ease;
 }
 
 /* Download PDF Button */
@@ -357,44 +499,55 @@
   display: flex;
   justify-content: center;
   margin-top: 1rem;
-  text-decoration: none;
+}
+
+/* Correct way to remove underline from the <a> tag generated by PDFDownloadLink */
+.download-button-container a {
+  text-decoration: none; /* This is the key to removing the underline */
+  cursor: pointer;
+  display: flex; /* Helps to correctly center the button content within the link */
+  align-items: center;
+  justify-content: center;
+  width: 100%; /* Make the link take full width within its container */
+  height: 100%; /* Ensure the clickable area matches the button */
 }
 
 .download-pdf-button {
-  background: linear-gradient(to right, #2563eb, #4f46e5); 
+  background: linear-gradient(to right, #2563eb, #4f46e5);
   color: white;
   padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem; /* rounded-lg */
-  font-weight: 600; /* font-semibold */
+  border-radius: 0.5rem;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 0.5rem; /* gap-2 */
+  gap: 0.5rem;
   border: none;
-  transition: all 0.4s ease-in-out; /* transition duration-300 ease-in-out transform */
+  transition: all 0.4s ease-in-out;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  text-decoration: none;
-}
-
-.download-button-container a {
-  text-decoration: none; 
+  cursor: pointer;
+  /* Removed text-decoration: none; from here as it's handled on the <a> tag */
 }
 
 .download-pdf-button:hover {
-  background: linear-gradient(to right, #4338ca, #2563eb); /* hover:from-indigo-700 hover:to-blue-700 */
+  background: linear-gradient(to right, #4338ca, #2563eb);
   transform: scale(1.05);
 }
 
 .download-pdf-button:disabled {
   opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .download-pdf-button .material-icons {
-  font-size: 1.25rem; /* text-xl */
+  font-size: 1.25rem;
 }
 
 .right-panel-title {
-  color: #4338ca; /* text-indigo-700 */
+  color: var(--header-title-color); /* Use CSS variable for consistency */
+  /* This rule applies 'display: contents;' which can sometimes affect parent's display properties,
+     but if it's working as intended, keep it. Otherwise, you might consider 'display: block;' or 'inline-block;' */
   display: contents;
+  transition: color 0.3s ease;
 }
 
 /* Animations */
@@ -420,27 +573,30 @@
 
 /* Summary of Changes Box */
 .summary-of-changes-box {
-  background: #f1f5fd; /* subtle blue-tinted background */
-  border: 1px solid #c7d2fe; /* indigo-200 */
+  background: var(--summary-box-bg);
+  border: 1px solid var(--summary-box-border);
   border-radius: 0.75rem;
   margin-top: 1.5rem;
   padding: 1.25rem 1.5rem;
-  color: #1e293b; /* slate-800 for good contrast */
+  color: var(--summary-item-color);
   box-shadow: 0 2px 8px rgba(67,56,202,0.04);
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease; /* Smooth transitions */
 }
 .summary-heading {
-  color: #4338ca; /* text-indigo-700, matches job-desc-label */
+  color: var(--summary-heading-color);
   font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
+  transition: color 0.3s ease;
 }
 .summary-list {
   margin: 0;
   padding-left: 1.25rem;
 }
 .summary-item {
-  color: #1e293b; /* slate-800 */
+  color: var(--summary-item-color);
   font-size: 1rem;
   margin-bottom: 0.25rem;
   line-height: 1.5;
+  transition: color 0.3s ease;
 }

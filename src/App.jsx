@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
 import { generateContent } from "./api";
@@ -8,25 +8,67 @@ import MyResumePdfDocument from "./MyResumePdfDocument";
 import PdfViewer from "./PdfViewer";
 import './App.css';
 
+// Set the worker source for PDF.js for proper functionality
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
 
 function App() {
+  // Theme state: Initializes from localStorage or detects system preference
+  const [theme, setTheme] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      return savedTheme;
+    }
+    // Detect system preference if no theme is saved
+    const prefersDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return prefersDarkMode ? 'dark' : 'light';
+  });
+
+  // Effect to apply theme class to the body and save to localStorage
+  useEffect(() => {
+    document.body.className = theme;
+    localStorage.setItem('theme', theme);
+
+    // Optional: Listen for system theme changes and update if user hasn't manually set a preference
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e) => {
+      // Only update if the user hasn't explicitly set a theme in localStorage
+      if (!localStorage.getItem('theme')) {
+        setTheme(e.matches ? 'dark' : 'light');
+      }
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    // Cleanup function to remove the event listener when the component unmounts
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [theme]); // Rerun this effect whenever 'theme' state changes
+
+  // Function to toggle between 'light' and 'dark' themes
+  const toggleTheme = () => {
+    setTheme(prevTheme => {
+      const newTheme = prevTheme === 'light' ? 'dark' : 'light';
+      localStorage.setItem('theme', newTheme); // Explicitly save manual choice
+      return newTheme;
+    });
+  };
+
+  // State variables for resume processing and display
   const [resumeText, setResumeText] = useState("");
   const [pdfFileUrl, setPdfFileUrl] = useState(null);
-  const [tailoredPdfUrl, setTailoredPdfUrl] = useState(null); // NEW
+  const [tailoredPdfUrl, setTailoredPdfUrl] = useState(null);
   const [jobDesc, setJobDesc] = useState("");
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [displayResumeMode, setDisplayResumeMode] = useState('empty');
+  const [displayResumeMode, setDisplayResumeMode] = useState('empty'); // 'empty', 'original', 'tailored_highlighted'
   const fileInputRef = useRef(null);
   const [uploadedFileName, setUploadedFileName] = useState("");
-  const [changeSummary, setChangeSummary] = useState(""); // NEW
+  const [changeSummary, setChangeSummary] = useState("");
 
+  // Function to clear error messages after a delay
   const clearMessages = () => {
     setTimeout(() => setErrorMessage(""), 5000);
   };
 
+  // Drag and drop handlers
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -40,14 +82,17 @@ function App() {
     }
   };
 
+  // Handles file upload (PDF or DOCX)
   const handleFileUpload = async (e) => {
     setErrorMessage("");
     const file = e.target.files[0];
     if (!file) {
+      // Reset all states if no file is selected
       setUploadedFileName("");
       setResumeText("");
       setPdfFileUrl(null);
       setOutput("");
+      setTailoredPdfUrl(null);
       setDisplayResumeMode('empty');
       return;
     }
@@ -60,8 +105,9 @@ function App() {
 
     if (fileType === "pdf") {
       const fileUrl = URL.createObjectURL(file);
-      setPdfFileUrl(fileUrl);
-      setDisplayResumeMode('original');
+      setPdfFileUrl(fileUrl); // Set PDF URL for direct viewing
+      setDisplayResumeMode('original'); // Set display mode to original PDF
+
       const reader = new FileReader();
       reader.onload = async () => {
         try {
@@ -76,17 +122,17 @@ function App() {
           if (!text.trim()) {
             setErrorMessage("The PDF appears to be empty or could not be read. Try a different file.");
             clearMessages();
-            setPdfFileUrl(null);
+            setPdfFileUrl(null); // Clear PDF URL if content is empty
             setUploadedFileName("");
             setDisplayResumeMode('empty');
             return;
           }
-          setResumeText(text);
+          setResumeText(text); // Store extracted text for AI processing
         } catch (error) {
           console.error("Error processing PDF:", error);
           setErrorMessage("Failed to extract text from PDF. Try a different file.");
           clearMessages();
-          setPdfFileUrl(null);
+          setPdfFileUrl(null); // Clear PDF URL on error
           setUploadedFileName("");
           setDisplayResumeMode('empty');
         }
@@ -101,8 +147,8 @@ function App() {
       };
       reader.readAsArrayBuffer(file);
     } else if (fileType === "docx") {
-      setPdfFileUrl(null);
-      setDisplayResumeMode('original');
+      setPdfFileUrl(null); // No PDF URL for DOCX
+      setDisplayResumeMode('original'); // Still displaying original resume, but as text
       const reader = new FileReader();
       reader.onload = async () => {
         try {
@@ -114,7 +160,7 @@ function App() {
             setDisplayResumeMode('empty');
             return;
           }
-          setResumeText(result.value);
+          setResumeText(result.value); // Store extracted text
         } catch (error) {
           console.error("Error processing DOCX:", error);
           setErrorMessage("Failed to process DOCX. Try a different file.");
@@ -134,6 +180,7 @@ function App() {
     }
   };
 
+  // Handles the resume tailoring process with AI
   const handleTailor = async () => {
     setErrorMessage("");
     if (!resumeText || !jobDesc) {
@@ -144,15 +191,16 @@ function App() {
 
     setLoading(true);
     setOutput("");
-    setTailoredPdfUrl(null);
+    setTailoredPdfUrl(null); // Clear previous tailored PDF URL
 
     const prompt = `You are an expert resume editor. Your job is to tailor the following resume to better fit the provided job description and be able to pass ATS systems.
     This system is geared for technical roles, but may be used for other sectors. For technical roles make sure the candidate looks like a high potential candidate for role.
-    For SWE roles, focus on results, and turn personal projects into real business value statements. 
+    For SWE roles, focus on results, and turn personal projects into real business value statements.
+
 Instructions:
 - Do NOT invent or fabricate any experience, education, or personal information.
 - ONLY make targeted improvements: add relevant keywords, quantify achievements, reword or rearrange bullet points, and re-order sections if it helps.
-- Preserve all original personal information and structure.
+- Preserve all original personal information and structure. DO NOT DELETE EVEN SEMI RELEVANT INFORMATION.
 - Output ONLY the improved resume in plain text, ready to use.
 - The resume should be formatted in a professional manner, with clear sections and bullet points.
 - The header of each section should be in all caps, bold, and left-aligned.
@@ -164,7 +212,7 @@ Instructions:
 - For **technical or professional roles**: Focus on sections like PROFESSIONAL EXPERIENCE, PROJECTS, TECHNICAL SKILLS, EDUCATION, CERTIFICATIONS (if relevant).
     - Only include 'INTERESTS' or 'AWARDS' sections if they directly demonstrate highly relevant skills or achievements for this specific role if not scrap it.
     - If a 'SKILLS' section is included, ensure it emphasizes abilities directly applicable to the job (e.g., programming languages, software tools for tech roles; customer service, teamwork for service roles) and includes keywords to pass ATS systems.
-- For **customer-facing or service roles (e.g., fast food, retail)**: Sections like relevant experience, customer service skills, teamwork, and transferable soft skills are more important. 'INTERESTS' or 'AWARDS' may be included if they showcase relevant soft skills or dedication
+- For **customer-facing or service roles (e.g., fast food, retail)**: Sections like relevant experience, customer service skills, teamwork, and transferable soft skills are more important. 'INTERESTS' or 'AWARDS' may be included if they showcase relevant soft skills or dedication.
 - For other sectors do the same thing. Only apply sections that are relevant to the job description.
 - Only include sections from the original resume that are truly beneficial for the target job.
 -------------------------------------
@@ -182,13 +230,14 @@ After the resume, add a section titled "Summary of Changes:" and list 2-4 bullet
     try {
       const result = await generateContent(prompt);
       const [tailoredResume, summary] = result.split("---SUMMARY OF CHANGES---");
-      setOutput(tailoredResume);
-      setChangeSummary(summary ? summary.trim() : ""); // NEW
-      setDisplayResumeMode('tailored_highlighted');
+      setOutput(tailoredResume); // Store tailored text
+      setChangeSummary(summary ? summary.trim() : ""); // Store summary of changes
+      setDisplayResumeMode('tailored_highlighted'); // Set display mode to tailored
 
+      // Generate PDF from tailored resume text
       const blob = await pdf(<MyResumePdfDocument resumeText={tailoredResume} />).toBlob();
       const tailoredBlobUrl = URL.createObjectURL(blob);
-      setTailoredPdfUrl(tailoredBlobUrl);
+      setTailoredPdfUrl(tailoredBlobUrl); // Store URL for tailored PDF viewer
     } catch (error) {
       console.error("Error generating content:", error);
       setErrorMessage("Something went wrong. Please try again.");
@@ -200,6 +249,22 @@ After the resume, add a section titled "Summary of Changes:" and list 2-4 bullet
 
   return (
     <div className="app-container animate-fade-in">
+      {/* Theme toggle button positioned in its own fixed container */}
+      <div className="theme-toggle-container">
+        <button
+          onClick={toggleTheme}
+          className="theme-toggle-button"
+          title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+        >
+          {/* Icons are reversed for intuitive interaction: show moon in light mode, sun in dark mode */}
+          {theme === 'light' ? (
+            <span className="material-icons">dark_mode</span> // In light mode, show moon to suggest switching to dark
+          ) : (
+            <span className="material-icons">light_mode</span> // In dark mode, show sun to suggest switching to light
+          )}
+        </button>
+      </div>
+
       <header className="app-header animate-fade-in">
         <div className="app-header-title-group">
           <h1 className="app-header-title">AI Resume Tailor</h1>
@@ -266,7 +331,7 @@ After the resume, add a section titled "Summary of Changes:" and list 2-4 bullet
             >
               {loading ? (
                 <span className="flex-center-gap">
-                  <svg className="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg className="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
@@ -292,35 +357,50 @@ After the resume, add a section titled "Summary of Changes:" and list 2-4 bullet
           <section className="section-card right-panel">
             <h2 className="right-panel-title">
               {displayResumeMode === 'empty' && "Your Resume Display"}
-              {displayResumeMode === 'original' && (pdfFileUrl ? "Original Resume" : "Original Resume")}
-              {displayResumeMode === 'tailored_highlighted' && "Tailored Resume"}
+              {displayResumeMode === 'original' && (pdfFileUrl ? "Original Resume (PDF Preview)" : "Original Resume (Text Preview)")}
+              {displayResumeMode === 'tailored_highlighted' && "Tailored Resume (PDF Preview)"} {/* Corrected: Removed extra ')' here */}
+              {loading && "Processing Resume..."}
             </h2>
 
-            {(displayResumeMode === 'original' && pdfFileUrl) ? (
+            {/* Conditional rendering for the right panel content */}
+            {displayResumeMode === 'original' && pdfFileUrl ? (
+              // Case 1: Original PDF uploaded and ready to preview
               <PdfViewer pdfFileUrl={pdfFileUrl} />
-            ) : (displayResumeMode === 'tailored_highlighted' && tailoredPdfUrl) ? (
+            ) : displayResumeMode === 'tailored_highlighted' && tailoredPdfUrl ? (
+              // Case 2: Tailored PDF generated and ready to preview
               <PdfViewer pdfFileUrl={tailoredPdfUrl} />
-            ) : (
+            ) : (displayResumeMode === 'original' || displayResumeMode === 'tailored_highlighted') && resumeText && !pdfFileUrl && !tailoredPdfUrl ? (
+              // Case 3: Text content is available (e.g., DOCX, or PDF that couldn't render visually),
+              // so show the HighlightedResumeDisplay to see the text.
               <HighlightedResumeDisplay
                 originalText={resumeText}
                 tailoredText={output}
-                displayMode={displayResumeMode}
+                displayMode={displayResumeMode} // Pass current mode to HighlightedResumeDisplay
+              />
+            ) : (
+              // Case 4: Default empty state or other unhandled state (show empty HighlightedResumeDisplay)
+              // This ensures a default message is always shown when no specific content is loaded.
+              <HighlightedResumeDisplay
+                originalText={""} // Explicitly empty if nothing is loaded
+                tailoredText={""}
+                displayMode={'empty'} // Force empty display mode for placeholder message
               />
             )}
 
-            {output && (
+            {output && ( // Show download button only if output (tailored resume text) exists
               <div className="download-button-container">
                 <PDFDownloadLink
                   document={<MyResumePdfDocument resumeText={output} />}
                   fileName="tailored_resume.pdf"
                 >
-                  {({ loading }) =>
-                    loading ? (
+                  {({ loading: downloadLoading }) => // Renamed 'loading' prop to avoid conflict with component's 'loading' state
+                    downloadLoading ? (
                       <button className="download-pdf-button loading" disabled>
                         Generating Download...
                       </button>
                     ) : (
                       <button className="download-pdf-button">
+                        <span className="material-icons">download</span>
                         Download PDF
                       </button>
                     )
