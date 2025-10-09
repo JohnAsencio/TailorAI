@@ -1,25 +1,20 @@
-🤖 Resume Tailor AI (Web Application)
+# 🤖 Resume Tailor AI (Web Application)
 A smart, browser-based AI software powered by the OpenAI API designed to automatically customize a master resume and output a ready-to-use PDF document.
 
 The Resume Tailor AI provides an intuitive interface where users paste or upload their master resume and a target job description (JD). It uses advanced language model capabilities to identify crucial keywords, required skills, and core responsibilities from the JD, generating a refined, tailored version of the resume that significantly boosts relevance for Applicant Tracking Systems (ATS) and human reviewers.
 
-✨ Core Features
-Web Interface: Easy-to-use interface for pasting or uploading resume and job description text.
+## ✨ Core Features
+ * Web Interface: Easy-to-use interface for pasting or uploading resume and job description text.
+ * Intelligent Keyword Extraction: Identifies and prioritizes specific technical, soft, and industry-related keywords from the job description.
+ * Relevance Scoring: Provides a real-time match score between the content of the resume and the demands of the JD.
+ * Content Rewriting Suggestions: Suggests refined, results-oriented bullet points and phrases based on the JD's language.
+ * PDF Output: Generates the final, optimized resume as a professional, submission-ready PDF file.
+ * ATS Optimization: Ensures the tailored output is structured and keyword-rich for maximum compatibility with automated screening tools.
 
-Intelligent Keyword Extraction: Identifies and prioritizes specific technical, soft, and industry-related keywords from the job description.
-
-Relevance Scoring: Provides a real-time match score between the content of the resume and the demands of the JD.
-
-Content Rewriting Suggestions: Suggests refined, results-oriented bullet points and phrases based on the JD's language.
-
-PDF Output: Generates the final, optimized resume as a professional, submission-ready PDF file.
-
-ATS Optimization: Ensures the tailored output is structured and keyword-rich for maximum compatibility with automated screening tools.
-
-🚀 Getting Started
+## 🚀 Getting Started
 Follow these steps to set up and run the web server for the project locally.
 
-Prerequisites
+### Prerequisites
 You need Python 3.8 or newer and a valid OpenAI API key. This project is built using a Python backend (e.g., Flask) and requires a library for HTML-to-PDF conversion.
 
 Python 3.8+
@@ -38,11 +33,11 @@ cd resume-tailor-ai
 
 Create and activate a virtual environment (highly recommended):
 
-# On macOS/Linux
+## On macOS/Linux
 python3 -m venv venv
 source venv/bin/activate
 
-# On Windows
+## On Windows
 python -m venv venv
 .\venv\Scripts\activate
 
