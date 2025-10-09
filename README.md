@@ -28,8 +28,8 @@ Web and PDF dependencies (e.g., Flask, requests, WeasyPrint)
 Setup & Running the Server
 Clone the repository:
 
-git clone [https://github.com/YourUsername/resume-tailor-ai.git](https://github.com/YourUsername/resume-tailor-ai.git)
-cd resume-tailor-ai
+git clone [https://github.com/johnasencio/tailorai.git](https://github.com/johnasencio/tailorai.git)
+cd tailorai
 
 Create and activate a virtual environment (highly recommended):
 
@@ -63,16 +63,16 @@ Option 2: Direct Shell Export
 
 You can also export the variable directly in your terminal session before starting the server:
 
-# On macOS/Linux
+## On macOS/Linux
 export OPENAI_API_KEY="sk-YOUR_SECRET_API_KEY_HERE"
 
-# On Windows (Command Prompt)
+## On Windows (Command Prompt)
 set OPENAI_API_KEY="sk-YOUR_SECRET_API_KEY_HERE"
 
 Starting the Web App
 Assuming your main application file is named app.py (which uses a framework like Flask):
 
-# Run the development server
+## Run the development server
 python app.py
 
 The application will typically be accessible at http://127.0.0.1:5000 or a similar local address.
