@@ -29,31 +29,32 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     marginBottom: 2,
   },
-  lineWithDate: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: 2,
-  },
-  jobRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    flexWrap: 'wrap',
-    marginBottom: 2,
-  },
-  // New style for job/education organization + date line
   orgDateLine: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
     marginBottom: 4,
   },
+  normalText: {
+    marginBottom: 2,
+  }
 });
 
+// Helper function to clean any remaining Markdown
+const cleanMarkdown = (text) => {
+  if (!text) return text;
+  // Remove bold/italic: **text** __text__ *text* _text_
+  let cleaned = text.replace(/(\*\*|__)(.*?)\1/g, '$2');
+  cleaned = cleaned.replace(/(\*|_)(.*?)\1/g, '$2');
+  // Remove headings: # ## ###
+  cleaned = cleaned.replace(/^#{1,6}\s+/gm, '');
+  // Remove code: `text`
+  cleaned = cleaned.replace(/`([^`]+)`/g, '$1');
+  return cleaned;
+};
+
 const isAllCaps = (text) => /^[A-Z\s]+$/.test(text.trim());
-const isBullet = (line) => /^[-•*]\s+/.test(line.trim()); // Added '*' for bullet
-const isDateLine = (text) => /\b\d{4}\s*[-–]\s*(?:\d{4}|Present)\b/i.test(text.trim());
+const isBullet = (line) => /^[-•*]\s+/.test(line.trim());
 const hasNumbers = (text) => /\d/.test(text);
 
 const MyResumePdfDocument = ({ resumeText }) => {
@@ -67,7 +68,10 @@ const MyResumePdfDocument = ({ resumeText }) => {
     );
   }
 
-  const lines = resumeText
+  // Clean the entire resume text first
+  const cleanedResumeText = cleanMarkdown(resumeText);
+
+  const lines = cleanedResumeText
     .split(/\r?\n/)
     .map((line) => line.replace(/^\uFEFF/, '').replace(/[^\x20-\x7E]+/g, '').trim())
     .filter((line) => line !== '');
@@ -110,10 +114,38 @@ const MyResumePdfDocument = ({ resumeText }) => {
       );
       continue;
     }
+    if (currentSectionTitle === 'EDUCATION') {
+      const nextLine = rest[i + 1] || '';
+      const eduTypeDateMatch = nextLine.match(/(.+?)\s*[-–]\s*(\b\d{4}\s*[-–]\s*(?:\d{4}|Present)\b)/i);
+
+      if (eduTypeDateMatch && !isBullet(nextLine)) {
+        const educationType = eduTypeDateMatch[1].trim();
+        const date = eduTypeDateMatch[2].trim();
+
+        sectionContent.push(
+          <Text key={`university-name-${i}`} style={styles.bold}>
+            {line}
+          </Text>
+        );
+        sectionContent.push(
+          <View key={`education-type-date-${i}`} style={styles.orgDateLine}>
+            <Text style={styles.italics}>{educationType}</Text>
+            <Text style={styles.italics}>{date}</Text>
+          </View>
+        );
+        i++;
+        continue;
+      }
+      sectionContent.push(
+        <Text key={`education-text-${i}`} style={styles.normalText}>
+          {line}
+        </Text>
+      );
+      continue;
+    }
 
     // Projects Section Formatting
     if (currentSectionTitle === 'PROJECTS') {
-      // If the next line is a bullet, this line is a project title
       if (isBullet(rest[i + 1])) {
         sectionContent.push(
           <Text key={`project-title-${i}`} style={styles.bold}>
@@ -121,9 +153,8 @@ const MyResumePdfDocument = ({ resumeText }) => {
           </Text>
         );
       } else {
-        // Fallback for non-bulleted lines in projects, though ideally all descriptions are bulleted
         sectionContent.push(
-          <Text key={`project-desc-fallback-${i}`}>
+          <Text key={`project-desc-fallback-${i}`} style={styles.normalText}>
             {line}
           </Text>
         );
@@ -132,8 +163,7 @@ const MyResumePdfDocument = ({ resumeText }) => {
     }
 
     // Skills Section Formatting
-    if (currentSectionTitle === 'SKILLS') {
-      // Assuming each line in SKILLS is a skill title to be bolded
+    if (currentSectionTitle === 'SKILLS' || currentSectionTitle === 'TECHNICAL SKILLS') {
       sectionContent.push(
         <Text key={`skill-${i}`} style={styles.bold}>
           {line}
@@ -143,11 +173,8 @@ const MyResumePdfDocument = ({ resumeText }) => {
     }
 
     // Experience Section Formatting
-    if (currentSectionTitle === 'EXPERIENCE') {
+    if (currentSectionTitle === 'EXPERIENCE' || currentSectionTitle === 'PROFESSIONAL EXPERIENCE') {
       const nextLine = rest[i + 1] || '';
-
-      // Check for Job Title followed by Company Name - Date
-      // This assumes the job title is followed by a line containing "Company Name - Date"
       const orgDateMatch = nextLine.match(/(.+?)\s*[-–]\s*(\b\d{4}\s*[-–]\s*(?:\d{4}|Present)\b)/i);
 
       if (orgDateMatch && !isBullet(nextLine)) {
@@ -156,7 +183,7 @@ const MyResumePdfDocument = ({ resumeText }) => {
 
         sectionContent.push(
           <Text key={`job-title-${i}`} style={styles.bold}>
-            {line} {/* This is the Job Title */}
+            {line}
           </Text>
         );
         sectionContent.push(
@@ -165,56 +192,21 @@ const MyResumePdfDocument = ({ resumeText }) => {
             <Text style={styles.italics}>{date}</Text>
           </View>
         );
-        i++; // Skip the next line as it's already consumed
+        i++;
         continue;
       }
-      // If it's not a job title/company line, it's likely a description (which should ideally be bulleted)
-      // For any other lines that might appear, just render them normally as a fallback.
       sectionContent.push(
-        <Text key={`experience-text-${i}`}>
+        <Text key={`experience-text-${i}`} style={styles.normalText}>
           {line}
         </Text>
       );
       continue;
     }
 
-    // Education Section Formatting
-    if (currentSectionTitle === 'EDUCATION') {
-      const nextLine = rest[i + 1] || '';
-
-      // Check for University Name followed by Education Type - Date
-      const eduTypeDateMatch = nextLine.match(/(.+?)\s*[-–]\s*(\b\d{4}\s*[-–]\s*(?:\d{4}|Present)\b)/i);
-
-      if (eduTypeDateMatch && !isBullet(nextLine)) {
-        const educationType = eduTypeDateMatch[1].trim();
-        const date = eduTypeDateMatch[2].trim();
-
-        sectionContent.push(
-          <Text key={`university-name-${i}`} style={styles.bold}>
-            {line} {/* This is the University Name */}
-          </Text>
-        );
-        sectionContent.push(
-          <View key={`education-type-date-${i}`} style={styles.orgDateLine}>
-            <Text style={styles.italics}>{educationType}</Text>
-            <Text style={styles.italics}>{date}</Text>
-          </View>
-        );
-        i++; // Skip the next line as it's already consumed
-        continue;
-      }
-      // For any other lines that might appear, just render them normally as a fallback.
-      sectionContent.push(
-        <Text key={`education-text-${i}`}>
-          {line}
-        </Text>
-      );
-      continue;
-    }
 
     // Default fallback for any lines not caught by specific section logic
     sectionContent.push(
-      <Text key={`fallback-${i}`}>
+      <Text key={`fallback-${i}`} style={styles.normalText}>
         {line}
       </Text>
     );

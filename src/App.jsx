@@ -8,6 +8,26 @@ import MyResumePdfDocument from "./MyResumePdfDocument";
 import PdfViewer from "./PdfViewer";
 import './App.css';
 
+// Utility function to clean Markdown formatting from text
+function cleanMarkdownFormatting(text) {
+  if (!text) return text;
+  
+  // Remove bold/italic markdown: **text** or __text__ or *text* or _text_
+  let cleaned = text.replace(/(\*\*|__)(.*?)\1/g, '$2');
+  cleaned = cleaned.replace(/(\*|_)(.*?)\1/g, '$2');
+  
+  // Remove heading markers: # ## ###
+  cleaned = cleaned.replace(/^#{1,6}\s+/gm, '');
+  
+  // Remove inline code: `text`
+  cleaned = cleaned.replace(/`([^`]+)`/g, '$1');
+  
+  // Remove links: [text](url) -> text
+  cleaned = cleaned.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+  
+  return cleaned;
+}
+
 // Set the worker source for PDF.js for proper functionality
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
 
@@ -62,6 +82,10 @@ function App() {
   const fileInputRef = useRef(null);
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [changeSummary, setChangeSummary] = useState("");
+  const [atsResultsOriginal, setAtsResultsOriginal] = useState(null);
+  const [atsResultsTailored, setAtsResultsTailored] = useState(null);
+  const [atsLoading, setAtsLoading] = useState(false);
+  const [atsCheckingType, setAtsCheckingType] = useState(null); // 'original' or 'tailored'
 
   // Function to clear error messages after a delay
   const clearMessages = () => {
@@ -180,6 +204,100 @@ function App() {
     }
   };
 
+  // Handles ATS checker analysis
+  const handleATSCheck = async (checkType) => {
+    setErrorMessage("");
+    const textToCheck = checkType === 'tailored' ? output : resumeText;
+    
+    if (!textToCheck || !jobDesc) {
+      setErrorMessage("Please upload your resume and enter a job description.");
+      clearMessages();
+      return;
+    }
+
+    if (checkType === 'tailored' && !output) {
+      setErrorMessage("Please tailor your resume first before checking the tailored version.");
+      clearMessages();
+      return;
+    }
+
+    setAtsLoading(true);
+    setAtsCheckingType(checkType);
+    
+    // Clear the specific result being checked
+    if (checkType === 'original') {
+      setAtsResultsOriginal(null);
+    } else {
+      setAtsResultsTailored(null);
+    }
+
+    const prompt = `You are an expert ATS (Applicant Tracking System) analyzer. Analyze how well the following resume matches the job description and provide a comprehensive ATS compatibility report.
+
+CRITICAL: Output your response in the following EXACT format (use these exact section headers):
+---ATS_SCORE---
+[Score as a number from 0-100]
+---KEYWORD_MATCH---
+[Percentage of job description keywords found in resume]
+---MATCHING_KEYWORDS---
+[List of keywords from job description that ARE found in the resume, separated by commas]
+---MISSING_KEYWORDS---
+[List of important keywords from job description that are NOT found in the resume, separated by commas]
+---FORMATTING_ISSUES---
+[List any ATS formatting issues like: tables, images, complex formatting, etc. If none, say "No major formatting issues detected"]
+---RECOMMENDATIONS---
+[2-4 specific, actionable recommendations to improve ATS compatibility, each on a new line starting with "- "]
+---OVERALL_ASSESSMENT---
+[A brief 2-3 sentence summary of the resume's ATS compatibility]
+
+Resume:
+${textToCheck}
+
+Job Description:
+${jobDesc}`;
+
+    try {
+      const result = await generateContent(prompt);
+      
+      // Parse the structured response
+      const parseATSSection = (text, sectionName) => {
+        const regex = new RegExp(`---${sectionName}---\\s*([\\s\\S]*?)(?=---|$)`);
+        const match = text.match(regex);
+        return match ? match[1].trim() : '';
+      };
+
+      const atsScore = parseATSSection(result, 'ATS_SCORE');
+      const keywordMatch = parseATSSection(result, 'KEYWORD_MATCH');
+      const matchingKeywords = parseATSSection(result, 'MATCHING_KEYWORDS');
+      const missingKeywords = parseATSSection(result, 'MISSING_KEYWORDS');
+      const formattingIssues = parseATSSection(result, 'FORMATTING_ISSUES');
+      const recommendations = parseATSSection(result, 'RECOMMENDATIONS');
+      const overallAssessment = parseATSSection(result, 'OVERALL_ASSESSMENT');
+
+      const results = {
+        score: atsScore,
+        keywordMatch: keywordMatch,
+        matchingKeywords: matchingKeywords.split(',').map(k => k.trim()).filter(k => k),
+        missingKeywords: missingKeywords.split(',').map(k => k.trim()).filter(k => k),
+        formattingIssues: formattingIssues,
+        recommendations: recommendations.split('\n').filter(r => r.trim()).map(r => r.replace(/^-\s*/, '')),
+        overallAssessment: overallAssessment
+      };
+
+      if (checkType === 'original') {
+        setAtsResultsOriginal(results);
+      } else {
+        setAtsResultsTailored(results);
+      }
+    } catch (error) {
+      console.error("Error running ATS check:", error);
+      setErrorMessage("Failed to run ATS check. Please try again.");
+      clearMessages();
+    } finally {
+      setAtsLoading(false);
+      setAtsCheckingType(null);
+    }
+  };
+
   // Handles the resume tailoring process with AI
   const handleTailor = async () => {
     setErrorMessage("");
@@ -192,19 +310,31 @@ function App() {
     setLoading(true);
     setOutput("");
     setTailoredPdfUrl(null); // Clear previous tailored PDF URL
+    setAtsResultsTailored(null); // Clear tailored ATS results when tailoring new resume
 
     const prompt = `You are an expert resume editor. Your job is to tailor the following resume to better fit the provided job description and be able to pass ATS systems.
-    This system is geared for technical roles, but may be used for other sectors. For technical roles make sure the candidate looks like a high potential candidate for role.
-    For SWE roles, focus on results, and turn personal projects into real business value statements.
+This system is geared for technical roles, but may be used for other sectors. For technical roles make sure the candidate looks like a high potential candidate for role.
+For SWE roles, focus on results, and turn personal projects into real business value statements. 
+
+CRITICAL FORMATTING RULES - FOLLOW EXACTLY:
+- Output ONLY plain text with NO special formatting characters whatsoever
+- DO NOT use asterisks (*), underscores (_), or hash symbols (#) for any formatting
+- DO NOT use Markdown, HTML, LaTeX, or any markup language syntax
+- Use ALL CAPS for section headers only (e.g., EXPERIENCE, EDUCATION, SKILLS)
+- Use simple bullets with a hyphen and space (- ) for bullet points
+- Keep all text as plain text without any bold, italic, code blocks, or other markup
+- Do not wrap anything in special characters or formatting symbols
 
 Instructions:
 - Do NOT invent or fabricate any experience, education, or personal information.
-- ONLY make targeted improvements: add relevant keywords, quantify achievements, reword or rearrange bullet points, and re-order sections if it helps.
+- Key changes are expected. Your primary goal is to maximize the keyword match score. This includes adding relevant quantified achievements and skills that are implied by the candidate's existing experience but explicitly requested by the Job Description.
+- If not too farfetched add skills from the job description to the resume, if it will help the candidate pass ATS systems.
 - Preserve all original personal information and structure. DO NOT DELETE EVEN SEMI RELEVANT INFORMATION.
 - Output ONLY the improved resume in plain text, ready to use.
 - The resume should be formatted in a professional manner, with clear sections and bullet points.
-- The header of each section should be in all caps, bold, and left-aligned.
+- The header of each section should be in all caps and left-aligned.
 - Be sure to add key words from the job description (from the job description and qualifications) to the resume.
+- Make the candidate look like a high potential fit for the role.
 
 --- SECTION SELECTION GUIDELINES ---
 - **Prioritize sections based on direct relevance to the job description.**
@@ -214,7 +344,7 @@ Instructions:
     - If a 'SKILLS' section is included, ensure it emphasizes abilities directly applicable to the job (e.g., programming languages, software tools for tech roles; customer service, teamwork for service roles) and includes keywords to pass ATS systems.
 - For **customer-facing or service roles (e.g., fast food, retail)**: Sections like relevant experience, customer service skills, teamwork, and transferable soft skills are more important. 'INTERESTS' or 'AWARDS' may be included if they showcase relevant soft skills or dedication.
 - For other sectors do the same thing. Only apply sections that are relevant to the job description.
-- Only include sections from the original resume that are truly beneficial for the target job.
+- Only include sections from the original resume that are truly beneficial for the target job, but don't leave out too much such that the word count is significantly reduced.
 -------------------------------------
 
 Resume:
@@ -230,12 +360,16 @@ After the resume, add a section titled "Summary of Changes:" and list 2-4 bullet
     try {
       const result = await generateContent(prompt);
       const [tailoredResume, summary] = result.split("---SUMMARY OF CHANGES---");
-      setOutput(tailoredResume); // Store tailored text
+      
+      // Clean any Markdown formatting that might have slipped through
+      const cleanedResume = cleanMarkdownFormatting(tailoredResume.trim());
+      
+      setOutput(cleanedResume); // Store tailored text
       setChangeSummary(summary ? summary.trim() : ""); // Store summary of changes
       setDisplayResumeMode('tailored_highlighted'); // Set display mode to tailored
 
       // Generate PDF from tailored resume text
-      const blob = await pdf(<MyResumePdfDocument resumeText={tailoredResume} />).toBlob();
+      const blob = await pdf(<MyResumePdfDocument resumeText={cleanedResume} />).toBlob();
       const tailoredBlobUrl = URL.createObjectURL(blob);
       setTailoredPdfUrl(tailoredBlobUrl); // Store URL for tailored PDF viewer
     } catch (error) {
@@ -326,7 +460,7 @@ After the resume, add a section titled "Summary of Changes:" and list 2-4 bullet
             </div>
             <button
               onClick={handleTailor}
-              className={`tailor-button ${loading ? 'loading' : ''}`}
+              className={`tailor-button ${loading ? ' loading' : ''}`}
               disabled={loading || !resumeText}
             >
               {loading ? (
@@ -357,8 +491,8 @@ After the resume, add a section titled "Summary of Changes:" and list 2-4 bullet
           <section className="section-card right-panel">
             <h2 className="right-panel-title">
               {displayResumeMode === 'empty' && "Your Resume Display"}
-              {displayResumeMode === 'original' && (pdfFileUrl ? "Original Resume (PDF Preview)" : "Original Resume (Text Preview)")}
-              {displayResumeMode === 'tailored_highlighted' && "Tailored Resume (PDF Preview)"} {/* Corrected: Removed extra ')' here */}
+              {displayResumeMode === 'original' && (pdfFileUrl ? "Original Resume " : "Original Resume ")}
+              {displayResumeMode === 'tailored_highlighted' && "Tailored Resume "}
               {loading && "Processing Resume..."}
             </h2>
 
@@ -410,6 +544,214 @@ After the resume, add a section titled "Summary of Changes:" and list 2-4 bullet
             )}
           </section>
         </div>
+
+        {/* ATS Check Buttons Section - Below main grid */}
+        <section className="ats-buttons-section animate-fade-in">
+          <div className="ats-check-buttons-group">
+            <button
+              onClick={() => handleATSCheck('original')}
+              className={`ats-check-button ats-check-original ${atsLoading && atsCheckingType === 'original' ? ' loading' : ''}`}
+              disabled={(atsLoading && atsCheckingType !== 'original') || !resumeText || !jobDesc}
+              title="Check how well your original resume matches the job description"
+            >
+              {atsLoading && atsCheckingType === 'original' ? (
+                <span className="flex-center-gap">
+                  <svg className="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Analyzing...
+                </span>
+              ) : (
+                <span className="flex-center-gap">
+                  <span className="material-icons">description</span>
+                  Check Original Resume
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => handleATSCheck('tailored')}
+              className={`ats-check-button ats-check-tailored ${atsLoading && atsCheckingType === 'tailored' ? ' loading' : ''}`}
+              disabled={(atsLoading && atsCheckingType !== 'tailored') || !output || !jobDesc}
+              title="Check how well your tailored resume matches the job description"
+            >
+              {atsLoading && atsCheckingType === 'tailored' ? (
+                <span className="flex-center-gap">
+                  <svg className="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Analyzing...
+                </span>
+              ) : (
+                <span className="flex-center-gap">
+                  <span className="material-icons">verified</span>
+                  Check Tailored Resume
+                </span>
+              )}
+            </button>
+          </div>
+        </section>
+
+        {/* ATS Results Comparison Section - Below buttons */}
+        {(atsResultsOriginal || atsResultsTailored) && (
+          <section className="ats-comparison-section animate-fade-in">
+            <h2 className="ats-comparison-heading">ATS Compatibility Comparison</h2>
+            <div className="ats-comparison-grid">
+              {/* Original Resume ATS Results */}
+              {atsResultsOriginal && (
+                <div className="ats-results-box ats-results-original">
+                  <div className="ats-header">
+                    <h3 className="ats-heading">Original Resume</h3>
+                    <div className="ats-score-circle">
+                      <div className="ats-score-number">{atsResultsOriginal.score}</div>
+                      <div className="ats-score-label">Score</div>
+                    </div>
+                  </div>
+                  
+                  <div className="ats-overall-assessment">
+                    {atsResultsOriginal.overallAssessment}
+                  </div>
+
+                  <div className="ats-metrics-grid">
+                    <div className="ats-metric">
+                      <div className="ats-metric-label">Keyword Match</div>
+                      <div className="ats-metric-value">{atsResultsOriginal.keywordMatch}</div>
+                    </div>
+                  </div>
+
+                  {atsResultsOriginal.matchingKeywords.length > 0 && (
+                    <div className="ats-section">
+                      <h4 className="ats-section-title">
+                        <span className="material-icons">check_circle</span>
+                        Matching Keywords
+                      </h4>
+                      <div className="ats-keywords-list matching">
+                        {atsResultsOriginal.matchingKeywords.map((keyword, idx) => (
+                          <span key={idx} className="ats-keyword-tag matching">{keyword}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {atsResultsOriginal.missingKeywords.length > 0 && (
+                    <div className="ats-section">
+                      <h4 className="ats-section-title">
+                        <span className="material-icons">warning</span>
+                        Missing Keywords
+                      </h4>
+                      <div className="ats-keywords-list missing">
+                        {atsResultsOriginal.missingKeywords.map((keyword, idx) => (
+                          <span key={idx} className="ats-keyword-tag missing">{keyword}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {atsResultsOriginal.formattingIssues && atsResultsOriginal.formattingIssues !== "No major formatting issues detected" && (
+                    <div className="ats-section">
+                      <h4 className="ats-section-title">
+                        <span className="material-icons">info</span>
+                        Formatting Issues
+                      </h4>
+                      <div className="ats-formatting-issues">{atsResultsOriginal.formattingIssues}</div>
+                    </div>
+                  )}
+
+                  {atsResultsOriginal.recommendations.length > 0 && (
+                    <div className="ats-section">
+                      <h4 className="ats-section-title">
+                        <span className="material-icons">lightbulb</span>
+                        Recommendations
+                      </h4>
+                      <ul className="ats-recommendations-list">
+                        {atsResultsOriginal.recommendations.map((rec, idx) => (
+                          <li key={idx} className="ats-recommendation-item">{rec}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tailored Resume ATS Results */}
+              {atsResultsTailored && (
+                <div className="ats-results-box ats-results-tailored">
+                  <div className="ats-header">
+                    <h3 className="ats-heading">Tailored Resume</h3>
+                    <div className="ats-score-circle ats-score-tailored">
+                      <div className="ats-score-number">{atsResultsTailored.score}</div>
+                      <div className="ats-score-label">Score</div>
+                    </div>
+                  </div>
+                  
+                  <div className="ats-overall-assessment">
+                    {atsResultsTailored.overallAssessment}
+                  </div>
+
+                  <div className="ats-metrics-grid">
+                    <div className="ats-metric">
+                      <div className="ats-metric-label">Keyword Match</div>
+                      <div className="ats-metric-value">{atsResultsTailored.keywordMatch}</div>
+                    </div>
+                  </div>
+
+                  {atsResultsTailored.matchingKeywords.length > 0 && (
+                    <div className="ats-section">
+                      <h4 className="ats-section-title">
+                        <span className="material-icons">check_circle</span>
+                        Matching Keywords
+                      </h4>
+                      <div className="ats-keywords-list matching">
+                        {atsResultsTailored.matchingKeywords.map((keyword, idx) => (
+                          <span key={idx} className="ats-keyword-tag matching">{keyword}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {atsResultsTailored.missingKeywords.length > 0 && (
+                    <div className="ats-section">
+                      <h4 className="ats-section-title">
+                        <span className="material-icons">warning</span>
+                        Missing Keywords
+                      </h4>
+                      <div className="ats-keywords-list missing">
+                        {atsResultsTailored.missingKeywords.map((keyword, idx) => (
+                          <span key={idx} className="ats-keyword-tag missing">{keyword}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {atsResultsTailored.formattingIssues && atsResultsTailored.formattingIssues !== "No major formatting issues detected" && (
+                    <div className="ats-section">
+                      <h4 className="ats-section-title">
+                        <span className="material-icons">info</span>
+                        Formatting Issues
+                      </h4>
+                      <div className="ats-formatting-issues">{atsResultsTailored.formattingIssues}</div>
+                    </div>
+                  )}
+
+                  {atsResultsTailored.recommendations.length > 0 && (
+                    <div className="ats-section">
+                      <h4 className="ats-section-title">
+                        <span className="material-icons">lightbulb</span>
+                        Recommendations
+                      </h4>
+                      <ul className="ats-recommendations-list">
+                        {atsResultsTailored.recommendations.map((rec, idx) => (
+                          <li key={idx} className="ats-recommendation-item">{rec}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );
