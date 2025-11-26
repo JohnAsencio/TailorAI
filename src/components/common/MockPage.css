@@ -1,0 +1,28 @@
+/* Simple section card for placeholder pages */
+.simple-section-card {
+  background-color: var(--card-bg);
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--card-border);
+  padding: 2rem;
+  max-width: 50rem;
+  width: 100%;
+  margin: 0 auto;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.simple-section-title {
+  color: var(--header-title-color);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  transition: color 0.3s ease;
+}
+
+.simple-section-text {
+  color: var(--summary-item-color);
+  font-size: 1rem;
+  line-height: 1.6;
+  transition: color 0.3s ease;
+}
+
