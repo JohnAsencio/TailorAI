@@ -159,10 +159,83 @@ body.dark {
   transition: background-color 0.3s ease, border-color 0.3s ease; /* Smooth header transitions */
 }
 
+.app-header-inner {
+  width: 100%;
+  max-width: 80rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
 .app-header-title-group {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.app-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.nav-tab {
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: var(--header-subtitle-color);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.nav-tab:hover {
+  background-color: rgba(129, 140, 248, 0.1);
+  border-color: rgba(129, 140, 248, 0.4);
+}
+
+.nav-tab.active {
+  background: linear-gradient(to right, #6366f1, #4f46e5);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.25);
+}
+
+.app-header-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-icon-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--header-border);
+  background-color: var(--card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--header-title-color);
+  transition: all 0.2s ease;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.profile-icon-button:hover {
+  background-color: rgba(129, 140, 248, 0.12);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.profile-icon-button .material-icons {
+  font-size: 1.5rem;
 }
 
 /* Specific H1 style for the app title - overrides global h1 */
@@ -188,7 +261,7 @@ body.dark {
   font-size: 0.875rem;
   line-height: 1.25rem;
   font-weight: 500;
-  margin-top: 0.25rem;
+  margin-top: 0.4rem;
   transition: color 0.3s ease; /* Smooth color transition */
 }
 @media (min-width: 768px) {
@@ -204,7 +277,7 @@ body.dark {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
   padding: 0 0.5rem;
 }
@@ -973,4 +1046,272 @@ body.dark .ats-keyword-tag.missing {
   .ats-buttons-section {
     padding: 0 1rem;
   }
+}
+
+/* Simple sections for Dashboard / Mock Interviews / Profile */
+.simple-section-card {
+  width: 100%;
+  max-width: 80rem;
+  margin: 2.5rem auto 0;
+  background-color: var(--card-bg);
+  border-radius: 1rem;
+  border: 1px solid var(--card-border);
+  padding: 2rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.simple-section-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--header-title-color);
+  margin-bottom: 0.75rem;
+}
+
+.simple-section-text {
+  font-size: 0.95rem;
+  color: var(--summary-item-color);
+  line-height: 1.6;
+}
+
+.auth-form {
+  margin-top: 1rem;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.auth-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.auth-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--job-desc-label-color);
+}
+
+.auth-input {
+  border-radius: 0.5rem;
+  border: 1px solid var(--job-desc-textarea-border);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  color: var(--job-desc-textarea-color);
+  background-color: var(--card-bg);
+}
+
+.auth-input:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--job-desc-textarea-focus-ring);
+  border-color: transparent;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.auth-button {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-button.primary {
+  background: linear-gradient(to right, #6366f1, #4f46e5);
+  color: #ffffff;
+}
+
+.auth-button.secondary {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.auth-error-text {
+  color: #dc2626;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+/* Auth Page (Login) */
+.auth-page-section {
+  width: 100%;
+  max-width: 28rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.auth-page-container {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  padding: 2.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.auth-page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--header-title-color);
+  text-align: center;
+  margin-bottom: 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.auth-page-subtitle {
+  font-size: 0.95rem;
+  color: var(--header-subtitle-color);
+  text-align: center;
+  margin-bottom: 2rem;
+  transition: color 0.3s ease;
+}
+
+.auth-config-warning {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+  color: var(--header-subtitle-color);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.auth-divider span {
+  padding: 0 1rem;
+  font-size: 0.875rem;
+}
+
+.google-button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #dadce0;
+  background-color: #ffffff;
+  color: #3c4043;
+  font-size: 0.95rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.google-button:hover {
+  background-color: #f8f9fa;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.google-button:active {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.google-icon {
+  width: 20px;
+  height: 20px;
+}
+
+body.dark .google-button {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--summary-item-color);
+}
+
+body.dark .google-button:hover {
+  background-color: rgba(129, 140, 248, 0.1);
+}
+
+/* Profile Page */
+.profile-info-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.profile-avatar-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: var(--card-bg);
+  border: 2px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--header-title-color);
+}
+
+.profile-avatar-large .material-icons {
+  font-size: 3.5rem;
+}
+
+.profile-info {
+  text-align: center;
+}
+
+.profile-email {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--header-title-color);
+  margin-bottom: 0.25rem;
+  transition: color 0.3s ease;
+}
+
+.profile-meta {
+  font-size: 0.875rem;
+  color: var(--header-subtitle-color);
+  font-family: monospace;
+  transition: color 0.3s ease;
+}
+
+.profile-settings-section {
+  margin-top: 1.5rem;
+}
+
+.profile-settings-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--header-title-color);
+  margin-bottom: 0.75rem;
+  transition: color 0.3s ease;
+}
+
+.auth-button.secondary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.auth-button.secondary .material-icons {
+  font-size: 1.125rem;
 }

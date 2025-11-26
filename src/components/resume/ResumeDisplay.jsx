@@ -1,6 +1,6 @@
 import React from 'react';
 import { diffWords } from 'diff';
-import './ResumeDisplay.css'; // NEW
+import './ResumeDisplay.css';
 
 function HighlightedResumeDisplay({ originalText, tailoredText, displayMode }) {
   let contentToDisplay;
