@@ -1,7 +1,21 @@
 import { generateContent } from "../api";
 import { cleanMarkdownFormatting } from "../utils/textUtils";
 
-export async function tailorResume(resumeText, jobDescription) {
+export async function tailorResume(resumeText, jobDescription, allowExpansion = false) {
+  const expansionInstructions = allowExpansion 
+    ? `- CRITICAL PRIORITY: Actively identify and ADD keywords from the job description that are missing from the resume. Extract all important keywords, skills, technologies, and qualifications from the job description and ensure they appear in the resume.
+- You MUST add new bullet points to existing experiences that incorporate missing keywords from the job description, making them believable and contextually appropriate based on the candidate's background.
+- You MUST add relevant skills, technologies, or tools mentioned in the job description to the SKILLS section, even if they weren't explicitly in the original resume.
+- Focus on maximizing keyword match by strategically weaving missing keywords throughout the resume - in bullet points, skills sections, and experience descriptions.
+- Add quantified achievements or responsibilities that incorporate job description keywords and could reasonably be part of the candidate's experience, as long as they align with their existing background.
+- When adding keywords, integrate them naturally into existing bullet points or add new bullet points that make sense for the role.
+- CRITICAL: Keep the resume to ONE PAGE. Be concise and prioritize the most impactful content. If adding content would exceed one page, prioritize quality over quantity and remove less relevant bullet points or consolidate information.`
+    : `- Do NOT invent or fabricate any experience, education, or personal information.
+- Only add keywords and skills that are implied by the candidate's existing experience.
+- Do NOT add new bullet points or experiences that aren't already suggested by the original resume content.
+- Focus on rephrasing and optimizing existing content rather than adding new content.
+- CRITICAL: Keep the resume to ONE PAGE. Maintain concise formatting and remove any unnecessary content.`;
+
   const prompt = `You are an expert resume editor. Your job is to tailor the following resume to better fit the provided job description and be able to pass ATS systems.
 This system is geared for technical roles, but may be used for other sectors. For technical roles make sure the candidate looks like a high potential candidate for role.
 For SWE roles, focus on results, and turn personal projects into real business value statements. 
@@ -16,15 +30,16 @@ CRITICAL FORMATTING RULES - FOLLOW EXACTLY:
 - Do not wrap anything in special characters or formatting symbols
 
 Instructions:
-- Do NOT invent or fabricate any experience, education, or personal information.
-- Key changes are expected. Your primary goal is to maximize the keyword match score. This includes adding relevant quantified achievements and skills that are implied by the candidate's existing experience but explicitly requested by the Job Description.
-- If not too farfetched add skills from the job description to the resume, if it will help the candidate pass ATS systems.
+${expansionInstructions}
+- Key changes are expected. Your primary goal is to maximize the keyword match score.
+${allowExpansion ? '- IMPORTANT: When expansion mode is enabled, you MUST actively add missing keywords from the job description. Scan the job description for all important terms, skills, technologies, and qualifications, and ensure they appear in the tailored resume. This is a top priority.' : ''}
 - Preserve all original personal information and structure. DO NOT DELETE EVEN SEMI RELEVANT INFORMATION.
 - Output ONLY the improved resume in plain text, ready to use.
 - The resume should be formatted in a professional manner, with clear sections and bullet points.
 - The header of each section should be in all caps and left-aligned.
 - Be sure to add key words from the job description (from the job description and qualifications) to the resume.
 - Make the candidate look like a high potential fit for the role.
+- PAGE LENGTH CONSTRAINT: The final resume MUST fit on ONE PAGE. Use concise language, combine similar bullet points when possible, and prioritize the most relevant and impactful content. If you must choose between adding new content and staying within one page, prioritize staying within one page while still maximizing keyword relevance.
 
 --- SECTION SELECTION GUIDELINES ---
 - **Prioritize sections based on direct relevance to the job description.**

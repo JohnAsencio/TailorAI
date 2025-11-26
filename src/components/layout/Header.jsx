@@ -16,7 +16,6 @@ export default function Header({ user, activeView, setActiveView }) {
           <ProfileButton onClick={() => setActiveView("profile")} />
         )}
       </div>
-      <p className="app-header-subtitle">Tailor your resume, run ATS checks, and practice mock interviews.</p>
     </header>
   );
 }

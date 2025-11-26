@@ -1,5 +1,6 @@
 import './LoginPage.css';
 import { supabase } from '../../supabaseClient';
+import TypewriterText from '../common/TypewriterText';
 
 export default function LoginPage({
   authEmail,
@@ -15,6 +16,7 @@ export default function LoginPage({
     <section className="auth-page-section animate-fade-in">
       <div className="auth-page-container">
         <h2 className="auth-page-title">Welcome to AI Resume Tailor</h2>
+        <TypewriterText />
         <p className="auth-page-subtitle">Sign in or create an account to get started</p>
         
         {!supabase && (

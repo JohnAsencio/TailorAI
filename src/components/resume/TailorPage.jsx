@@ -1,4 +1,3 @@
-import { useState, useRef } from "react";
 import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
 import { extractTextFromPDF, extractTextFromDOCX, getFileType } from "../../services/resumeService";
 import { tailorResume } from "../../services/tailorService";
@@ -8,25 +7,44 @@ import PdfViewer from "./PdfViewer";
 import MyResumePdfDocument from "./MyResumePdfDocument";
 import ATSChecker from "../ats/ATSChecker";
 import ATSComparison from "../ats/ATSComparison";
+import LoadingSpinner from "../common/LoadingSpinner";
 import '../../App.css';
 
-export default function TailorPage() {
-  // State variables for resume processing and display
-  const [resumeText, setResumeText] = useState("");
-  const [pdfFileUrl, setPdfFileUrl] = useState(null);
-  const [tailoredPdfUrl, setTailoredPdfUrl] = useState(null);
-  const [jobDesc, setJobDesc] = useState("");
-  const [output, setOutput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [displayResumeMode, setDisplayResumeMode] = useState('empty');
-  const fileInputRef = useRef(null);
-  const [uploadedFileName, setUploadedFileName] = useState("");
-  const [changeSummary, setChangeSummary] = useState("");
-  const [atsResultsOriginal, setAtsResultsOriginal] = useState(null);
-  const [atsResultsTailored, setAtsResultsTailored] = useState(null);
-  const [atsLoading, setAtsLoading] = useState(false);
-  const [atsCheckingType, setAtsCheckingType] = useState(null);
+export default function TailorPage({ resumeState }) {
+  // Use state from parent (App.jsx) so it persists across tab switches
+  const {
+    resumeText,
+    setResumeText,
+    pdfFileUrl,
+    setPdfFileUrl,
+    tailoredPdfUrl,
+    setTailoredPdfUrl,
+    jobDesc,
+    setJobDesc,
+    output,
+    setOutput,
+    loading,
+    setLoading,
+    errorMessage,
+    setErrorMessage,
+    displayResumeMode,
+    setDisplayResumeMode,
+    fileInputRef,
+    uploadedFileName,
+    setUploadedFileName,
+    changeSummary,
+    setChangeSummary,
+    atsResultsOriginal,
+    setAtsResultsOriginal,
+    atsResultsTailored,
+    setAtsResultsTailored,
+    atsLoading,
+    setAtsLoading,
+    atsCheckingType,
+    setAtsCheckingType,
+    allowExpansion,
+    setAllowExpansion,
+  } = resumeState;
 
   // Function to clear error messages after a delay
   const clearMessages = () => {
@@ -179,7 +197,7 @@ export default function TailorPage() {
     setAtsResultsTailored(null);
 
     try {
-      const { tailoredResume, summary } = await tailorResume(resumeText, jobDesc);
+      const { tailoredResume, summary } = await tailorResume(resumeText, jobDesc, allowExpansion);
       
       setOutput(tailoredResume);
       setChangeSummary(summary);
@@ -251,6 +269,30 @@ export default function TailorPage() {
               placeholder="Paste the job description here..."
             />
           </div>
+          
+          {/* Allow Expansion Toggle */}
+          <div className="expansion-toggle-group">
+            <label className="expansion-toggle-label">
+              <div className="expansion-toggle-switch">
+                <input
+                  type="checkbox"
+                  checked={allowExpansion}
+                  onChange={(e) => setAllowExpansion(e.target.checked)}
+                  className="expansion-toggle-input"
+                />
+                <span className="expansion-toggle-slider"></span>
+              </div>
+              <span className="expansion-toggle-text">
+                Allow AI to add keywords and expand content
+              </span>
+            </label>
+            <p className="expansion-toggle-hint">
+              {allowExpansion 
+                ? "AI can add missing keywords, skills, and believable bullet points."
+                : "AI will only optimize existing content."}
+            </p>
+          </div>
+
           <button
             onClick={handleTailor}
             className={`tailor-button ${loading ? ' loading' : ''}`}
@@ -282,13 +324,14 @@ export default function TailorPage() {
 
         <section className="section-card right-panel">
           <h2 className="right-panel-title">
-            {displayResumeMode === 'empty' && "Your Resume Display"}
-            {displayResumeMode === 'original' && (pdfFileUrl ? "Original Resume " : "Original Resume ")}
-            {displayResumeMode === 'tailored_highlighted' && "Tailored Resume "}
-            {loading && "Processing Resume..."}
+            {loading ? "Processing Resume..." : displayResumeMode === 'empty' && "Your Resume Display"}
+            {!loading && displayResumeMode === 'original' && (pdfFileUrl ? "Original Resume " : "Original Resume ")}
+            {!loading && displayResumeMode === 'tailored_highlighted' && "Tailored Resume "}
           </h2>
 
-          {displayResumeMode === 'original' && pdfFileUrl ? (
+          {loading ? (
+            <LoadingSpinner message="Tailoring your resume to match the job description..." />
+          ) : displayResumeMode === 'original' && pdfFileUrl ? (
             <PdfViewer pdfFileUrl={pdfFileUrl} />
           ) : displayResumeMode === 'tailored_highlighted' && tailoredPdfUrl ? (
             <PdfViewer pdfFileUrl={tailoredPdfUrl} />

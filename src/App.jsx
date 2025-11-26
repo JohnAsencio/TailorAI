@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "./hooks/useTheme";
 import { useAuth } from "./hooks/useAuth";
+import { useResume } from "./hooks/useResume";
 import { initializePdfWorker } from "./utils/pdfUtils";
 import { ThemeToggle, Header, LoginPage, ProfilePage, TailorPage, MockPage } from "./components";
 import './App.css';
@@ -23,6 +24,9 @@ function App() {
     handleSignOut,
     handleGoogleSignIn,
   } = useAuth();
+
+  // Resume state that persists across tab switches
+  const resumeState = useResume();
 
   const [activeView, setActiveView] = useState("login");
 
@@ -59,7 +63,7 @@ function App() {
           />
         )}
 
-        {user && activeView === "tailor" && <TailorPage />}
+        {user && activeView === "tailor" && <TailorPage resumeState={resumeState} />}
         {user && activeView === "mock" && <MockPage />}
         {user && activeView === "profile" && (
           <ProfilePage user={user} handleSignOut={handleSignOut} />
