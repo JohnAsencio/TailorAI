@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import './TypewriterText.css';
 
 const messages = [
-  "Make sure you get your next role",
   "Make sure you get the interview",
   "Land your dream job",
   "Stand out to recruiters",
   "Pass ATS systems with ease",
   "Get noticed by hiring managers",
   "Ace your next application",
+  "Practice for your next interview",
 ];
 
 export default function TypewriterText() {

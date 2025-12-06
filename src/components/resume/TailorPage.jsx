@@ -44,6 +44,8 @@ export default function TailorPage({ resumeState }) {
     setAtsCheckingType,
     allowExpansion,
     setAllowExpansion,
+    additionalContext,
+    setAdditionalContext,
   } = resumeState;
 
   // Function to clear error messages after a delay
@@ -197,7 +199,7 @@ export default function TailorPage({ resumeState }) {
     setAtsResultsTailored(null);
 
     try {
-      const { tailoredResume, summary } = await tailorResume(resumeText, jobDesc, allowExpansion);
+      const { tailoredResume, summary } = await tailorResume(resumeText, jobDesc, allowExpansion, additionalContext);
       
       setOutput(tailoredResume);
       setChangeSummary(summary);
@@ -272,24 +274,45 @@ export default function TailorPage({ resumeState }) {
           
           {/* Allow Expansion Toggle */}
           <div className="expansion-toggle-group">
-            <label className="expansion-toggle-label">
-              <div className="expansion-toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={allowExpansion}
-                  onChange={(e) => setAllowExpansion(e.target.checked)}
-                  className="expansion-toggle-input"
-                />
-                <span className="expansion-toggle-slider"></span>
-              </div>
-              <span className="expansion-toggle-text">
-                Allow AI to add keywords and expand content
-              </span>
+            <label className="expansion-toggle-label" htmlFor="allow-expansion-toggle">
+              Allow AI to add keywords
             </label>
-            <p className="expansion-toggle-hint">
-              {allowExpansion 
-                ? "AI can add missing keywords, skills, and believable bullet points."
-                : "AI will only optimize existing content."}
+            <div className="expansion-toggle-box">
+              <label className="expansion-toggle-control">
+                <div className="expansion-toggle-switch">
+                  <input
+                    id="allow-expansion-toggle"
+                    type="checkbox"
+                    checked={allowExpansion}
+                    onChange={(e) => setAllowExpansion(e.target.checked)}
+                    className="expansion-toggle-input"
+                  />
+                  <span className="expansion-toggle-slider"></span>
+                </div>
+                <span className="expansion-toggle-hint">
+                  {allowExpansion 
+                    ? "AI can add missing keywords, skills, and believable bullet points."
+                    : "AI will only optimize existing content."}
+                </span>
+              </label>
+            </div>
+          </div>
+
+          {/* Additional Context Input */}
+          <div className="additional-context-group">
+            <label className="additional-context-label" htmlFor="additional-context">
+              Additional Context (Optional)
+            </label>
+            <textarea
+              id="additional-context"
+              value={additionalContext}
+              onChange={(e) => setAdditionalContext(e.target.value)}
+              rows="3"
+              className="additional-context-textarea"
+              placeholder="Add any specific instructions, corrections, or context for the AI (e.g., 'Emphasize my leadership experience' or 'Make sure to include keywords in the description')"
+            />
+            <p className="additional-context-hint">
+              Use this to provide specific guidance or corrections if the AI didn't get something right the first time.
             </p>
           </div>
 
@@ -324,7 +347,7 @@ export default function TailorPage({ resumeState }) {
 
         <section className="section-card right-panel">
           <h2 className="right-panel-title">
-            {loading ? "Processing Resume..." : displayResumeMode === 'empty' && "Your Resume Display"}
+            {loading ? "Processing Resume..." : displayResumeMode === 'empty' && "Your Resume"}
             {!loading && displayResumeMode === 'original' && (pdfFileUrl ? "Original Resume " : "Original Resume ")}
             {!loading && displayResumeMode === 'tailored_highlighted' && "Tailored Resume "}
           </h2>

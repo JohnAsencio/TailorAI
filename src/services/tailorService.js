@@ -1,7 +1,7 @@
 import { generateContent } from "../api";
 import { cleanMarkdownFormatting } from "../utils/textUtils";
 
-export async function tailorResume(resumeText, jobDescription, allowExpansion = false) {
+export async function tailorResume(resumeText, jobDescription, allowExpansion = false, additionalContext = "") {
   const expansionInstructions = allowExpansion 
     ? `- CRITICAL PRIORITY: Actively identify and ADD keywords from the job description that are missing from the resume. Extract all important keywords, skills, technologies, and qualifications from the job description and ensure they appear in the resume.
 - You MUST add new bullet points to existing experiences that incorporate missing keywords from the job description, making them believable and contextually appropriate based on the candidate's background.
@@ -57,6 +57,13 @@ ${resumeText}
 
 Job Description:
 ${jobDescription}
+${additionalContext ? `
+
+--- ADDITIONAL USER CONTEXT/INSTRUCTIONS ---
+${additionalContext}
+Please carefully consider and incorporate these specific instructions or corrections into the tailored resume.
+--- END ADDITIONAL CONTEXT ---
+` : ''}
 
 After the resume, add a section titled "Summary of Changes:" and list 2-4 bullet points summarizing the key changes you made. Separate the summary from the resume with the line:
 ---SUMMARY OF CHANGES---

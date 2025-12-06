@@ -17,6 +17,7 @@ export function useResume() {
   const [atsLoading, setAtsLoading] = useState(false);
   const [atsCheckingType, setAtsCheckingType] = useState(null);
   const [allowExpansion, setAllowExpansion] = useState(false); // New toggle for allowing AI to add content
+  const [additionalContext, setAdditionalContext] = useState(""); // Additional context/instructions for AI
 
   return {
     resumeText,
@@ -50,6 +51,8 @@ export function useResume() {
     setAtsCheckingType,
     allowExpansion,
     setAllowExpansion,
+    additionalContext,
+    setAdditionalContext,
   };
 }
 
