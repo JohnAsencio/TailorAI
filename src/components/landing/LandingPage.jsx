@@ -139,7 +139,7 @@ export default function LandingPage() {
       {/* Features Section */}
       <section className="landing-features">
         <div className="features-container">
-          <h2 className="features-title">Why Choose Resume Tailor AI?</h2>
+          <h2 className="features-title">Why Choose Tailor AI?</h2>
           <div className="features-grid">
             <div className="feature-card">
               <div className="feature-icon">🎯</div>

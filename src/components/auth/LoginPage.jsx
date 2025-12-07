@@ -24,7 +24,7 @@ export default function LoginPage({
             ← Back
           </button>
         )}
-        <h2 className="auth-page-title">Welcome to AI Resume Tailor</h2>
+        <h2 className="auth-page-title">Welcome to Tailor AI</h2>
         <TypewriterText />
         <p className="auth-page-subtitle">Sign in or create an account to get started</p>
         

@@ -1,7 +1,7 @@
-# 🤖 Resume Tailor AI (Web Application)
+# 🤖 Tailor AI (Web Application)
 A smart, browser-based AI software powered by the OpenAI API designed to automatically customize a master resume and output a ready-to-use PDF document.
 
-The Resume Tailor AI provides an intuitive interface where users paste or upload their master resume and a target job description (JD). It uses advanced language model capabilities to identify crucial keywords, required skills, and core responsibilities from the JD, generating a refined, tailored version of the resume that significantly boosts relevance for Applicant Tracking Systems (ATS) and human reviewers.
+Tailor AI provides an intuitive interface where users paste or upload their master resume and a target job description (JD). It uses advanced language model capabilities to identify crucial keywords, required skills, and core responsibilities from the JD, generating a refined, tailored version of the resume that significantly boosts relevance for Applicant Tracking Systems (ATS) and human reviewers.
 
 ## ✨ Core Features
  * Web Interface: Easy-to-use interface for pasting or uploading resume and job description text.

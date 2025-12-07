@@ -6,10 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-REFACTORING_NOTES.md
-SAVED_RESUMES_SETUP.md
-WAITLIST_SETUP.md
-VERCEL_DEPLOYMENT.md
+docs/
 
 node_modules
 dist

@@ -15,6 +15,8 @@ import '../../App.css';
 export default function TailorPage({ resumeState, user }) {
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
   // Use state from parent (App.jsx) so it persists across tab switches
   const {
     resumeText,
@@ -213,11 +215,6 @@ export default function TailorPage({ resumeState, user }) {
       const blob = await pdf(<MyResumePdfDocument resumeText={tailoredResume} />).toBlob();
       const tailoredBlobUrl = URL.createObjectURL(blob);
       setTailoredPdfUrl(tailoredBlobUrl);
-
-      // Auto-save the tailored resume
-      if (user) {
-        await handleSaveResume(tailoredResume, jobDesc, resumeText);
-      }
     } catch (error) {
       console.error("Error generating content:", error);
       setErrorMessage("Something went wrong. Please try again.");
@@ -228,26 +225,47 @@ export default function TailorPage({ resumeState, user }) {
   };
 
   // Save tailored resume to database
-  const handleSaveResume = async (tailoredText, jobDescription, originalText) => {
-    if (!user) return;
+  const handleSaveResume = async () => {
+    if (!user) {
+      setErrorMessage("Please sign in to save resumes.");
+      clearMessages();
+      return;
+    }
+
+    if (!output) {
+      setErrorMessage("Please tailor your resume first before saving.");
+      clearMessages();
+      return;
+    }
+
+    // Validate required fields
+    if (!companyName.trim() || !jobTitle.trim()) {
+      setErrorMessage("Please enter both company name and job title before saving.");
+      clearMessages();
+      return;
+    }
 
     setSaving(true);
     setSaveMessage('');
+    setErrorMessage('');
 
-    // Extract job title from job description (first line or first 50 chars)
-    const jobTitle = jobDescription.split('\n')[0].substring(0, 50).trim() || 'Untitled Resume';
+    // Combine company and job title for the job title field
+    const fullJobTitle = `${jobTitle} at ${companyName}`;
 
     const result = await saveTailoredResume(
       user.id,
-      tailoredText,
-      jobDescription,
-      jobTitle,
-      originalText
+      output,
+      jobDesc,
+      fullJobTitle,
+      resumeText
     );
 
     if (result.success) {
       setSaveMessage('✓ Resume saved successfully!');
       setTimeout(() => setSaveMessage(''), 3000);
+      // Clear the fields after successful save
+      setCompanyName('');
+      setJobTitle('');
     } else {
       setSaveMessage('Failed to save resume');
       setTimeout(() => setSaveMessage(''), 3000);
@@ -354,6 +372,41 @@ export default function TailorPage({ resumeState, user }) {
             </p>
           </div>
 
+          {/* Company and Job Title Fields */}
+          <div className="save-info-group">
+            <div className="save-info-row">
+              <div className="save-info-field">
+                <label className="save-info-label" htmlFor="company-name">
+                  Company Name *
+                </label>
+                <input
+                  id="company-name"
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  className="save-info-input"
+                  placeholder="e.g., Google"
+                />
+              </div>
+              <div className="save-info-field">
+                <label className="save-info-label" htmlFor="job-title-input">
+                  Job Title *
+                </label>
+                <input
+                  id="job-title-input"
+                  type="text"
+                  value={jobTitle}
+                  onChange={(e) => setJobTitle(e.target.value)}
+                  className="save-info-input"
+                  placeholder="e.g., Software Engineer"
+                />
+              </div>
+            </div>
+            <p className="save-info-hint">
+              * Required when saving your tailored resume
+            </p>
+          </div>
+
           <button
             onClick={handleTailor}
             className={`tailor-button ${loading ? ' loading' : ''}`}
@@ -379,6 +432,37 @@ export default function TailorPage({ resumeState, user }) {
                   <li key={idx} className="summary-item">{line.replace(/^[-•\s]+/, '')}</li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {/* Save Resume Button */}
+          {output && user && (
+            <div className="save-resume-section">
+              {saveMessage && (
+                <div className={`save-message ${saveMessage.includes('✓') ? 'success' : 'error'}`}>
+                  {saveMessage}
+                </div>
+              )}
+              <button
+                onClick={handleSaveResume}
+                className={`save-resume-button ${saving ? 'loading' : ''}`}
+                disabled={saving || !output}
+              >
+                {saving ? (
+                  <span className="flex-center-gap">
+                    <svg className="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Saving...
+                  </span>
+                ) : (
+                  <>
+                    <span className="material-icons">save</span>
+                    Save Resume
+                  </>
+                )}
+              </button>
             </div>
           )}
         </section>

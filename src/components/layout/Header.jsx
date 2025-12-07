@@ -7,7 +7,7 @@ export default function Header({ user, activeView, setActiveView }) {
     <header className="app-header animate-fade-in">
       <div className="app-header-inner">
         <div className="app-header-title-group">
-          <h1 className="app-header-title">AI Resume Tailor</h1>
+          <h1 className="app-header-title">Tailor AI</h1>
         </div>
         {user && (
           <Navigation activeView={activeView} setActiveView={setActiveView} />
