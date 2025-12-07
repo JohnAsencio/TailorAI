@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import WaitlistForm from './WaitlistForm';
+import MockInterviewChat from './MockInterviewChat';
 import './LandingPage.css';
 
 export default function LandingPage() {
@@ -110,28 +111,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mock-interviews-visual">
-            <div className="mock-visual-card">
-              <div className="mock-card-header">
-                <div className="mock-card-dots">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
-                <div className="mock-card-title">AI Interview Simulator</div>
-              </div>
-              <div className="mock-card-content">
-                <div className="mock-chat-bubble interviewer">
-                  <p>"Tell me about a time you led a cross-functional team to deliver a project on time."</p>
-                </div>
-                <div className="mock-chat-bubble candidate">
-                  <p>"In my previous role, I led a team of 8 engineers across 3 departments to deliver a major product launch..."</p>
-                </div>
-                <div className="mock-feedback">
-                  <span className="feedback-icon">✨</span>
-                  <span>Great example! Consider adding specific metrics.</span>
-                </div>
-              </div>
-            </div>
+            <MockInterviewChat />
           </div>
         </div>
       </section>
