@@ -1,6 +1,6 @@
 import './ProfilePage.css';
 
-export default function ProfilePage({ user, handleSignOut }) {
+export default function ProfilePage({ user, handleSignOut, theme, toggleTheme }) {
   return (
     <section className="simple-section-card animate-fade-in">
       <h2 className="simple-section-title">Profile & Settings</h2>
@@ -11,6 +11,43 @@ export default function ProfilePage({ user, handleSignOut }) {
         <div className="profile-info">
           <h3 className="profile-email">{user.email}</h3>
           <p className="profile-meta">User ID: {user.id}</p>
+        </div>
+      </div>
+      
+      <div className="profile-settings-section">
+        <h4 className="profile-settings-title">Appearance</h4>
+        <div className="profile-setting-item">
+          <div className="profile-setting-info">
+            <div className="profile-setting-label">Theme</div>
+            <p className="profile-setting-description">
+              Choose between light and dark mode. Default is dark mode.
+            </p>
+          </div>
+          <div className="profile-theme-toggle-wrapper">
+            <label className="profile-theme-toggle" htmlFor="theme-toggle">
+              <input
+                id="theme-toggle"
+                type="checkbox"
+                checked={theme === 'dark'}
+                onChange={toggleTheme}
+                className="profile-theme-toggle-input"
+              />
+              <span className="profile-theme-toggle-slider"></span>
+            </label>
+            <span className="profile-theme-toggle-label">
+              {theme === 'dark' ? (
+                <>
+                  <span className="material-icons">dark_mode</span>
+                  <span>Dark Mode</span>
+                </>
+              ) : (
+                <>
+                  <span className="material-icons">light_mode</span>
+                  <span>Light Mode</span>
+                </>
+              )}
+            </span>
+          </div>
         </div>
       </div>
       

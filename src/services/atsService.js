@@ -1,4 +1,4 @@
-import { generateContent } from "../api";
+import { generateATSContent } from "../api";
 import { parseATSSection } from "../utils/textUtils";
 
 export async function checkATSCompatibility(resumeText, jobDescription) {
@@ -26,7 +26,7 @@ ${resumeText}
 Job Description:
 ${jobDescription}`;
 
-  const result = await generateContent(prompt);
+  const result = await generateATSContent(prompt);
   
   const atsScore = parseATSSection(result, 'ATS_SCORE');
   const keywordMatch = parseATSSection(result, 'KEYWORD_MATCH');

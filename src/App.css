@@ -99,6 +99,10 @@ body.dark {
   align-items: center;
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   transition: background 0.5s ease-in-out; /* Smooth transition for background */
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* Theme Toggle Button Container (NEW) */
@@ -149,7 +153,7 @@ body.dark {
   background-color: var(--header-bg);
   backdrop-filter: blur(8px);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  border-bottom: 1px solid var(--header-border);
+  border-radius: 1rem;
   padding: 1rem 1.5rem;
   display: flex;
   flex-direction: column;
@@ -245,6 +249,24 @@ body.dark {
   font-weight: 800;
   color: var(--header-title-color);
   text-align: center;
+}
+
+.header-signin-button {
+  padding: 0.625rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--header-title-color);
+  background: transparent;
+  border: 2px solid var(--header-title-color);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.header-signin-button:hover {
+  background: var(--header-title-color);
+  color: white;
+  transform: translateY(-2px);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   letter-spacing: -0.025em;
   transition: color 0.3s ease; /* Smooth color transition */
@@ -279,11 +301,15 @@ body.dark {
   align-items: center;
   justify-content: flex-start;
   width: 100%;
+  max-width: 100%;
   padding: 0 0.5rem;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 @media (min-width: 768px) {
   .main-content-area {
-    padding: 0;
+    padding: 0 1rem;
+    max-width: 100%;
   }
 }
 
@@ -821,6 +847,28 @@ body.dark {
 }
 
 /* Download PDF Button */
+.save-message {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.save-message.success {
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #059669;
+}
+
+.save-message.error {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+}
+
 .download-button-container {
   display: flex;
   justify-content: center;
@@ -1209,13 +1257,23 @@ body.dark .ats-keyword-tag.missing {
 /* Simple sections for Dashboard / Mock Interviews / Profile */
 .simple-section-card {
   width: 100%;
-  max-width: 80rem;
+  max-width: 100%;
   margin: 2.5rem auto 0;
   background-color: var(--card-bg);
   border-radius: 1rem;
   border: 1px solid var(--card-border);
   padding: 2rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+@media (min-width: 768px) {
+  .simple-section-card {
+    max-width: min(80rem, calc(100vw - 8rem));
+  }
 }
 
 .simple-section-title {
@@ -1317,6 +1375,28 @@ body.dark .ats-keyword-tag.missing {
   padding: 2.5rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   transition: background-color 0.3s ease, border-color 0.3s ease;
+  position: relative;
+}
+
+.back-to-landing-button {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--header-subtitle-color);
+  background: transparent;
+  border: 1px solid var(--card-border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-to-landing-button:hover {
+  color: var(--header-title-color);
+  border-color: var(--header-title-color);
+  background: rgba(99, 102, 241, 0.05);
 }
 
 .auth-page-title {

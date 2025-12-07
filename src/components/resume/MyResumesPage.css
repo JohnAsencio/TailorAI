@@ -1,0 +1,334 @@
+.my-resumes-page {
+  width: 100%;
+  max-width: 100%;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.my-resumes-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.my-resumes-header {
+  margin-bottom: 2rem;
+}
+
+.my-resumes-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--header-title-color);
+  margin-bottom: 0.5rem;
+}
+
+.my-resumes-subtitle {
+  font-size: 1rem;
+  color: var(--header-subtitle-color);
+  margin: 0;
+}
+
+/* Empty State */
+.empty-resumes-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+}
+
+.empty-resumes-icon {
+  font-size: 4rem;
+  color: var(--header-subtitle-color);
+  margin-bottom: 1rem;
+}
+
+.empty-resumes-icon .material-icons {
+  font-size: 4rem;
+}
+
+.empty-resumes-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--header-title-color);
+  margin-bottom: 0.5rem;
+}
+
+.empty-resumes-text {
+  font-size: 1rem;
+  color: var(--header-subtitle-color);
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Resumes Grid */
+.resumes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.resume-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.resume-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-color: var(--header-title-color);
+}
+
+.resume-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.resume-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--header-title-color);
+  margin: 0;
+  flex: 1;
+}
+
+.resume-delete-button {
+  background: transparent;
+  border: none;
+  color: var(--header-subtitle-color);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.resume-delete-button:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.resume-delete-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.resume-delete-button .spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.resume-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.resume-card-date {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--header-subtitle-color);
+  margin: 0;
+}
+
+.resume-card-date .material-icons {
+  font-size: 1rem;
+}
+
+.resume-card-preview {
+  font-size: 0.9rem;
+  color: var(--job-desc-textarea-color);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.resume-card-footer {
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--card-border);
+}
+
+.resume-card-action {
+  font-size: 0.875rem;
+  color: var(--header-title-color);
+  font-weight: 500;
+}
+
+/* Resume Detail View */
+.resume-detail-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.resume-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.5rem;
+  color: var(--header-title-color);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: var(--header-title-color);
+  color: white;
+  border-color: var(--header-title-color);
+}
+
+.back-button .material-icons {
+  font-size: 1.25rem;
+}
+
+.resume-detail-title-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.resume-detail-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--header-title-color);
+  margin: 0 0 0.25rem 0;
+}
+
+.resume-detail-date {
+  font-size: 0.875rem;
+  color: var(--header-subtitle-color);
+  margin: 0;
+}
+
+.resume-detail-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.mock-interview-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.4);
+}
+
+.mock-interview-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.5);
+}
+
+.mock-interview-button .material-icons {
+  font-size: 1.25rem;
+}
+
+.resume-detail-content {
+  margin-bottom: 2rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  overflow: hidden;
+  min-height: 600px;
+}
+
+.resume-loading {
+  padding: 4rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.job-description-section {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.job-description-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--header-title-color);
+  margin: 0 0 1rem 0;
+}
+
+.job-description-text {
+  font-size: 0.95rem;
+  color: var(--job-desc-textarea-color);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .my-resumes-page {
+    padding: 1rem;
+  }
+
+  .resumes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resume-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .resume-detail-actions {
+    width: 100%;
+  }
+
+  .mock-interview-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

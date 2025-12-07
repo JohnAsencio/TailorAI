@@ -11,10 +11,19 @@ export default function LoginPage({
   handleSignIn,
   handleSignUp,
   handleGoogleSignIn,
+  onBackToLanding,
 }) {
   return (
     <section className="auth-page-section animate-fade-in">
       <div className="auth-page-container">
+        {onBackToLanding && (
+          <button 
+            className="back-to-landing-button"
+            onClick={onBackToLanding}
+          >
+            ← Back
+          </button>
+        )}
         <h2 className="auth-page-title">Welcome to AI Resume Tailor</h2>
         <TypewriterText />
         <p className="auth-page-subtitle">Sign in or create an account to get started</p>

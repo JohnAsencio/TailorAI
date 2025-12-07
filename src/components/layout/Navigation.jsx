@@ -12,6 +12,13 @@ export default function Navigation({ activeView, setActiveView }) {
       </button>
       <button
         type="button"
+        className={`nav-tab ${activeView === "resumes" ? "active" : ""}`}
+        onClick={() => setActiveView("resumes")}
+      >
+        My Resumes
+      </button>
+      <button
+        type="button"
         className={`nav-tab ${activeView === "mock" ? "active" : ""}`}
         onClick={() => setActiveView("mock")}
       >

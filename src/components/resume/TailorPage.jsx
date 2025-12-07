@@ -2,15 +2,19 @@ import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
 import { extractTextFromPDF, extractTextFromDOCX, getFileType } from "../../services/resumeService";
 import { tailorResume } from "../../services/tailorService";
 import { checkATSCompatibility } from "../../services/atsService";
+import { saveTailoredResume } from "../../services/savedResumeService";
 import HighlightedResumeDisplay from "./ResumeDisplay";
 import PdfViewer from "./PdfViewer";
 import MyResumePdfDocument from "./MyResumePdfDocument";
 import ATSChecker from "../ats/ATSChecker";
 import ATSComparison from "../ats/ATSComparison";
 import LoadingSpinner from "../common/LoadingSpinner";
+import { useState } from 'react';
 import '../../App.css';
 
-export default function TailorPage({ resumeState }) {
+export default function TailorPage({ resumeState, user }) {
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
   // Use state from parent (App.jsx) so it persists across tab switches
   const {
     resumeText,
@@ -209,6 +213,11 @@ export default function TailorPage({ resumeState }) {
       const blob = await pdf(<MyResumePdfDocument resumeText={tailoredResume} />).toBlob();
       const tailoredBlobUrl = URL.createObjectURL(blob);
       setTailoredPdfUrl(tailoredBlobUrl);
+
+      // Auto-save the tailored resume
+      if (user) {
+        await handleSaveResume(tailoredResume, jobDesc, resumeText);
+      }
     } catch (error) {
       console.error("Error generating content:", error);
       setErrorMessage("Something went wrong. Please try again.");
@@ -216,6 +225,35 @@ export default function TailorPage({ resumeState }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Save tailored resume to database
+  const handleSaveResume = async (tailoredText, jobDescription, originalText) => {
+    if (!user) return;
+
+    setSaving(true);
+    setSaveMessage('');
+
+    // Extract job title from job description (first line or first 50 chars)
+    const jobTitle = jobDescription.split('\n')[0].substring(0, 50).trim() || 'Untitled Resume';
+
+    const result = await saveTailoredResume(
+      user.id,
+      tailoredText,
+      jobDescription,
+      jobTitle,
+      originalText
+    );
+
+    if (result.success) {
+      setSaveMessage('✓ Resume saved successfully!');
+      setTimeout(() => setSaveMessage(''), 3000);
+    } else {
+      setSaveMessage('Failed to save resume');
+      setTimeout(() => setSaveMessage(''), 3000);
+    }
+
+    setSaving(false);
   };
 
   return (
@@ -374,6 +412,11 @@ export default function TailorPage({ resumeState }) {
 
           {output && (
             <div className="download-button-container">
+              {saveMessage && (
+                <div className={`save-message ${saveMessage.includes('✓') ? 'success' : 'error'}`}>
+                  {saveMessage}
+                </div>
+              )}
               <PDFDownloadLink
                 document={<MyResumePdfDocument resumeText={output} />}
                 fileName="tailored_resume.pdf"

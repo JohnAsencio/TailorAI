@@ -12,6 +12,14 @@ export default function Header({ user, activeView, setActiveView }) {
         {user && (
           <Navigation activeView={activeView} setActiveView={setActiveView} />
         )}
+        {!user && activeView === "landing" && (
+          <button 
+            className="header-signin-button"
+            onClick={() => setActiveView("login")}
+          >
+            Sign In
+          </button>
+        )}
         {user && (
           <ProfileButton onClick={() => setActiveView("profile")} />
         )}

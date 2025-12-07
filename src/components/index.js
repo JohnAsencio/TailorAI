@@ -17,6 +17,10 @@ export { default as HighlightedResumeDisplay } from './resume/ResumeDisplay';
 export { default as PdfViewer } from './resume/PdfViewer';
 export { default as MyResumePdfDocument } from './resume/MyResumePdfDocument';
 export { default as TailorPage } from './resume/TailorPage';
+export { default as MyResumesPage } from './resume/MyResumesPage';
+
+// Landing components
+export { default as LandingPage } from './landing/LandingPage';
 
 // ATS components
 export { default as ATSChecker } from './ats/ATSChecker';
