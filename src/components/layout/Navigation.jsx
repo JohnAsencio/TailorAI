@@ -1,29 +1,27 @@
+import { NavLink } from 'react-router-dom';
 import './Navigation.css';
 
-export default function Navigation({ activeView, setActiveView }) {
+export default function Navigation() {
   return (
     <nav className="app-nav-tabs">
-      <button
-        type="button"
-        className={`nav-tab ${activeView === "tailor" ? "active" : ""}`}
-        onClick={() => setActiveView("tailor")}
+      <NavLink
+        to="/tailor"
+        className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
       >
-        Resume Tailor
-      </button>
-      <button
-        type="button"
-        className={`nav-tab ${activeView === "resumes" ? "active" : ""}`}
-        onClick={() => setActiveView("resumes")}
+        Tailor Resume
+      </NavLink>
+      <NavLink
+        to="/resumes"
+        className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
       >
         My Resumes
-      </button>
-      <button
-        type="button"
-        className={`nav-tab ${activeView === "mock" ? "active" : ""}`}
-        onClick={() => setActiveView("mock")}
+      </NavLink>
+      <NavLink
+        to="/mockinterview"
+        className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
       >
         Mock Interviews
-      </button>
+      </NavLink>
     </nav>
   );
 }

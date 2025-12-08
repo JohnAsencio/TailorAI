@@ -44,7 +44,7 @@ export function useAuth() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
     });
 
@@ -120,10 +120,13 @@ export function useAuth() {
     }
     setAuthError("");
     try {
+      // Get the full current URL with pathname for redirect
+      const redirectUrl = `${window.location.origin}${window.location.pathname}`;
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin
+          redirectTo: redirectUrl
         }
       });
       if (error) {

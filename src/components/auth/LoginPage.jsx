@@ -1,6 +1,9 @@
+import { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './LoginPage.css';
 import { supabase } from '../../supabaseClient';
 import TypewriterText from '../common/TypewriterText';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function LoginPage({
   authEmail,
@@ -11,19 +14,21 @@ export default function LoginPage({
   handleSignIn,
   handleSignUp,
   handleGoogleSignIn,
-  onBackToLanding,
 }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      const from = location.state?.from?.pathname || '/tailor';
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, location]);
   return (
     <section className="auth-page-section animate-fade-in">
       <div className="auth-page-container">
-        {onBackToLanding && (
-          <button 
-            className="back-to-landing-button"
-            onClick={onBackToLanding}
-          >
-            ← Back
-          </button>
-        )}
         <h2 className="auth-page-title">Welcome to Tailor AI</h2>
         <TypewriterText />
         <p className="auth-page-subtitle">Sign in or create an account to get started</p>

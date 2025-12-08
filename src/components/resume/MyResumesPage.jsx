@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getSavedResumes, getSavedResumeById, deleteSavedResume } from '../../services/savedResumeService';
 import PdfViewer from './PdfViewer';
 import MyResumePdfDocument from './MyResumePdfDocument';
@@ -6,7 +7,8 @@ import { pdf } from '@react-pdf/renderer';
 import LoadingSpinner from '../common/LoadingSpinner';
 import './MyResumesPage.css';
 
-export default function MyResumesPage({ user, onStartMockInterview }) {
+export default function MyResumesPage({ user }) {
+  const navigate = useNavigate();
   const [resumes, setResumes] = useState([]);
   const [selectedResume, setSelectedResume] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -91,8 +93,10 @@ export default function MyResumesPage({ user, onStartMockInterview }) {
   };
 
   const handleMockInterview = () => {
-    if (selectedResume && onStartMockInterview) {
-      onStartMockInterview(selectedResume);
+    if (selectedResume) {
+      // Navigate to mock interview page
+      // You could pass resume data through state or context if needed
+      navigate('/mockinterview');
     }
   };
 

@@ -14,6 +14,8 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .nav-tab:hover {
@@ -48,6 +50,7 @@
   transition: all 0.2s ease;
   padding: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
 }
 
 .profile-icon-button:hover {

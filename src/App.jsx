@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useTheme } from "./hooks/useTheme";
 import { useAuth } from "./hooks/useAuth";
 import { useResume } from "./hooks/useResume";
 import { initializePdfWorker } from "./utils/pdfUtils";
 import { Header, LoginPage, ProfilePage, TailorPage, MockPage, LandingPage, MyResumesPage } from "./components";
+import ProtectedRoute from "./components/routing/ProtectedRoute";
 import './App.css';
 
 // Initialize PDF worker
@@ -28,63 +29,84 @@ function App() {
   // Resume state that persists across tab switches
   const resumeState = useResume();
 
-  const [activeView, setActiveView] = useState("landing");
-
-  // Handle view changes based on auth state
-  useEffect(() => {
-    if (!authLoading) {
-      if (user) {
-        if (activeView === "landing" || activeView === "login") {
-          setActiveView("tailor");
-        }
-      } else {
-        if (activeView !== "landing" && activeView !== "login") {
-          setActiveView("landing");
-        }
-      }
-    }
-  }, [user, authLoading, activeView]);
-
   return (
-    <div className="app-container animate-fade-in">
-      <Header user={user} activeView={activeView} setActiveView={setActiveView} />
+    <BrowserRouter>
+      <div className="app-container animate-fade-in">
+        <Header user={user} />
 
-      <main className="main-content-area animate-fade-in">
-        {!authLoading && !user && activeView === "landing" && (
-          <LandingPage />
-        )}
+        <main className="main-content-area animate-fade-in">
+          <Routes>
+            {/* Public routes */}
+            <Route 
+              path="/" 
+              element={
+                !authLoading && !user ? (
+                  <LandingPage />
+                ) : !authLoading && user ? (
+                  <Navigate to="/tailor" replace />
+                ) : null
+              } 
+            />
+            <Route 
+              path="/signin" 
+              element={
+                !authLoading && !user ? (
+                  <LoginPage
+                    authEmail={authEmail}
+                    setAuthEmail={setAuthEmail}
+                    authPassword={authPassword}
+                    setAuthPassword={setAuthPassword}
+                    authError={authError}
+                    handleSignIn={handleSignIn}
+                    handleSignUp={handleSignUp}
+                    handleGoogleSignIn={handleGoogleSignIn}
+                  />
+                ) : !authLoading && user ? (
+                  <Navigate to="/tailor" replace />
+                ) : null
+              } 
+            />
 
-        {!authLoading && !user && activeView === "login" && (
-          <LoginPage
-            authEmail={authEmail}
-            setAuthEmail={setAuthEmail}
-            authPassword={authPassword}
-            setAuthPassword={setAuthPassword}
-            authError={authError}
-            handleSignIn={handleSignIn}
-            handleSignUp={handleSignUp}
-            handleGoogleSignIn={handleGoogleSignIn}
-            onBackToLanding={() => setActiveView("landing")}
-          />
-        )}
+            {/* Protected routes */}
+            <Route
+              path="/tailor"
+              element={
+                <ProtectedRoute>
+                  <TailorPage resumeState={resumeState} user={user} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/resumes"
+              element={
+                <ProtectedRoute>
+                  <MyResumesPage user={user} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mockinterview"
+              element={
+                <ProtectedRoute>
+                  <MockPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage user={user} handleSignOut={handleSignOut} theme={theme} toggleTheme={toggleTheme} />
+                </ProtectedRoute>
+              }
+            />
 
-        {user && activeView === "tailor" && <TailorPage resumeState={resumeState} user={user} />}
-        {user && activeView === "resumes" && (
-          <MyResumesPage 
-            user={user} 
-            onStartMockInterview={(resume) => {
-              // Navigate to mock interview with resume data
-              setActiveView("mock");
-              // You can pass resume data through state or context if needed
-            }} 
-          />
-        )}
-        {user && activeView === "mock" && <MockPage />}
-        {user && activeView === "profile" && (
-          <ProfilePage user={user} handleSignOut={handleSignOut} theme={theme} toggleTheme={toggleTheme} />
-        )}
-      </main>
-    </div>
+            {/* Catch all - redirect to home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+      </div>
+    </BrowserRouter>
   );
 }
 
