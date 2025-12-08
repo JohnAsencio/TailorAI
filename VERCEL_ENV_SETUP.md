@@ -14,7 +14,11 @@ Your app needs the following environment variables in Vercel:
 1. `SUPABASE_URL` - Your Supabase project URL
 2. `SUPABASE_ANON_KEY` - Your Supabase anonymous/public key
 
-**Note:** The Supabase anon key is safe to expose to the browser - it's designed for client-side use. The `VITE_` prefix is just Vite's way of marking variables as safe for client-side access.
+**Important:** 
+- The Supabase anon key is **safe to expose** to the browser - it's designed for client-side use
+- The `VITE_` prefix is Vite's way of marking variables as safe for client-side access
+- If you use variables **without** `VITE_` prefix, they must be available during the Vercel build process for injection
+- **We recommend using the `VITE_` prefix** for simplicity and reliability
 
 ## How to Set Environment Variables in Vercel
 
@@ -100,10 +104,33 @@ The code supports both formats.
 
 ### Still Seeing "Supabase is not configured" Error
 
-1. Check your browser's developer console for errors
+1. Check your browser's developer console for errors and the debug output from supabaseClient.js
 2. Verify the environment variables in Vercel Dashboard → Settings → Environment Variables
 3. Make sure you redeployed after adding the variables
 4. Verify your Supabase credentials are correct
+5. Check that variable names match exactly (case-sensitive): either `VITE_SUPABASE_URL` or `SUPABASE_URL`
+
+### Seeing "No API key found in request" Error
+
+This error means the Supabase client was created but without valid credentials. Common causes:
+
+1. **Environment variables not available during build:**
+   - If using `SUPABASE_URL`/`SUPABASE_ANON_KEY` (without `VITE_`), they must be available during the Vercel build
+   - Check Vercel build logs to see if the variables are available
+   - **Solution:** Use `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` instead
+
+2. **Variables set but values are empty:**
+   - Double-check that the values in Vercel are not empty or have extra whitespace
+   - Copy the values directly from Supabase Dashboard
+
+3. **Build cache issues:**
+   - Try clearing Vercel's build cache and redeploying
+   - Or make a small change to trigger a fresh build
+
+4. **Verify in browser console:**
+   - Open browser dev tools → Console
+   - Look for the debug output from supabaseClient.js
+   - This will show which environment variables are available
 
 ### Testing Locally
 

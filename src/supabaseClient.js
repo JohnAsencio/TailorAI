@@ -7,8 +7,29 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_ANON_KEY;
 
-export const supabase = supabaseUrl && supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseAnonKey)
+// Validate that we have both URL and key, and they're not empty strings
+const hasValidConfig = supabaseUrl && supabaseAnonKey && 
+  supabaseUrl.trim() !== '' && supabaseAnonKey.trim() !== '';
+
+// Debug logging (will help identify configuration issues)
+if (!hasValidConfig && typeof window !== 'undefined') {
+  console.error('Supabase configuration missing or invalid:', {
+    hasViteUrl: !!import.meta.env.VITE_SUPABASE_URL,
+    hasViteKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
+    hasUrl: !!import.meta.env.SUPABASE_URL,
+    hasKey: !!import.meta.env.SUPABASE_ANON_KEY,
+    urlValue: supabaseUrl ? `${supabaseUrl.substring(0, 20)}...` : 'missing',
+    keyValue: supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'missing',
+  });
+}
+
+export const supabase = hasValidConfig
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    })
   : null;
 
 
