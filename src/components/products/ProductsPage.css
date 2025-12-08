@@ -520,10 +520,18 @@
 
   .product-cta {
     flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0;
+    box-sizing: border-box;
   }
 
   .product-cta-button {
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
   }
 }
 

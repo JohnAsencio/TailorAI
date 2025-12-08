@@ -239,7 +239,7 @@ export default function PricingPage() {
             <div className="faq-item">
               <h3 className="faq-question">How do mock interviews work?</h3>
               <p className="faq-answer">
-                Mock interviews are separate from resume credits. Pro plan includes 5 mock interviews per month (resets monthly), while Lifetime includes 20 mock interviews total. Additional mock interviews can be purchased as needed.
+                Mock interview credits and resume credits are the same. Credit value for mock interviews is yet to be announced. Pro plan includes 5 mock interviews per month (resets monthly), while Lifetime includes 20 mock interviews total. Additional mock interviews can be purchased as needed.
               </p>
             </div>
             <div className="faq-item">

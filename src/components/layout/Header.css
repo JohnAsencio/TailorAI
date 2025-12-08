@@ -119,6 +119,11 @@
   gap: 1.5rem;
 }
 
+.products-dropdown {
+  display: flex;
+  align-items: center;
+}
+
 .landing-nav-link {
   text-decoration: none;
   color: var(--header-title-color);
@@ -151,10 +156,24 @@
 @media (max-width: 640px) {
   .landing-nav {
     gap: 1rem;
+    align-items: center;
   }
 
   .landing-nav-link {
     font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+  }
+
+  .products-dropdown {
+    display: flex;
+    align-items: center;
+  }
+
+  .products-dropdown .landing-nav-link {
+    display: flex;
+    align-items: center;
   }
 }
 
