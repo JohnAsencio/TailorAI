@@ -45,8 +45,8 @@ export function useAuth() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') {
-        // Clear user immediately on sign out
+      if (event === 'SIGNED_OUT' || !session) {
+        // Clear user immediately on sign out or when session is null
         setUser(null);
       } else {
         setUser(session?.user ?? null);
@@ -112,23 +112,58 @@ export function useAuth() {
   const handleSignOut = async () => {
     if (!supabase) {
       console.error("Cannot sign out: Supabase client is not initialized");
-      setAuthError("Unable to sign out. Please refresh the page and try again.");
+      // Force clear user state even if Supabase client is null
+      setUser(null);
+      clearAuthStorage();
       return;
     }
+    
     try {
-      const { error } = await supabase.auth.signOut();
+      // Try to sign out via Supabase
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      
       if (error) {
-        console.error("Sign-out error:", error);
-        setAuthError(error.message || "Failed to sign out. Please try again.");
-      } else {
-        // Clear any auth errors on successful sign out
-        setAuthError("");
-        // Clear local storage items related to auth if needed
-        // The onAuthStateChange listener will handle updating the user state
+        // If sign out fails (e.g., session already missing), still clear local state
+        console.warn("Sign-out API error (may be expected if session expired):", error.message);
+      }
+      
+      // Always clear local storage and user state, even if API call fails
+      clearAuthStorage();
+      setUser(null);
+      setAuthError("");
+      
+    } catch (err) {
+      // If sign out throws an error (like AuthSessionMissingError), 
+      // still clear local state and redirect
+      console.warn("Sign-out error (clearing local state anyway):", err.message || err);
+      clearAuthStorage();
+      setUser(null);
+      setAuthError("");
+    }
+  };
+
+  // Helper function to clear all auth-related storage
+  const clearAuthStorage = () => {
+    try {
+      // Clear Supabase auth storage from localStorage
+      if (typeof window !== 'undefined' && window.localStorage) {
+        // Clear Supabase-related keys (Supabase stores auth data with various prefixes)
+        Object.keys(localStorage).forEach(key => {
+          if (key.includes('supabase') || key.includes('sb-') || key.startsWith('supabase.')) {
+            localStorage.removeItem(key);
+          }
+        });
+      }
+      // Also clear sessionStorage
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        Object.keys(sessionStorage).forEach(key => {
+          if (key.includes('supabase') || key.includes('sb-') || key.startsWith('supabase.')) {
+            sessionStorage.removeItem(key);
+          }
+        });
       }
     } catch (err) {
-      console.error("Sign-out error:", err);
-      setAuthError("An unexpected error occurred while signing out. Please try again.");
+      console.warn("Error clearing auth storage:", err);
     }
   };
 
