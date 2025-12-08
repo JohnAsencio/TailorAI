@@ -67,12 +67,18 @@ export function useAuth() {
     }
     setAuthError("");
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: authEmail,
         password: authPassword,
       });
       if (error) {
-        setAuthError(error.message);
+        console.error("Sign-in error:", error);
+        // Check for specific error codes
+        if (error.message && (error.message.includes('404') || error.message.includes('NOT_FOUND'))) {
+          setAuthError("Cannot connect to Supabase server. Please verify your VITE_SUPABASE_URL is correct in Vercel settings.");
+        } else {
+          setAuthError(error.message);
+        }
       } else {
         // Success - onAuthStateChange will handle state update
         setAuthEmail("");
@@ -80,7 +86,11 @@ export function useAuth() {
       }
     } catch (err) {
       console.error("Sign-in error:", err);
-      setAuthError("Failed to sign in. Please try again.");
+      if (err.message && (err.message.includes('404') || err.message.includes('NOT_FOUND'))) {
+        setAuthError("Cannot connect to Supabase server. Please verify your VITE_SUPABASE_URL is correct in Vercel settings.");
+      } else {
+        setAuthError("Failed to sign in. Please try again.");
+      }
     }
   };
 
@@ -92,12 +102,18 @@ export function useAuth() {
     }
     setAuthError("");
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: authEmail,
         password: authPassword,
       });
       if (error) {
-        setAuthError(error.message);
+        console.error("Sign-up error:", error);
+        // Check for specific error codes
+        if (error.message.includes('404') || error.message.includes('NOT_FOUND')) {
+          setAuthError("Cannot connect to Supabase. Please check your configuration. Error: " + error.message);
+        } else {
+          setAuthError(error.message);
+        }
       } else {
         // Success - onAuthStateChange will handle state update
         setAuthEmail("");
@@ -105,7 +121,11 @@ export function useAuth() {
       }
     } catch (err) {
       console.error("Sign-up error:", err);
-      setAuthError("Failed to sign up. Please try again.");
+      if (err.message && (err.message.includes('404') || err.message.includes('NOT_FOUND'))) {
+        setAuthError("Cannot connect to Supabase server. Please verify your VITE_SUPABASE_URL is correct.");
+      } else {
+        setAuthError("Failed to sign up. Please try again.");
+      }
     }
   };
 
@@ -115,6 +135,10 @@ export function useAuth() {
       // Force clear user state even if Supabase client is null
       setUser(null);
       clearAuthStorage();
+      // Force navigation to landing page using window.location
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
       return;
     }
     
@@ -132,6 +156,11 @@ export function useAuth() {
       setUser(null);
       setAuthError("");
       
+      // Force navigation to landing page using window.location
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
+      
     } catch (err) {
       // If sign out throws an error (like AuthSessionMissingError), 
       // still clear local state and redirect
@@ -139,6 +168,11 @@ export function useAuth() {
       clearAuthStorage();
       setUser(null);
       setAuthError("");
+      
+      // Force navigation to landing page even on error
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
     }
   };
 

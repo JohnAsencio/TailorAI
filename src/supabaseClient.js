@@ -38,6 +38,13 @@ if (typeof window !== 'undefined') {
     console.error('💡 Tip: Check Vercel build logs to ensure SUPABASE_URL and SUPABASE_ANON_KEY are available during build');
   } else {
     console.log('✅ Supabase client initialized successfully');
+    console.log('📍 Supabase URL:', supabaseUrl);
+    console.log('🔑 Supabase Key:', supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'missing');
+    
+    // Validate URL format
+    if (!supabaseUrl.startsWith('https://') || !supabaseUrl.includes('.supabase.co')) {
+      console.warn('⚠️ Warning: Supabase URL may be incorrect. Expected format: https://xxxxx.supabase.co');
+    }
   }
 }
 
