@@ -11,6 +11,7 @@ export { default as ProfilePage } from './auth/ProfilePage';
 // Common components
 export { default as MockPage } from './common/MockPage';
 export { default as TypewriterText } from './common/TypewriterText';
+export { default as PrivacyPolicy } from './common/PrivacyPolicy';
 
 // Resume components
 export { default as HighlightedResumeDisplay } from './resume/ResumeDisplay';
