@@ -133,11 +133,11 @@ export default function PrivacyPolicy() {
         <section className="privacy-policy-section">
           <h2>12. Contact Us</h2>
           <p>
-            If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us at:
+            If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact the website developer at:
           </p>
           <p className="privacy-contact-info">
-            <strong>Email:</strong> privacy@tailorai.app<br />
-            <strong>Website:</strong> <a href="https://tailorai.app" className="privacy-link">tailorai.app</a>
+            <strong>Email:</strong> johnaasencio@gmail.com<br />
+            <strong>Website:</strong> <a href="https://tailor-ai.app" className="privacy-link">tailor-ai.app</a>
           </p>
         </section>
       </div>
