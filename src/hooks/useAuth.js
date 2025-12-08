@@ -45,7 +45,12 @@ export function useAuth() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
+      if (event === 'SIGNED_OUT') {
+        // Clear user immediately on sign out
+        setUser(null);
+      } else {
+        setUser(session?.user ?? null);
+      }
     });
 
     return () => {
@@ -105,11 +110,25 @@ export function useAuth() {
   };
 
   const handleSignOut = async () => {
-    if (!supabase) return;
+    if (!supabase) {
+      console.error("Cannot sign out: Supabase client is not initialized");
+      setAuthError("Unable to sign out. Please refresh the page and try again.");
+      return;
+    }
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Sign-out error:", error);
+        setAuthError(error.message || "Failed to sign out. Please try again.");
+      } else {
+        // Clear any auth errors on successful sign out
+        setAuthError("");
+        // Clear local storage items related to auth if needed
+        // The onAuthStateChange listener will handle updating the user state
+      }
     } catch (err) {
       console.error("Sign-out error:", err);
+      setAuthError("An unexpected error occurred while signing out. Please try again.");
     }
   };
 

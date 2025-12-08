@@ -46,8 +46,14 @@ export const supabase = hasValidConfig
       auth: {
         persistSession: true,
         autoRefreshToken: true,
+        detectSessionInUrl: true,
       },
     })
   : null;
+
+// Export a function to check if Supabase is properly configured
+export const isSupabaseConfigured = () => {
+  return hasValidConfig && supabase !== null;
+};
 
 
