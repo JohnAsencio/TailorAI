@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import WaitlistForm from './WaitlistForm';
 import MockInterviewChat from './MockInterviewChat';
+import Footer from '../common/Footer';
 import './LandingPage.css';
 
 export default function LandingPage() {
@@ -167,6 +169,34 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Pre-Purchase Section */}
+      <section className="landing-pre-purchase">
+        <div className="pre-purchase-container">
+          <h2 className="pre-purchase-title">Get Early Access</h2>
+          <p className="pre-purchase-subtitle">
+            Be among the first to experience Tailor AI. Get exclusive early access and special launch pricing when we officially launch.
+          </p>
+          {!showWaitlist ? (
+            <div className="pre-purchase-cta">
+              <button 
+                className="cta-button primary"
+                onClick={() => {
+                  setShowWaitlist(true);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              >
+                Join the Waitlist
+              </button>
+              <Link to="/pricing" className="cta-button secondary">
+                View Pricing Plans
+              </Link>
+            </div>
+          ) : (
+            <WaitlistForm onSuccess={() => setShowWaitlist(false)} />
+          )}
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="landing-cta">
         <div className="cta-container">
@@ -174,19 +204,13 @@ export default function LandingPage() {
           <p className="cta-subtitle">
             Join thousands of job seekers who are already optimizing their resumes with AI
           </p>
-          {!showWaitlist && (
-            <button 
-              className="cta-button secondary"
-              onClick={() => {
-                setShowWaitlist(true);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-            >
-              Join the Waitlist
-            </button>
-          )}
+          <Link to="/pricing" className="cta-button secondary">
+            View Pricing
+          </Link>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }

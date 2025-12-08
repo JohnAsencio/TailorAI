@@ -130,15 +130,17 @@ export function useAuth() {
   };
 
   const handleSignOut = async () => {
+    // Navigate to landing page first, before clearing user state
+    // This prevents ProtectedRoute from redirecting to /signin
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
+    
     if (!supabase) {
       console.error("Cannot sign out: Supabase client is not initialized");
       // Force clear user state even if Supabase client is null
       setUser(null);
       clearAuthStorage();
-      // Force navigation to landing page using window.location
-      if (typeof window !== 'undefined') {
-        window.location.href = '/';
-      }
       return;
     }
     
@@ -156,23 +158,13 @@ export function useAuth() {
       setUser(null);
       setAuthError("");
       
-      // Force navigation to landing page using window.location
-      if (typeof window !== 'undefined') {
-        window.location.href = '/';
-      }
-      
     } catch (err) {
       // If sign out throws an error (like AuthSessionMissingError), 
-      // still clear local state and redirect
+      // still clear local state
       console.warn("Sign-out error (clearing local state anyway):", err.message || err);
       clearAuthStorage();
       setUser(null);
       setAuthError("");
-      
-      // Force navigation to landing page even on error
-      if (typeof window !== 'undefined') {
-        window.location.href = '/';
-      }
     }
   };
 

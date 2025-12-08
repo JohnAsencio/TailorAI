@@ -11,8 +11,8 @@ export default function ProtectedRoute({ children }) {
   }
 
   if (!user) {
-    // Redirect to signin, but save the location they were trying to visit
-    return <Navigate to="/signin" state={{ from: location }} replace />;
+    // Redirect to landing page when user is not authenticated
+    return <Navigate to="/" replace />;
   }
 
   return children;

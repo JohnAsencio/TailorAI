@@ -3,7 +3,7 @@ import { useTheme } from "./hooks/useTheme";
 import { useAuth } from "./hooks/useAuth";
 import { useResume } from "./hooks/useResume";
 import { initializePdfWorker } from "./utils/pdfUtils";
-import { Header, LoginPage, ProfilePage, TailorPage, MockPage, LandingPage, MyResumesPage, PrivacyPolicy } from "./components";
+import { Header, LoginPage, ProfilePage, TailorPage, MockPage, LandingPage, MyResumesPage, PrivacyPolicy, PricingPage, ProductsPage, ResumeTailorPage, MockInterviewsPage } from "./components";
 import ProtectedRoute from "./components/routing/ProtectedRoute";
 import './App.css';
 
@@ -69,6 +69,22 @@ function App() {
             <Route 
               path="/privacy" 
               element={<PrivacyPolicy />} 
+            />
+            <Route 
+              path="/pricing" 
+              element={<PricingPage />} 
+            />
+            <Route 
+              path="/products" 
+              element={<ProductsPage />} 
+            />
+            <Route 
+              path="/products/resume-tailor" 
+              element={<ResumeTailorPage />} 
+            />
+            <Route 
+              path="/products/mock-interviews" 
+              element={<MockInterviewsPage />} 
             />
 
             {/* Protected routes */}

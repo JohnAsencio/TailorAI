@@ -424,16 +424,6 @@ export default function TailorPage({ resumeState, user }) {
               <span>Tailor Resume</span>
             )}
           </button>
-          {changeSummary && (
-            <div className="summary-of-changes-box animate-fade-in">
-              <h3 className="summary-heading">Summary of Changes</h3>
-              <ul className="summary-list">
-                {changeSummary.split(/\n|•/).filter(line => line.trim()).map((line, idx) => (
-                  <li key={idx} className="summary-item">{line.replace(/^[-•\s]+/, '')}</li>
-                ))}
-              </ul>
-            </div>
-          )}
 
           {/* Save Resume Button */}
           {output && user && (
@@ -473,6 +463,17 @@ export default function TailorPage({ resumeState, user }) {
             {!loading && displayResumeMode === 'original' && (pdfFileUrl ? "Original Resume " : "Original Resume ")}
             {!loading && displayResumeMode === 'tailored_highlighted' && "Tailored Resume "}
           </h2>
+
+          {changeSummary && (
+            <div className="summary-of-changes-box animate-fade-in">
+              <h3 className="summary-heading">Summary of Changes</h3>
+              <ul className="summary-list">
+                {changeSummary.split(/\n|•/).filter(line => line.trim()).map((line, idx) => (
+                  <li key={idx} className="summary-item">{line.replace(/^[-•\s]+/, '')}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {loading ? (
             <LoadingSpinner message="Tailoring your resume to match the job description..." />

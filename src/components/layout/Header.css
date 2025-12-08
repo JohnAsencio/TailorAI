@@ -25,6 +25,19 @@
   gap: 1rem;
 }
 
+.app-header-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex: 1;
+}
+
+.app-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
 .app-header-title-group {
   display: flex;
   align-items: center;
@@ -81,11 +94,67 @@
 
   .app-header-inner {
     gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .app-header-left {
+    gap: 1rem;
+    flex-wrap: wrap;
   }
 
   .app-header-title {
     font-size: 1.75rem;
     line-height: 1.2;
+  }
+
+  .landing-nav {
+    gap: 0.75rem;
+  }
+}
+
+/* Landing Page Navigation */
+.landing-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.landing-nav-link {
+  text-decoration: none;
+  color: var(--header-title-color);
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.landing-nav-link:hover {
+  color: var(--header-subtitle-color);
+}
+
+.landing-nav-link.active {
+  color: var(--header-subtitle-color);
+}
+
+.landing-nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--header-subtitle-color);
+  border-radius: 1px;
+}
+
+@media (max-width: 640px) {
+  .landing-nav {
+    gap: 1rem;
+  }
+
+  .landing-nav-link {
+    font-size: 0.9rem;
   }
 }
 
@@ -96,6 +165,14 @@
 
   .app-header-title {
     font-size: 1.5rem;
+  }
+
+  .landing-nav {
+    gap: 0.75rem;
+  }
+
+  .landing-nav-link {
+    font-size: 0.85rem;
   }
 }
 

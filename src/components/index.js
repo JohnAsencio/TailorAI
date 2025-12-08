@@ -12,6 +12,16 @@ export { default as ProfilePage } from './auth/ProfilePage';
 export { default as MockPage } from './common/MockPage';
 export { default as TypewriterText } from './common/TypewriterText';
 export { default as PrivacyPolicy } from './common/PrivacyPolicy';
+export { default as Footer } from './common/Footer';
+export { default as LoadingSpinner } from './common/LoadingSpinner';
+
+// Product pages
+export { default as ProductsPage } from './products/ProductsPage';
+export { default as ResumeTailorPage } from './products/ResumeTailorPage';
+export { default as MockInterviewsPage } from './products/MockInterviewsPage';
+
+// Pricing pages
+export { default as PricingPage } from './pricing/PricingPage';
 
 // Resume components
 export { default as HighlightedResumeDisplay } from './resume/ResumeDisplay';

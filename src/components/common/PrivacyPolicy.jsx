@@ -1,3 +1,4 @@
+import Footer from './Footer';
 import './PrivacyPolicy.css';
 
 export default function PrivacyPolicy() {
@@ -141,6 +142,7 @@ export default function PrivacyPolicy() {
           </p>
         </section>
       </div>
+      <Footer />
     </div>
   );
 }
