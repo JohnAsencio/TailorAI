@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
   const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 
   // Log for debugging during build (only in non-production or when variables are missing)
-  if (mode !== 'production' || !supabaseUrl || !supabaseAnonKey) {
+  /*if (mode !== 'production' || !supabaseUrl || !supabaseAnonKey) {
     console.log('[Vite Config] Supabase env vars:', {
       hasViteUrl: !!process.env.VITE_SUPABASE_URL,
       hasViteKey: !!process.env.VITE_SUPABASE_ANON_KEY,
@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
       finalUrl: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'MISSING',
       finalKey: supabaseAnonKey ? `${supabaseAnonKey.substring(0, 30)}...` : 'MISSING',
     });
-  }
+  }*/
 
   return {
     plugins: [react()],
