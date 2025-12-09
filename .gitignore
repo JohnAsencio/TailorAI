@@ -24,6 +24,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# Environment variables (never commit secrets!)
 .env
-.vercel
 .env*.local
+.env.local  # Explicitly ignore local env file with secrets
+
+.vercel

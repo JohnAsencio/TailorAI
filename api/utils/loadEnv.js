@@ -10,11 +10,6 @@ export function loadEnvFromLocal() {
     return;
   }
 
-  // Only load if OPENAI_API_KEY is missing
-  if (process.env.OPENAI_API_KEY) {
-    return;
-  }
-
   try {
     const envPath = path.join(process.cwd(), '.env.local');
     if (fs.existsSync(envPath)) {
@@ -24,8 +19,13 @@ export function loadEnvFromLocal() {
         if (match) {
           const key = match[1].trim();
           const value = match[2].trim().replace(/^["']|["']$/g, '');
+          // Load OPENAI_API_KEY if missing
           if (key === 'OPENAI_API_KEY' && !process.env.OPENAI_API_KEY) {
             process.env.OPENAI_API_KEY = value;
+          }
+          // Load STRIPE_SECRET_KEY if missing
+          if (key === 'STRIPE_SECRET_KEY' && !process.env.STRIPE_SECRET_KEY) {
+            process.env.STRIPE_SECRET_KEY = value;
           }
         }
       });

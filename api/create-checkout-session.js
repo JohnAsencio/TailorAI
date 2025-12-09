@@ -1,12 +1,16 @@
 import Stripe from 'stripe';
-import { loadEnvFromLocal } from './utils/loadEnv';
+import { loadEnvFromLocal } from './utils/loadEnv.js';
 
 // Ensure environment variables are loaded for local development
 loadEnvFromLocal();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-12-18.acacia',
-});
+// Initialize Stripe only if key is available
+let stripe = null;
+if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.trim() !== '') {
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2024-12-18.acacia',
+  });
+}
 
 // Import pricing configuration
 // Note: We can't use ES6 imports in serverless functions, so we'll inline the logic
@@ -93,11 +97,22 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid plan ID' });
     }
 
-    if (!process.env.STRIPE_SECRET_KEY) {
+    // Debug logging (remove in production if needed)
+    console.log('Stripe key check:', {
+      hasKey: !!process.env.STRIPE_SECRET_KEY,
+      keyLength: process.env.STRIPE_SECRET_KEY?.length || 0,
+      keyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 7) || 'missing',
+    });
+
+    if (!process.env.STRIPE_SECRET_KEY || !stripe) {
       console.error('STRIPE_SECRET_KEY is not configured');
       return res.status(500).json({
         error: 'Server configuration error',
-        message: 'Stripe API key is not configured. Please set STRIPE_SECRET_KEY in your environment variables.',
+        message: 'Stripe API key is not configured. Please set STRIPE_SECRET_KEY in your environment variables and redeploy.',
+        debug: {
+          hasKey: !!process.env.STRIPE_SECRET_KEY,
+          keyLength: process.env.STRIPE_SECRET_KEY?.length || 0,
+        },
       });
     }
 
