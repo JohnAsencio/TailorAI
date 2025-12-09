@@ -1,10 +1,62 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../hooks/useAuth';
+import { redirectToCheckout } from '../../services/paymentService';
+import { joinWaitlist } from '../../services/waitlistService';
+import { getPricingInfo, isPreLaunchSpecialActive } from '../../config/pricing';
+import WaitlistForm from '../landing/WaitlistForm';
 import Footer from '../common/Footer';
 import './PricingPage.css';
 
 export default function PricingPage() {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(null);
+  const [message, setMessage] = useState(null);
+  const [showWaitlist, setShowWaitlist] = useState(false);
+  const [showBetaTester, setShowBetaTester] = useState(false);
+
+  // Check for success/cancel messages in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true') {
+      setMessage({ type: 'success', text: 'Payment successful! Your account has been upgraded.' });
+      // Clean up URL
+      window.history.replaceState({}, '', '/pricing');
+    } else if (params.get('canceled') === 'true') {
+      setMessage({ type: 'info', text: 'Payment was canceled. You can try again anytime.' });
+      window.history.replaceState({}, '', '/pricing');
+    }
+  }, []);
+
+  const handlePayment = async (planId) => {
+    setLoading(planId);
+    setMessage(null);
+
+    try {
+      // Use user email if available, otherwise let Stripe handle it
+      const email = user?.email || '';
+      await redirectToCheckout(planId, email);
+    } catch (error) {
+      console.error('Payment error:', error);
+      setMessage({ type: 'error', text: 'Failed to start checkout. Please try again.' });
+      setLoading(null);
+    }
+  };
+
+  const handleFreeStart = () => {
+    if (!user) {
+      window.location.href = '/signin';
+    } else {
+      window.location.href = '/tailor';
+    }
+  };
   return (
     <div className="pricing-page">
       <div className="pricing-container">
+        {message && (
+          <div className={`pricing-message pricing-message-${message.type}`}>
+            {message.text}
+          </div>
+        )}
         <div className="pricing-header">
           <h1 className="pricing-title">Choose Your Plan</h1>
           <p className="pricing-subtitle">
@@ -41,7 +93,10 @@ export default function PricingPage() {
                   <span>Standard processing</span>
                 </li>
               </ul>
-              <button className="pricing-button pricing-button-free">
+              <button 
+                className="pricing-button pricing-button-free"
+                onClick={handleFreeStart}
+              >
                 Get Started Free
               </button>
             </div>
@@ -49,11 +104,26 @@ export default function PricingPage() {
 
           {/* Unlimited Tier */}
           <div className="pricing-card">
+            {isPreLaunchSpecialActive('unlimited') && (
+              <div className="pricing-badge pricing-badge-special">Pre-Launch Special</div>
+            )}
             <div className="pricing-card-header">
               <h2 className="pricing-card-title">Unlimited</h2>
               <div className="pricing-card-price">
-                <span className="price-amount">$8.99</span>
-                <span className="price-period">/month</span>
+                {(() => {
+                  const pricing = getPricingInfo('unlimited');
+                  const currentPrice = (pricing.currentPrice / 100).toFixed(2);
+                  const originalPrice = pricing.originalPrice ? (pricing.originalPrice / 100).toFixed(2) : null;
+                  return (
+                    <>
+                      <span className="price-amount">${currentPrice}</span>
+                      <span className="price-period">/month</span>
+                      {originalPrice && (
+                        <span className="price-original">${originalPrice}</span>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </div>
             <div className="pricing-card-body">
@@ -91,8 +161,12 @@ export default function PricingPage() {
                   <span>Mock interviews</span>
                 </li>
               </ul>
-              <button className="pricing-button pricing-button-primary">
-                Start Free Trial
+              <button 
+                className="pricing-button pricing-button-primary"
+                onClick={() => handlePayment('unlimited')}
+                disabled={loading === 'unlimited'}
+              >
+                {loading === 'unlimited' ? 'Loading...' : 'Get Started'}
               </button>
             </div>
           </div>
@@ -142,16 +216,96 @@ export default function PricingPage() {
                   <span><strong>5 mock interviews</strong> per month</span>
                 </li>
               </ul>
-              <button className="pricing-button pricing-button-primary">
-                Start Free Trial
+              <button 
+                className="pricing-button pricing-button-primary"
+                onClick={() => setShowWaitlist(true)}
+              >
+                Sign Up for Waitlist
               </button>
             </div>
           </div>
 
         </div>
 
-        {/* Lifetime Deal - Separate Section */}
+        {/* Lifetime Deals - Side by Side */}
         <div className="pricing-lifetime-section">
+          {/* Pre-Launch Special */}
+          <div className="pricing-card pricing-card-lifetime">
+            {isPreLaunchSpecialActive('lifetime') && (
+              <div className="pricing-badge pricing-badge-special">Pre-Launch Special</div>
+            )}
+            <div className="pricing-card-header">
+              <h2 className="pricing-card-title">Lifetime</h2>
+              <div className="pricing-card-price">
+                {(() => {
+                  const pricing = getPricingInfo('lifetime');
+                  const currentPrice = (pricing.currentPrice / 100).toFixed(0);
+                  const originalPrice = pricing.originalPrice ? (pricing.originalPrice / 100).toFixed(0) : null;
+                  return (
+                    <>
+                      <span className="price-amount">${currentPrice}</span>
+                      <span className="price-period">one-time</span>
+                      {originalPrice && (
+                        <span className="price-original">${originalPrice}</span>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+            <div className="pricing-card-body">
+              <div className="credit-system-info">
+                <p className="credit-info-text">
+                  <strong>Credit-Based System:</strong> Since we use OpenAI for processing, this plan includes <strong>500 credits</strong> to get you started. Each tailored resume uses 1 credit. Mock interview credit usage will be announced soon.
+                </p>
+                <p className="credit-info-text">
+                  Additional credits can be purchased as needed at competitive rates.
+                </p>
+              </div>
+              <ul className="pricing-features">
+                <li className="pricing-feature">
+                  <span className="feature-icon">✓</span>
+                  <span><strong>500 credits</strong> included</span>
+                </li>
+                <li className="pricing-feature">
+                  <span className="feature-icon">✓</span>
+                  <span>All Unlimited features</span>
+                </li>
+                <li className="pricing-feature">
+                  <span className="feature-icon">✓</span>
+                  <span>No monthly fees</span>
+                </li>
+                <li className="pricing-feature">
+                  <span className="feature-icon">✓</span>
+                  <span>Buy more credits anytime</span>
+                </li>
+                <li className="pricing-feature">
+                  <span className="feature-icon">✓</span>
+                  <span>Credits never expire</span>
+                </li>
+                <li className="pricing-feature pricing-feature-highlight">
+                  <span className="feature-icon">✓</span>
+                  <span><strong>Unlimited Mock interviews</strong></span>
+                </li>
+                <li className="pricing-feature">
+                  <span className="feature-icon">✓</span>
+                  <span>Future features included</span>
+                </li>
+              </ul>
+              <button 
+                className="pricing-button pricing-button-lifetime"
+                onClick={() => handlePayment('lifetime')}
+                disabled={loading === 'lifetime'}
+              >
+                {loading === 'lifetime' ? 'Loading...' : 'Get Lifetime Access'}
+              </button>
+              <p className="credit-note">
+                * 1 credit = 1 tailored resume. Additional credits can be purchased in packs.
+              </p>
+            </div>
+          </div>
+
+          {/* Regular Lifetime Deal */}
           <div className="pricing-card pricing-card-lifetime">
             <div className="pricing-card-header">
               <h2 className="pricing-card-title">Lifetime</h2>
@@ -199,8 +353,11 @@ export default function PricingPage() {
                   <span>Future features included</span>
                 </li>
               </ul>
-              <button className="pricing-button pricing-button-lifetime">
-                Get Lifetime Access
+              <button 
+                className="pricing-button pricing-button-lifetime"
+                onClick={() => setShowWaitlist(true)}
+              >
+                Sign Up for Waitlist
               </button>
               <p className="credit-note">
                 * 1 credit = 1 tailored resume. Additional credits can be purchased in packs.
@@ -208,6 +365,21 @@ export default function PricingPage() {
             </div>
           </div>
         </div>
+
+        {/* Waitlist Modal/Form */}
+        {showWaitlist && (
+          <div className="waitlist-overlay" onClick={() => setShowWaitlist(false)}>
+            <div className="waitlist-modal" onClick={(e) => e.stopPropagation()}>
+              <button 
+                className="waitlist-close"
+                onClick={() => setShowWaitlist(false)}
+              >
+                ×
+              </button>
+              <WaitlistForm onSuccess={() => setShowWaitlist(false)} />
+            </div>
+          </div>
+        )}
 
         <div className="pricing-faq">
           <h2 className="faq-title">Frequently Asked Questions</h2>
@@ -248,6 +420,26 @@ export default function PricingPage() {
                 Unlimited includes all resume features but no mock interviews. Pro includes everything in Unlimited plus 5 mock interviews per month, perfect for those actively interviewing.
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Beta Tester Signup Section */}
+        <div className="pricing-beta-section">
+          <div className="beta-tester-card">
+            <h2 className="beta-tester-title">Become a Beta Tester</h2>
+            <p className="beta-tester-description">
+              Get early access to new features, provide feedback, and help shape the future of Tailor AI. Beta testers receive special perks and priority support.
+            </p>
+            {!showBetaTester ? (
+              <button 
+                className="beta-tester-button"
+                onClick={() => setShowBetaTester(true)}
+              >
+                Sign Up as Beta Tester
+              </button>
+            ) : (
+              <WaitlistForm onSuccess={() => setShowBetaTester(false)} />
+            )}
           </div>
         </div>
       </div>

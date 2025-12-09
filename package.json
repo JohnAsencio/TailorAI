@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:vercel": "vercel dev",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -20,7 +21,8 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-pdf": "^10.0.1",
-    "react-router-dom": "^7.10.1"
+    "react-router-dom": "^7.10.1",
+    "stripe": "^20.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

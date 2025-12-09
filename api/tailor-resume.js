@@ -1,4 +1,8 @@
 import { OpenAI } from "openai";
+import { loadEnvFromLocal } from './utils/loadEnv.js';
+
+// Load environment variables from .env.local if not already loaded
+loadEnvFromLocal();
 
 export default async function handler(req, res) {
   // Set CORS headers

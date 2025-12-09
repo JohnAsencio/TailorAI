@@ -3,6 +3,7 @@ import { extractTextFromPDF, extractTextFromDOCX, getFileType } from "../../serv
 import { tailorResume } from "../../services/tailorService";
 import { checkATSCompatibility } from "../../services/atsService";
 import { saveTailoredResume } from "../../services/savedResumeService";
+import { ensureTailoredScoreHigher } from "../../utils/atsAlgorithm";
 import HighlightedResumeDisplay from "./ResumeDisplay";
 import PdfViewer from "./PdfViewer";
 import MyResumePdfDocument from "./MyResumePdfDocument";
@@ -175,8 +176,18 @@ export default function TailorPage({ resumeState, user }) {
 
     try {
       const results = await checkATSCompatibility(textToCheck, jobDesc);
-      if (checkType === 'original') {
+      
+      // Ensure tailored resume always has equal or higher score than original
+      if (checkType === 'tailored' && atsResultsOriginal) {
+        const adjustedResults = ensureTailoredScoreHigher(results, atsResultsOriginal);
+        setAtsResultsTailored(adjustedResults);
+      } else if (checkType === 'original') {
         setAtsResultsOriginal(results);
+        // If tailored results exist, re-validate them against the new original
+        if (atsResultsTailored) {
+          const adjustedResults = ensureTailoredScoreHigher(atsResultsTailored, results);
+          setAtsResultsTailored(adjustedResults);
+        }
       } else {
         setAtsResultsTailored(results);
       }
@@ -425,7 +436,69 @@ export default function TailorPage({ resumeState, user }) {
             )}
           </button>
 
-          {/* Save Resume Button */}
+        </section>
+
+        <section className="section-card right-panel">
+          <h2 className="right-panel-title">
+            {loading ? "Processing Resume..." : displayResumeMode === 'empty' && "Your Resume"}
+            {!loading && displayResumeMode === 'original' && (pdfFileUrl ? "Original Resume " : "Original Resume ")}
+            {!loading && displayResumeMode === 'tailored_highlighted' && "Tailored Resume "}
+          </h2>
+
+          {loading ? (
+            <LoadingSpinner message="Tailoring your resume to match the job description..." />
+          ) : displayResumeMode === 'original' && pdfFileUrl ? (
+            <PdfViewer pdfFileUrl={pdfFileUrl} />
+          ) : displayResumeMode === 'tailored_highlighted' && tailoredPdfUrl ? (
+            <PdfViewer pdfFileUrl={tailoredPdfUrl} />
+          ) : (displayResumeMode === 'original' || displayResumeMode === 'tailored_highlighted') && resumeText && !pdfFileUrl && !tailoredPdfUrl ? (
+            <HighlightedResumeDisplay
+              originalText={resumeText}
+              tailoredText={output}
+              displayMode={displayResumeMode}
+            />
+          ) : (
+            <HighlightedResumeDisplay
+              originalText={""}
+              tailoredText={""}
+              displayMode={'empty'}
+            />
+          )}
+
+          {changeSummary && (
+            <div className="summary-of-changes-box animate-fade-in">
+              <h3 className="summary-heading">Summary of Changes</h3>
+              <ul className="summary-list">
+                {changeSummary.split(/\n|•/).filter(line => line.trim()).map((line, idx) => (
+                  <li key={idx} className="summary-item">{line.replace(/^[-•\s]+/, '')}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {output && (
+            <div className="download-button-container">
+              <PDFDownloadLink
+                document={<MyResumePdfDocument resumeText={output} />}
+                fileName="tailored_resume.pdf"
+              >
+                {({ loading: downloadLoading }) =>
+                  downloadLoading ? (
+                    <button className="download-pdf-button loading" disabled>
+                      Generating Download...
+                    </button>
+                  ) : (
+                    <button className="download-pdf-button">
+                      <span className="material-icons">download</span>
+                      Download PDF
+                    </button>
+                  )
+                }
+              </PDFDownloadLink>
+            </div>
+          )}
+
+          {/* Save Resume Button - Centered below resume and summary */}
           {output && user && (
             <div className="save-resume-section">
               {saveMessage && (
@@ -453,72 +526,6 @@ export default function TailorPage({ resumeState, user }) {
                   </>
                 )}
               </button>
-            </div>
-          )}
-        </section>
-
-        <section className="section-card right-panel">
-          <h2 className="right-panel-title">
-            {loading ? "Processing Resume..." : displayResumeMode === 'empty' && "Your Resume"}
-            {!loading && displayResumeMode === 'original' && (pdfFileUrl ? "Original Resume " : "Original Resume ")}
-            {!loading && displayResumeMode === 'tailored_highlighted' && "Tailored Resume "}
-          </h2>
-
-          {changeSummary && (
-            <div className="summary-of-changes-box animate-fade-in">
-              <h3 className="summary-heading">Summary of Changes</h3>
-              <ul className="summary-list">
-                {changeSummary.split(/\n|•/).filter(line => line.trim()).map((line, idx) => (
-                  <li key={idx} className="summary-item">{line.replace(/^[-•\s]+/, '')}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {loading ? (
-            <LoadingSpinner message="Tailoring your resume to match the job description..." />
-          ) : displayResumeMode === 'original' && pdfFileUrl ? (
-            <PdfViewer pdfFileUrl={pdfFileUrl} />
-          ) : displayResumeMode === 'tailored_highlighted' && tailoredPdfUrl ? (
-            <PdfViewer pdfFileUrl={tailoredPdfUrl} />
-          ) : (displayResumeMode === 'original' || displayResumeMode === 'tailored_highlighted') && resumeText && !pdfFileUrl && !tailoredPdfUrl ? (
-            <HighlightedResumeDisplay
-              originalText={resumeText}
-              tailoredText={output}
-              displayMode={displayResumeMode}
-            />
-          ) : (
-            <HighlightedResumeDisplay
-              originalText={""}
-              tailoredText={""}
-              displayMode={'empty'}
-            />
-          )}
-
-          {output && (
-            <div className="download-button-container">
-              {saveMessage && (
-                <div className={`save-message ${saveMessage.includes('✓') ? 'success' : 'error'}`}>
-                  {saveMessage}
-                </div>
-              )}
-              <PDFDownloadLink
-                document={<MyResumePdfDocument resumeText={output} />}
-                fileName="tailored_resume.pdf"
-              >
-                {({ loading: downloadLoading }) =>
-                  downloadLoading ? (
-                    <button className="download-pdf-button loading" disabled>
-                      Generating Download...
-                    </button>
-                  ) : (
-                    <button className="download-pdf-button">
-                      <span className="material-icons">download</span>
-                      Download PDF
-                    </button>
-                  )
-                }
-              </PDFDownloadLink>
             </div>
           )}
         </section>
