@@ -73,7 +73,7 @@ export default function LandingPage() {
                   </svg>
                 </button>
                 <p className="hero-cta-note">
-                  ✨ Free to join • Pre-launch specials via email • No spam, ever
+                  Free to join • Pre-launch specials via email • No spam, ever
                 </p>
               </>
             ) : (

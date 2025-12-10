@@ -56,6 +56,13 @@ async function sendWaitlistEmail(email, interestType) {
     }
 
     const result = await response.json();
+    
+    // Handle case where email was skipped (e.g., API key not configured)
+    if (result.skipped) {
+      console.warn('⚠️ Email skipped:', result.message);
+      return result; // Still return success, just log that email wasn't sent
+    }
+    
     console.log('✅ Email API success:', result);
     return result;
   } catch (error) {

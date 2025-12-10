@@ -27,9 +27,15 @@ export default async function handler(req, res) {
   }
 
   if (!RESEND_API_KEY) {
-    console.error('Resend API key not configured');
-    return res.status(500).json({ 
-      error: 'Email service not configured. Please set RESEND_API_KEY in environment variables.' 
+    console.warn('⚠️ Resend API key not configured - email will not be sent');
+    console.warn('💡 To enable emails: Add RESEND_API_KEY to Vercel environment variables');
+    // Return success so waitlist signup doesn't fail, but log that email wasn't sent
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    return res.status(200).json({ 
+      success: false,
+      skipped: true,
+      message: 'Email service not configured. Waitlist signup succeeded, but email was not sent.',
+      error: 'RESEND_API_KEY not set in environment variables'
     });
   }
 
