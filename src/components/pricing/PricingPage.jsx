@@ -24,23 +24,34 @@ export default function PricingPage() {
     } else if (params.get('canceled') === 'true') {
       setMessage({ type: 'info', text: 'Payment was canceled. You can try again anytime.' });
       window.history.replaceState({}, '', '/pricing');
+    } else if (params.get('google_auth') === 'true') {
+      // User returned from Google auth - clean up URL
+      window.history.replaceState({}, '', '/pricing');
     }
   }, []);
 
+
   const handlePayment = async (planId) => {
+    // Require login before checkout - redirect to login page
+    if (!user) {
+      window.location.href = `/pricing/login?plan=${planId}`;
+      return;
+    }
+
     setLoading(planId);
     setMessage(null);
 
     try {
-      // Use user email if available, otherwise let Stripe handle it
-      const email = user?.email || '';
-      await redirectToCheckout(planId, email);
+      const email = user.email || '';
+      const userId = user.id;
+      await redirectToCheckout(planId, userId, email);
     } catch (error) {
       console.error('Payment error:', error);
       setMessage({ type: 'error', text: 'Failed to start checkout. Please try again.' });
       setLoading(null);
     }
   };
+
 
   const handleFreeStart = () => {
     if (!user) {
@@ -254,14 +265,6 @@ export default function PricingPage() {
               </div>
             </div>
             <div className="pricing-card-body">
-              <div className="credit-system-info">
-                <p className="credit-info-text">
-                  <strong>Credit-Based System:</strong> Since we use OpenAI for processing, this plan includes <strong>500 credits</strong> to get you started. Each tailored resume uses 1 credit. Mock interview credit usage will be announced soon.
-                </p>
-                <p className="credit-info-text">
-                  Additional credits can be purchased as needed at competitive rates.
-                </p>
-              </div>
               <ul className="pricing-features">
                 <li className="pricing-feature">
                   <span className="feature-icon">✓</span>
@@ -299,9 +302,6 @@ export default function PricingPage() {
               >
                 {loading === 'lifetime' ? 'Loading...' : 'Get Lifetime Access'}
               </button>
-              <p className="credit-note">
-                * 1 credit = 1 tailored resume. Additional credits can be purchased in packs.
-              </p>
             </div>
           </div>
 
@@ -315,14 +315,6 @@ export default function PricingPage() {
               </div>
             </div>
             <div className="pricing-card-body">
-              <div className="credit-system-info">
-                <p className="credit-info-text">
-                  <strong>Credit-Based System:</strong> Since we use OpenAI for processing, this plan includes <strong>500 credits</strong> to get you started. Each tailored resume uses 1 credit. Mock interview credit usage will be announced soon.
-                </p>
-                <p className="credit-info-text">
-                  Additional credits can be purchased as needed at competitive rates.
-                </p>
-              </div>
               <ul className="pricing-features">
                 <li className="pricing-feature">
                   <span className="feature-icon">✓</span>
@@ -359,9 +351,6 @@ export default function PricingPage() {
               >
                 Sign Up for Waitlist
               </button>
-              <p className="credit-note">
-                * 1 credit = 1 tailored resume. Additional credits can be purchased in packs.
-              </p>
             </div>
           </div>
         </div>
@@ -380,6 +369,34 @@ export default function PricingPage() {
             </div>
           </div>
         )}
+
+        {/* Value Proposition Section */}
+        <div className="pricing-value-proposition">
+          <div className="value-proposition-content">
+            <h2 className="value-proposition-title">
+              Invest in Your Career, Not Just a Tool
+            </h2>
+            <p className="value-proposition-text">
+              The cost of a premium plan is a fraction of what you'll earn from landing your dream job. 
+              Our AI-powered tools help you stand out in a competitive market and secure opportunities 
+              that can transform your career—and your income.
+            </p>
+            <div className="value-proposition-stats">
+              <div className="value-stat">
+                <div className="value-stat-number">6-Figure</div>
+                <div className="value-stat-label">Potential Salary Increase</div>
+              </div>
+              <div className="value-stat">
+                <div className="value-stat-number">10x</div>
+                <div className="value-stat-label">ROI on Investment</div>
+              </div>
+              <div className="value-stat">
+                <div className="value-stat-number">Lifetime</div>
+                <div className="value-stat-label">Career Benefits</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div className="pricing-faq">
           <h2 className="faq-title">Frequently Asked Questions</h2>
@@ -442,6 +459,7 @@ export default function PricingPage() {
             )}
           </div>
         </div>
+
       </div>
       <Footer />
     </div>

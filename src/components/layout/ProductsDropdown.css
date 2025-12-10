@@ -1,21 +1,28 @@
 /* Products Dropdown */
 .products-dropdown {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .products-dropdown-menu {
   position: absolute;
   top: 100%;
   left: 0;
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 0.5rem;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
   min-width: 240px;
   z-index: 1000;
-  padding: 0.25rem;
-  transition: all 0.3s ease;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+  /* Ensure dropdown stays open when hovering over it */
+  pointer-events: auto;
+  /* Add invisible padding-top to create seamless hover bridge */
+  padding-top: 0.5rem;
+  margin-top: -0.25rem;
 }
 
 .products-dropdown-item {

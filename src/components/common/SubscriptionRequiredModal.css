@@ -1,0 +1,128 @@
+.subscription-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+  overflow-y: auto;
+  /* Ensure modal is centered in viewport */
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
+}
+
+.subscription-modal {
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--card-border, #e5e7eb);
+  border-radius: 1rem;
+  padding: 0;
+  max-width: 450px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+  z-index: 10001;
+  /* Ensure modal stays centered */
+  margin: auto;
+  /* Prevent modal from being pushed down */
+  flex-shrink: 0;
+}
+
+.subscription-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  color: var(--header-subtitle-color, #6b7280);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+  z-index: 10;
+}
+
+.subscription-modal-close:hover {
+  color: var(--header-title-color, #1f2937);
+}
+
+.subscription-modal-content {
+  padding: 2.5rem 2rem 2rem;
+}
+
+.subscription-modal-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--header-title-color, #1f2937);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.subscription-modal-message {
+  font-size: 1rem;
+  color: var(--header-subtitle-color, #6b7280);
+  text-align: center;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.subscription-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.subscription-modal-button-primary {
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.subscription-modal-button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.5);
+}
+
+.subscription-modal-button-secondary {
+  padding: 0.875rem 1.5rem;
+  background: transparent;
+  color: var(--header-subtitle-color, #6b7280);
+  border: 1px solid var(--card-border, #e5e7eb);
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.subscription-modal-button-secondary:hover {
+  border-color: var(--header-title-color, #6366f1);
+  color: var(--header-title-color, #6366f1);
+}
+
+@media (max-width: 640px) {
+  .subscription-modal-content {
+    padding: 2rem 1.5rem 1.5rem;
+  }
+
+  .subscription-modal-title {
+    font-size: 1.5rem;
+  }
+}
+

@@ -5,10 +5,11 @@
 /**
  * Create a Stripe checkout session for a subscription or one-time payment
  * @param {string} planId - The plan identifier ('unlimited', 'pro', 'lifetime')
+ * @param {string} userId - Supabase user id (required for authenticated checkout)
  * @param {string} email - User's email address
  * @returns {Promise<{success: boolean, sessionId?: string, url?: string, error?: string}>}
  */
-export async function createCheckoutSession(planId, email) {
+export async function createCheckoutSession(planId, userId, email) {
   try {
     const response = await fetch('/api/create-checkout-session', {
       method: 'POST',
@@ -17,6 +18,7 @@ export async function createCheckoutSession(planId, email) {
       },
       body: JSON.stringify({
         planId,
+        userId,
         email,
       }),
     });
@@ -67,10 +69,11 @@ export async function createCheckoutSession(planId, email) {
 /**
  * Redirect to Stripe checkout
  * @param {string} planId - The plan identifier
+ * @param {string} userId - Supabase user id
  * @param {string} email - User's email address
  */
-export async function redirectToCheckout(planId, email) {
-  const result = await createCheckoutSession(planId, email);
+export async function redirectToCheckout(planId, userId, email) {
+  const result = await createCheckoutSession(planId, userId, email);
   
   if (result.success && result.url) {
     window.location.href = result.url;

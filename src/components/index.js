@@ -22,6 +22,7 @@ export { default as MockInterviewsPage } from './products/MockInterviewsPage';
 
 // Pricing pages
 export { default as PricingPage } from './pricing/PricingPage';
+export { default as PricingLoginPage } from './pricing/PricingLoginPage';
 
 // Resume components
 export { default as HighlightedResumeDisplay } from './resume/ResumeDisplay';
