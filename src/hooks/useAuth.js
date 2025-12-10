@@ -25,7 +25,35 @@ export function useAuth() {
         if (!ignore) {
           if (error) {
             console.error("Error fetching session:", error);
+            setUser(null);
+            setAuthLoading(false);
+            return;
           }
+          
+          // If we have a session, verify it's still valid by making a simple authenticated request
+          if (session?.user) {
+            // Try to access user metadata - if user was deleted, this will fail
+            const { error: userError } = await supabase.auth.getUser();
+            
+            // If getUser fails, the user likely doesn't exist anymore
+            if (userError) {
+              console.log('Session invalid - user may have been deleted. Clearing session...');
+              await supabase.auth.signOut();
+              // Manually clear all Supabase auth storage
+              if (typeof window !== 'undefined') {
+                const keys = Object.keys(localStorage);
+                keys.forEach(key => {
+                  if (key.includes('supabase') || key.includes('sb-')) {
+                    localStorage.removeItem(key);
+                  }
+                });
+              }
+              setUser(null);
+              setAuthLoading(false);
+              return;
+            }
+          }
+          
           const fetchedUser = session?.user ?? null;
           setUser(fetchedUser);
           setAuthLoading(false);
@@ -44,12 +72,25 @@ export function useAuth() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
         // Clear user immediately on sign out or when session is null
         setUser(null);
       } else {
-        setUser(session?.user ?? null);
+        const newUser = session?.user ?? null;
+        setUser(newUser);
+        
+        // Link waitlist entry to user account if they were on waitlist
+        // This handles Google sign-in, email sign-in, and other OAuth providers
+        if (newUser && newUser.email && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          try {
+            const { linkWaitlistToUser } = await import('../services/waitlistService');
+            await linkWaitlistToUser(newUser.email, newUser.id);
+          } catch (err) {
+            // Don't fail auth if waitlist linking fails
+            console.error('Error linking waitlist:', err);
+          }
+        }
       }
     });
 
@@ -115,6 +156,16 @@ export function useAuth() {
           setAuthError(error.message);
         }
       } else {
+        // Link waitlist entry to user account if they were on waitlist
+        if (data?.user && authEmail) {
+          try {
+            const { linkWaitlistToUser } = await import('../services/waitlistService');
+            await linkWaitlistToUser(authEmail, data.user.id);
+          } catch (err) {
+            // Don't fail signup if waitlist linking fails
+            console.error('Error linking waitlist:', err);
+          }
+        }
         // Success - onAuthStateChange will handle state update
         setAuthEmail("");
         setAuthPassword("");

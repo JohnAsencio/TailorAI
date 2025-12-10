@@ -22,11 +22,11 @@ export default function WaitlistForm({ onSuccess }) {
     try {
       const result = await joinWaitlist(email);
       if (result.success) {
-        setMessage('🎉 Successfully joined the waitlist! We\'ll notify you when we launch.');
+        setMessage('🎉 Successfully joined the waitlist! Check your email for exclusive pre-order offers and beta testing opportunities.');
         setEmail('');
         setTimeout(() => {
           if (onSuccess) onSuccess();
-        }, 3000);
+        }, 4000);
       } else {
         setError(result.error || 'Something went wrong. Please try again.');
       }

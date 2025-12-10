@@ -1,12 +1,32 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import WaitlistForm from './WaitlistForm';
 import MockInterviewChat from './MockInterviewChat';
+import SubscriptionRequiredModal from '../common/SubscriptionRequiredModal';
 import Footer from '../common/Footer';
 import './LandingPage.css';
 
 export default function LandingPage() {
   const [showWaitlist, setShowWaitlist] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Check if subscription is required (from ProtectedRoute redirect)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('subscription_required') === 'true') {
+      setShowSubscriptionModal(true);
+      // Clean up URL
+      const redirect = params.get('redirect');
+      if (redirect) {
+        // Store redirect for after subscription
+        sessionStorage.setItem('postSubscriptionRedirect', redirect);
+      }
+      // Remove query params from URL
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, navigate]);
 
   return (
     <div className="landing-page">
@@ -14,8 +34,8 @@ export default function LandingPage() {
       <section className="landing-hero">
         <div className="hero-content">
           <div className="hero-badge">
-            <span className="badge-icon">✨</span>
-            <span>AI-Powered Resume Optimization</span>
+            <span className="badge-icon">🚀</span>
+            <span>Pre-Launch: Join the Waitlist</span>
           </div>
           <h1 className="hero-title">
             Tailor Your Resume
@@ -27,17 +47,35 @@ export default function LandingPage() {
             Let AI customize your resume to match job descriptions, optimize for ATS systems, 
             and practice with AI mock interviews. Get interview-ready with professional results in seconds.
           </p>
+          
+          {/* Exclusive Offers Highlight */}
+          <div className="hero-exclusives">
+            <div className="exclusive-badge">
+              <span className="exclusive-icon">🎯</span>
+              <span>Pre-Launch Special: $99 Lifetime (Save $50)</span>
+            </div>
+            <div className="exclusive-badge">
+              <span className="exclusive-icon">⭐</span>
+              <span>Beta Tester Access: Shape the Product</span>
+            </div>
+          </div>
+
           <div className="hero-cta">
             {!showWaitlist ? (
-              <button 
-                className="cta-button primary"
-                onClick={() => setShowWaitlist(true)}
-              >
-                Join the Waitlist
-                <svg className="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </button>
+              <>
+                <button 
+                  className="cta-button primary hero-waitlist-button"
+                  onClick={() => setShowWaitlist(true)}
+                >
+                  Join the Waitlist
+                  <svg className="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </button>
+                <p className="hero-cta-note">
+                  ✨ Free to join • Pre-launch specials via email • No spam, ever
+                </p>
+              </>
             ) : (
               <WaitlistForm onSuccess={() => setShowWaitlist(false)} />
             )}
@@ -169,31 +207,93 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pre-Purchase Section */}
-      <section className="landing-pre-purchase">
-        <div className="pre-purchase-container">
-          <h2 className="pre-purchase-title">Get Early Access</h2>
-          <p className="pre-purchase-subtitle">
-            Be among the first to experience Tailor AI. Get exclusive early access and special launch pricing when we officially launch.
-          </p>
-          {!showWaitlist ? (
-            <div className="pre-purchase-cta">
+      {/* Exclusive Pre-Launch Offers Section */}
+      <section className="landing-exclusive-offers">
+        <div className="exclusive-offers-container">
+          <div className="exclusive-offers-header">
+            <h2 className="exclusive-offers-title">🎁 Pre-Launch Specials</h2>
+            <p className="exclusive-offers-subtitle">
+              Join the waitlist to unlock these pre-launch deals
+            </p>
+          </div>
+          
+          <div className="exclusive-offers-grid">
+            <div className="exclusive-offer-card">
+              <div className="offer-badge">Pre-Launch Special</div>
+              <h3 className="offer-title">Lifetime Plan Discount</h3>
+              <p className="offer-price">
+                <span className="offer-price-original">$149</span>
+                <span className="offer-price-current">$99</span>
+              </p>
+              <p className="offer-description">
+                Secure lifetime access at a special pre-launch price. Save $50 off the regular price.
+              </p>
+              <ul className="offer-features">
+                <li>✓ 500 credits included</li>
+                <li>✓ Unlimited mock interviews</li>
+                <li>✓ All premium features</li>
+                <li>✓ Never pay monthly fees</li>
+              </ul>
+            </div>
+
+            <div className="exclusive-offer-card">
+              <div className="offer-badge">Beta Tester Program</div>
+              <h3 className="offer-title">Founders' Tier Access</h3>
+              <p className="offer-price">
+                <span className="offer-price-current">Free</span>
+              </p>
+              <p className="offer-description">
+                Join our beta testing program. Get early access, influence product development, and receive special perks.
+              </p>
+              <ul className="offer-features">
+                <li>✓ Early access to new features</li>
+                <li>✓ Direct input on product roadmap</li>
+                <li>✓ Priority support</li>
+                <li>✓ Special beta tester badge</li>
+              </ul>
+            </div>
+
+            <div className="exclusive-offer-card">
+              <div className="offer-badge">Limited Time</div>
+              <h3 className="offer-title">Monthly Plan Discount</h3>
+              <p className="offer-price">
+                <span className="offer-price-original">$8.99</span>
+                <span className="offer-price-current">$6.99</span>
+                <span className="offer-price-period">/month</span>
+              </p>
+              <p className="offer-description">
+                Lock in the pre-launch price for Unlimited plan.
+              </p>
+              <ul className="offer-features">
+                <li>✓ Unlimited resumes</li>
+                <li>✓ Unlimited ATS checks</li>
+                <li>✓ All premium features</li>
+                <li>✓ Cancel anytime</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="exclusive-offers-cta">
+            {!showWaitlist ? (
               <button 
-                className="cta-button primary"
+                className="cta-button primary exclusive-cta-button"
                 onClick={() => {
                   setShowWaitlist(true);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               >
-                Join the Waitlist
+                Join Waitlist to Unlock These Offers
+                <svg className="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
               </button>
-              <Link to="/pricing" className="cta-button secondary">
-                View Pricing Plans
-              </Link>
-            </div>
-          ) : (
-            <WaitlistForm onSuccess={() => setShowWaitlist(false)} />
-          )}
+            ) : (
+              <WaitlistForm onSuccess={() => setShowWaitlist(false)} />
+            )}
+            <p className="exclusive-offers-note">
+              🔒 Pre-launch specials available to waitlist members. Join now to receive your invitation via email.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -211,6 +311,13 @@ export default function LandingPage() {
       </section>
 
       <Footer />
+
+      {/* Subscription Required Modal */}
+      {showSubscriptionModal && (
+        <SubscriptionRequiredModal 
+          onClose={() => setShowSubscriptionModal(false)} 
+        />
+      )}
     </div>
   );
 }

@@ -77,6 +77,12 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Handle preflight
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -86,10 +92,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { planId, email } = req.body;
+    const { planId, email, userId } = req.body;
 
     if (!planId) {
       return res.status(400).json({ error: 'Missing planId' });
+    }
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId. Please sign in before checkout.' });
     }
 
     const plan = getPlanConfig(planId);
@@ -146,8 +155,20 @@ export default async function handler(req, res) {
           metadata: {
             planId,
             planName: plan.name,
+            userId,
+            email,
             isPreLaunchSpecial: plan.isSpecial ? 'true' : 'false',
             pricePaid: plan.amount.toString(),
+          },
+          subscription_data: {
+            metadata: {
+              planId,
+              planName: plan.name,
+              userId,
+              email,
+              isPreLaunchSpecial: plan.isSpecial ? 'true' : 'false',
+              pricePaid: plan.amount.toString(),
+            },
           },
         });
 
@@ -175,6 +196,8 @@ export default async function handler(req, res) {
           metadata: {
             planId,
             planName: plan.name,
+            userId,
+            email,
           },
         });
 
@@ -214,6 +237,8 @@ export default async function handler(req, res) {
         metadata: {
           planId,
           planName: plan.name,
+          userId,
+          email,
           isPreLaunchSpecial: plan.isSpecial ? 'true' : 'false',
           pricePaid: plan.amount.toString(),
         },

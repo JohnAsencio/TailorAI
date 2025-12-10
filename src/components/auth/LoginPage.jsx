@@ -19,13 +19,29 @@ export default function LoginPage({
   const location = useLocation();
   const { user } = useAuth();
 
+  // Determine redirect target (query param ?redirect=/pricing or location state)
+  const searchParams = new URLSearchParams(location.search);
+  const redirectParam = searchParams.get('redirect') || sessionStorage.getItem('postLoginRedirect');
+
+  // Persist redirect target across re-renders
+  useEffect(() => {
+    const param = new URLSearchParams(location.search).get('redirect');
+    if (param) {
+      sessionStorage.setItem('postLoginRedirect', param);
+    }
+  }, [location.search]);
+
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      const from = location.state?.from?.pathname || '/tailor';
+      const from =
+        redirectParam ||
+        location.state?.from?.pathname ||
+        '/tailor';
+      sessionStorage.removeItem('postLoginRedirect');
       navigate(from, { replace: true });
     }
-  }, [user, navigate, location]);
+  }, [user, navigate, location, redirectParam]);
   return (
     <section className="auth-page-section animate-fade-in">
       <div className="auth-page-container">

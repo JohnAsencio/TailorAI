@@ -43,6 +43,10 @@ Create a `.env.local` file in the root directory:
 VITE_SUPABASE_URL=your-supabase-url
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 OPENAI_API_KEY=your-openai-api-key
+RESEND_API_KEY=your-resend-api-key
+STRIPE_SECRET_KEY=your-stripe-secret-key
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+STRIPE_WEBHOOK_SECRET=your-stripe-webhook-secret
 ```
 
 Or pull from Vercel:

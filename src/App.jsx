@@ -1,9 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useTheme } from "./hooks/useTheme";
 import { useAuth } from "./hooks/useAuth";
 import { useResume } from "./hooks/useResume";
 import { initializePdfWorker } from "./utils/pdfUtils";
-import { Header, LoginPage, ProfilePage, TailorPage, MockPage, LandingPage, MyResumesPage, PrivacyPolicy, PricingPage, ProductsPage, ResumeTailorPage, MockInterviewsPage } from "./components";
+import { Header, LoginPage, ProfilePage, TailorPage, MockPage, LandingPage, MyResumesPage, PrivacyPolicy, PricingPage, PricingLoginPage, ProductsPage, ResumeTailorPage, MockInterviewsPage } from "./components";
 import ProtectedRoute from "./components/routing/ProtectedRoute";
 import './App.css';
 
@@ -29,6 +29,41 @@ function App() {
   // Resume state that persists across tab switches
   const resumeState = useResume();
 
+  // Wrapper component to handle signin redirect correctly
+  const SignInRoute = () => {
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const redirectParam = searchParams.get('redirect');
+
+    if (authLoading) return null;
+
+    if (!user) {
+      return (
+        <LoginPage
+          authEmail={authEmail}
+          setAuthEmail={setAuthEmail}
+          authPassword={authPassword}
+          setAuthPassword={setAuthPassword}
+          authError={authError}
+          handleSignIn={handleSignIn}
+          handleSignUp={handleSignUp}
+          handleGoogleSignIn={handleGoogleSignIn}
+        />
+      );
+    }
+
+    return (
+      <Navigate
+        to={
+          redirectParam ||
+          location.state?.from?.pathname ||
+          '/tailor'
+        }
+        replace
+      />
+    );
+  };
+
   return (
     <BrowserRouter>
       <div className="app-container animate-fade-in">
@@ -39,32 +74,11 @@ function App() {
             {/* Public routes */}
             <Route 
               path="/" 
-              element={
-                !authLoading && !user ? (
-                  <LandingPage />
-                ) : !authLoading && user ? (
-                  <Navigate to="/tailor" replace />
-                ) : null
-              } 
+              element={<LandingPage />} 
             />
             <Route 
               path="/signin" 
-              element={
-                !authLoading && !user ? (
-                  <LoginPage
-                    authEmail={authEmail}
-                    setAuthEmail={setAuthEmail}
-                    authPassword={authPassword}
-                    setAuthPassword={setAuthPassword}
-                    authError={authError}
-                    handleSignIn={handleSignIn}
-                    handleSignUp={handleSignUp}
-                    handleGoogleSignIn={handleGoogleSignIn}
-                  />
-                ) : !authLoading && user ? (
-                  <Navigate to="/tailor" replace />
-                ) : null
-              } 
+              element={<SignInRoute />} 
             />
             <Route 
               path="/privacy" 
@@ -73,6 +87,10 @@ function App() {
             <Route 
               path="/pricing" 
               element={<PricingPage />} 
+            />
+            <Route 
+              path="/pricing/login" 
+              element={<PricingLoginPage />} 
             />
             <Route 
               path="/products" 

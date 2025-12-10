@@ -355,6 +355,98 @@
 }
 
 /* FAQ Section */
+/* Value Proposition Section */
+.pricing-value-proposition {
+  margin-top: 4rem;
+  margin-bottom: 2rem;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+  border-radius: 1.5rem;
+  border: 1px solid var(--card-border);
+  text-align: center;
+}
+
+.value-proposition-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.value-proposition-title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: var(--header-title-color);
+  margin-bottom: 1rem;
+  transition: color 0.3s ease;
+}
+
+.value-proposition-text {
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: var(--header-subtitle-color);
+  margin-bottom: 2.5rem;
+  transition: color 0.3s ease;
+}
+
+.value-proposition-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.value-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.value-stat-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.value-stat-label {
+  font-size: 0.95rem;
+  color: var(--header-subtitle-color);
+  font-weight: 500;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .pricing-value-proposition {
+    padding: 2rem 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .value-proposition-title {
+    font-size: 1.75rem;
+  }
+
+  .value-proposition-text {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .value-proposition-stats {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .value-stat-number {
+    font-size: 2rem;
+  }
+}
+
 .pricing-faq {
   margin-top: 4rem;
   padding-top: 3rem;

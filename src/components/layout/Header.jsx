@@ -28,16 +28,15 @@ export default function Header({ user }) {
           </nav>
         </div>
         <div className="app-header-right">
-          {user && (
-            <Navigation />
-          )}
-          {!user && (
+          {user && user.id ? (
+            <>
+              <Navigation />
+              <ProfileButton />
+            </>
+          ) : (
             <Link to="/signin" className="header-signin-button">
               Sign In
             </Link>
-          )}
-          {user && (
-            <ProfileButton />
           )}
         </div>
       </div>

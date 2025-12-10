@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './ProductsDropdown.css';
 
@@ -6,12 +6,40 @@ export default function ProductsDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const isProductsPage = location.pathname.startsWith('/products');
+  const timeoutRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  // Handle hover with delay to prevent premature closing
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setIsOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    // Add small delay before closing to allow moving to dropdown items
+    timeoutRef.current = setTimeout(() => {
+      setIsOpen(false);
+    }, 150); // 150ms delay
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div 
+      ref={dropdownRef}
       className="products-dropdown"
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <Link 
         to="/products" 
