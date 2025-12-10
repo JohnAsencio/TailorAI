@@ -520,16 +520,18 @@
 .offer-badge {
   position: absolute;
   top: -1rem;
-  right: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
-  padding: 0.5rem 1rem;
+  padding: 0.45rem 1.2rem;
   border-radius: 2rem;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  white-space: nowrap;
 }
 
 .offer-title {
