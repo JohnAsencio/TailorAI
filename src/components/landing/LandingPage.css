@@ -129,6 +129,18 @@
   line-height: 1.6;
   width: 100%;
   display: block;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .hero-cta {
+    align-items: center;
+  }
+  .hero-cta-note {
+    font-size: 0.8rem;
+    text-align: center;
+    white-space: nowrap;
+  }
 }
 
 .cta-button {
