@@ -1,6 +1,16 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './ProfilePage.css';
 
 export default function ProfilePage({ user, handleSignOut, theme, toggleTheme }) {
+  const navigate = useNavigate();
+
+  // Redirect to landing page when user signs out
+  useEffect(() => {
+    if (!user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
   return (
     <section className="simple-section-card animate-fade-in">
       <h2 className="simple-section-title">Profile & Settings</h2>

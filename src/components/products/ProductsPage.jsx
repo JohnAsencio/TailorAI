@@ -18,7 +18,6 @@ export default function ProductsPage() {
           <Link to="/products/resume-tailor" className="product-card-link">
             <div className="product-card">
               <div className="product-card-badge">
-                <span className="product-badge-icon">✨</span>
                 <span>Available Now</span>
               </div>
               <h2 className="product-card-title">Resume Tailor</h2>
@@ -26,9 +25,9 @@ export default function ProductsPage() {
                 Transform your resume into a job-matching powerhouse with AI-powered optimization. Customize your resume for each job application in seconds.
               </p>
               <div className="product-card-features">
-                <div className="product-card-feature">🎯 ATS Optimization</div>
-                <div className="product-card-feature">⚡ Lightning Fast</div>
-                <div className="product-card-feature">📊 Match Scoring</div>
+                <div className="product-card-feature">ATS Optimization</div>
+                <div className="product-card-feature">Lightning Fast</div>
+                <div className="product-card-feature">Match Scoring</div>
               </div>
               <div className="product-card-cta">
                 Learn More →
@@ -40,7 +39,6 @@ export default function ProductsPage() {
           <Link to="/products/mock-interviews" className="product-card-link">
             <div className="product-card">
               <div className="product-card-badge product-badge-coming-soon">
-                <span className="product-badge-icon">🎤</span>
                 <span>Coming Soon</span>
               </div>
               <h2 className="product-card-title">AI Mock Interviews</h2>
@@ -48,9 +46,9 @@ export default function ProductsPage() {
                 Prepare for your interviews with confidence. Practice with role-specific questions and receive instant feedback from our AI interviewer.
               </p>
               <div className="product-card-features">
-                <div className="product-card-feature">🎯 Role-Specific Questions</div>
-                <div className="product-card-feature">💬 Interactive Conversations</div>
-                <div className="product-card-feature">📝 Instant Feedback</div>
+                <div className="product-card-feature">Role-Specific Questions</div>
+                <div className="product-card-feature">Interactive Conversations</div>
+                <div className="product-card-feature">Instant Feedback</div>
               </div>
               <div className="product-card-cta">
                 Learn More →
