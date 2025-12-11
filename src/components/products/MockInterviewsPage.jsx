@@ -9,7 +9,6 @@ export default function MockInterviewsPage() {
       <div className="products-container">
         <div className="products-header">
           <div className="product-badge product-badge-coming-soon">
-            <span className="product-badge-icon">🎤</span>
             <span>Coming Soon</span>
           </div>
           <h1 className="products-title">AI Mock Interviews</h1>
@@ -55,42 +54,36 @@ export default function MockInterviewsPage() {
                 <h3 className="product-features-title">Key Features</h3>
                 <div className="product-features-grid">
                   <div className="product-feature-item">
-                    <div className="product-feature-icon">🎯</div>
                     <div className="product-feature-content">
                       <h4>Role-Specific Questions</h4>
                       <p>Practice with questions specifically tailored to the job description and role you're applying for. No generic questions - everything is customized to your target position.</p>
                     </div>
                   </div>
                   <div className="product-feature-item">
-                    <div className="product-feature-icon">💬</div>
                     <div className="product-feature-content">
                       <h4>Interactive Conversations</h4>
                       <p>Engage in realistic back-and-forth dialogue with our AI interviewer. Experience natural conversation flow just like a real interview.</p>
                     </div>
                   </div>
                   <div className="product-feature-item">
-                    <div className="product-feature-icon">📝</div>
                     <div className="product-feature-content">
                       <h4>Instant Feedback</h4>
                       <p>Get detailed feedback on your answers, delivery, and overall performance. Learn what works and what needs improvement.</p>
                     </div>
                   </div>
                   <div className="product-feature-item">
-                    <div className="product-feature-icon">🔄</div>
                     <div className="product-feature-content">
                       <h4>Unlimited Practice</h4>
                       <p>Practice as many times as you need. Each session helps you build confidence and refine your interview skills.</p>
                     </div>
                   </div>
                   <div className="product-feature-item">
-                    <div className="product-feature-icon">📊</div>
                     <div className="product-feature-content">
                       <h4>Performance Analytics</h4>
                       <p>Track your progress over time with detailed analytics. See how your interview skills improve with each practice session.</p>
                     </div>
                   </div>
                   <div className="product-feature-item">
-                    <div className="product-feature-icon">🎓</div>
                     <div className="product-feature-content">
                       <h4>Learning Resources</h4>
                       <p>Access tips, best practices, and example answers to help you prepare. Learn from industry experts and successful candidates.</p>

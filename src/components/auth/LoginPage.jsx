@@ -1,9 +1,5 @@
-import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import './LoginPage.css';
 import { supabase } from '../../supabaseClient';
-import TypewriterText from '../common/TypewriterText';
-import { useAuth } from '../../hooks/useAuth';
 
 export default function LoginPage({
   authEmail,
@@ -11,90 +7,86 @@ export default function LoginPage({
   authPassword,
   setAuthPassword,
   authError,
+  signInLoading,
   handleSignIn,
   handleSignUp,
   handleGoogleSignIn,
 }) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { user } = useAuth();
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
 
-  // Determine redirect target (query param ?redirect=/pricing or location state)
-  const searchParams = new URLSearchParams(location.search);
-  const redirectParam = searchParams.get('redirect') || sessionStorage.getItem('postLoginRedirect');
-
-  // Persist redirect target across re-renders
-  useEffect(() => {
-    const param = new URLSearchParams(location.search).get('redirect');
-    if (param) {
-      sessionStorage.setItem('postLoginRedirect', param);
+    if (signInLoading) {
+      return;
     }
-  }, [location.search]);
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (user) {
-      const from =
-        redirectParam ||
-        location.state?.from?.pathname ||
-        '/tailor';
-      sessionStorage.removeItem('postLoginRedirect');
-      navigate(from, { replace: true });
+    if (typeof handleSignIn === 'function') {
+      await handleSignIn();
+    } else {
+      alert('Error: Sign in function not available');
     }
-  }, [user, navigate, location, redirectParam]);
+  };
+
   return (
     <section className="auth-page-section animate-fade-in">
       <div className="auth-page-container">
         <h2 className="auth-page-title">Welcome to Tailor AI</h2>
-        <TypewriterText />
         <p className="auth-page-subtitle">Sign in or create an account to get started</p>
         
         {!supabase && (
-          <div className="auth-config-warning">
+          <div className="auth-config-warning" style={{ padding: '1rem', background: '#ffebee', borderRadius: '4px', marginBottom: '1rem' }}>
             <p className="simple-section-text">
-              Supabase is not configured yet. Add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> to your <code>.env</code> file to enable sign-in.
+              ⚠️ Supabase is not configured. Add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> to your <code>.env</code> file.
             </p>
           </div>
         )}
 
+        <form className="auth-form" onSubmit={handleFormSubmit}>
+          <div className="auth-field-group">
+            <label className="auth-label" htmlFor="auth-email">Email</label>
+            <input
+              id="auth-email"
+              type="email"
+              className="auth-input"
+              value={authEmail}
+              onChange={(e) => setAuthEmail(e.target.value)}
+              required
+              placeholder="Enter your email"
+            />
+          </div>
+          <div className="auth-field-group">
+            <label className="auth-label" htmlFor="auth-password">Password</label>
+            <input
+              id="auth-password"
+              type="password"
+              className="auth-input"
+              value={authPassword}
+              onChange={(e) => setAuthPassword(e.target.value)}
+              required
+              placeholder="Enter your password"
+            />
+          </div>
+          {authError && <p className="auth-error-text" style={{ color: 'red', marginTop: '0.5rem' }}>{authError}</p>}
+          <div className="auth-buttons">
+            <button 
+              type="submit" 
+              className="auth-button primary"
+              disabled={signInLoading}
+            >
+              {signInLoading ? 'Signing in...' : 'Sign In'}
+            </button>
+            <button 
+              type="button" 
+              className="auth-button secondary" 
+              onClick={handleSignUp}
+              disabled={signInLoading}
+            >
+              Sign Up
+            </button>
+          </div>
+        </form>
+
         {supabase && (
           <>
-            <form className="auth-form" onSubmit={handleSignIn}>
-              <div className="auth-field-group">
-                <label className="auth-label" htmlFor="auth-email">Email</label>
-                <input
-                  id="auth-email"
-                  type="email"
-                  className="auth-input"
-                  value={authEmail}
-                  onChange={(e) => setAuthEmail(e.target.value)}
-                  required
-                  placeholder="Enter your email"
-                />
-              </div>
-              <div className="auth-field-group">
-                <label className="auth-label" htmlFor="auth-password">Password</label>
-                <input
-                  id="auth-password"
-                  type="password"
-                  className="auth-input"
-                  value={authPassword}
-                  onChange={(e) => setAuthPassword(e.target.value)}
-                  required
-                  placeholder="Enter your password"
-                />
-              </div>
-              {authError && <p className="auth-error-text">{authError}</p>}
-              <div className="auth-buttons">
-                <button type="submit" className="auth-button primary">
-                  Sign In
-                </button>
-                <button type="button" className="auth-button secondary" onClick={handleSignUp}>
-                  Sign Up
-                </button>
-              </div>
-            </form>
-
             <div className="auth-divider">
               <span>OR</span>
             </div>
@@ -102,7 +94,12 @@ export default function LoginPage({
             <button
               type="button"
               className="auth-button google-button"
-              onClick={handleGoogleSignIn}
+              onClick={(e) => {
+                e.preventDefault();
+                if (typeof handleGoogleSignIn === 'function') {
+                  handleGoogleSignIn();
+                }
+              }}
             >
               <svg className="google-icon" viewBox="0 0 24 24" width="20" height="20">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

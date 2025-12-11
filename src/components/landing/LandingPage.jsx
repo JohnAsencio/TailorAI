@@ -34,7 +34,6 @@ export default function LandingPage() {
       <section className="landing-hero">
         <div className="hero-content">
           <div className="hero-badge">
-            <span className="badge-icon">🚀</span>
             <span>Pre-Launch: Join the Waitlist</span>
           </div>
           <h1 className="hero-title">
@@ -51,11 +50,9 @@ export default function LandingPage() {
           {/* Exclusive Offers Highlight */}
           <div className="hero-exclusives">
             <div className="exclusive-badge">
-              <span className="exclusive-icon">🎯</span>
               <span>Pre-Launch Special: $99 Lifetime (Save $50)</span>
             </div>
             <div className="exclusive-badge">
-              <span className="exclusive-icon">⭐</span>
               <span>Beta Tester Access: Shape the Product</span>
             </div>
           </div>
@@ -116,7 +113,6 @@ export default function LandingPage() {
         <div className="mock-interviews-container">
           <div className="mock-interviews-content">
             <div className="mock-interviews-badge">
-              <span className="badge-icon">🎤</span>
               <span>Coming Soon</span>
             </div>
             <h2 className="mock-interviews-title">
@@ -128,21 +124,18 @@ export default function LandingPage() {
             </p>
             <div className="mock-interviews-features">
               <div className="mock-feature-item">
-                <div className="mock-feature-icon">🎯</div>
                 <div className="mock-feature-text">
                   <h4>Role-Specific Questions</h4>
                   <p>Practice with questions tailored to each job description</p>
                 </div>
               </div>
               <div className="mock-feature-item">
-                <div className="mock-feature-icon">💬</div>
                 <div className="mock-feature-text">
                   <h4>Interactive Conversations</h4>
                   <p>Engage in realistic back-and-forth dialogue with AI</p>
                 </div>
               </div>
               <div className="mock-feature-item">
-                <div className="mock-feature-icon">📝</div>
                 <div className="mock-feature-text">
                   <h4>Instant Feedback</h4>
                   <p>Get detailed feedback on your answers and delivery</p>
@@ -291,7 +284,7 @@ export default function LandingPage() {
               <WaitlistForm onSuccess={() => setShowWaitlist(false)} />
             )}
             <p className="exclusive-offers-note">
-              🔒 Pre-launch specials available to waitlist members. Join now to receive your invitation via email.
+              Pre-launch specials available to waitlist members. Join now to receive your invitation via email.
             </p>
           </div>
         </div>
