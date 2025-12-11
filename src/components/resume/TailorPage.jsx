@@ -55,6 +55,9 @@ export default function TailorPage({ resumeState, user }) {
     setAdditionalContext,
   } = resumeState;
 
+  // Local testing bypass flag (when set, we won't show real credits)
+  const isBypass = import.meta.env.VITE_BYPASS === 'true';
+
   // Function to clear error messages after a delay
   const clearMessages = () => {
     setTimeout(() => setErrorMessage(""), 5000);
@@ -289,6 +292,21 @@ export default function TailorPage({ resumeState, user }) {
     <>
       <div className="main-grid-container">
         <section className="section-card">
+          {isBypass && (
+            <div
+              style={{
+                marginBottom: '0.75rem',
+                padding: '0.5rem 0.75rem',
+                background: '#eef2ff',
+                color: '#4338ca',
+                border: '1px solid #c7d2fe',
+                borderRadius: '8px',
+                fontWeight: 600,
+              }}
+            >
+              Testing mode (bypass enabled) — Credits: testing
+            </div>
+          )}
           <div
             className="upload-area"
             onDragEnter={handleDrag}

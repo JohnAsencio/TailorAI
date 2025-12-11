@@ -45,7 +45,7 @@ export default function ProductsDropdown() {
         to="/products" 
         className={`landing-nav-link ${isProductsPage ? "active" : ""}`}
       >
-        Products
+        About
       </Link>
       {isOpen && (
         <div className="products-dropdown-menu">
