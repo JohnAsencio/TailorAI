@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../supabaseClient';
 import './ProfilePage.css';
 
 export default function ProfilePage({ user, handleSignOut, theme, toggleTheme }) {
@@ -11,6 +12,29 @@ export default function ProfilePage({ user, handleSignOut, theme, toggleTheme })
       navigate('/', { replace: true });
     }
   }, [user, navigate]);
+
+  // Validate user session on mount - if user was deleted, force sign out
+  useEffect(() => {
+    if (user && supabase) {
+      const validateUser = async () => {
+        try {
+          const { data: { user: currentUser }, error } = await supabase.auth.getUser();
+          if (error || !currentUser) {
+            // User was deleted, force sign out
+            console.warn('User session invalid, signing out');
+            handleSignOut();
+          }
+        } catch (err) {
+          // If getUser fails, user might be deleted
+          if (err?.message?.includes('JWT') || err?.status === 401) {
+            console.warn('User session invalid, signing out');
+            handleSignOut();
+          }
+        }
+      };
+      validateUser();
+    }
+  }, [user, handleSignOut]);
   return (
     <section className="simple-section-card animate-fade-in">
       <h2 className="simple-section-title">Profile & Settings</h2>

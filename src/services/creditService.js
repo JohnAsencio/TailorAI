@@ -6,7 +6,7 @@ import { supabase } from '../supabaseClient';
  * @returns {Promise<{planId: string, planStatus: string, resumeCredits: number, unlimited: boolean}>}
  */
 export async function fetchCreditStatus(userId) {
-  if (!supabase || !userId) {
+  if (!userId) {
     return { 
       planId: 'free', 
       planStatus: 'free', 
@@ -16,14 +16,16 @@ export async function fetchCreditStatus(userId) {
   }
 
   try {
-    const { data, error } = await supabase
-      .from('app_users')
-      .select('plan_id, plan_status, resume_credits')
-      .eq('user_id', userId)
-      .single();
+    // Use API endpoint instead of direct Supabase query to bypass RLS issues
+    const response = await fetch('/api/get-credits', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId }),
+    });
 
-    if (error) {
-      console.error('Error fetching credit status:', error);
+    if (!response.ok) {
       return { 
         planId: 'free', 
         planStatus: 'free', 
@@ -32,12 +34,13 @@ export async function fetchCreditStatus(userId) {
       };
     }
 
-    const planId = data?.plan_id || 'free';
-    const planStatus = data?.plan_status || 'free';
-    const resumeCredits = data?.resume_credits ?? 0;
-    
-    // Unlimited plans don't consume credits
-    const unlimited = ['unlimited', 'pro'].includes(planId) || planStatus === 'lifetime';
+    const data = await response.json();
+
+    // API returns camelCase keys, so use those directly
+    const planId = data?.planId || 'free';
+    const planStatus = data?.planStatus || 'free';
+    const resumeCredits = data?.resumeCredits ?? 0;
+    const unlimited = data?.unlimited ?? false;
 
     return {
       planId,

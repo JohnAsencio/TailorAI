@@ -70,11 +70,40 @@ export default function TailorPage({ resumeState, user }) {
     if (user?.id) {
       const loadCredits = async () => {
         setCreditsLoading(true);
-        // Reset to default green state while loading
-        setCreditStatus({ resumeCredits: 0, unlimited: false, planId: 'free' });
-        const status = await fetchCreditStatus(user.id);
-        setCreditStatus(status);
-        setCreditsLoading(false);
+        try {
+          // Add timeout to prevent hanging (reduced to 5 seconds)
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Credit fetch timeout')), 5000)
+          );
+          
+          let status = await Promise.race([
+            fetchCreditStatus(user.id),
+            timeoutPromise
+          ]);
+          
+          // If credits are 0, wait a bit and retry once
+          // This handles the case where profile creation is still in progress for new users
+          if (status.resumeCredits === 0) {
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+            
+            const retryTimeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Credit fetch retry timeout')), 5000)
+            );
+            
+            status = await Promise.race([
+              fetchCreditStatus(user.id),
+              retryTimeoutPromise
+            ]);
+          }
+          
+          setCreditStatus(status);
+        } catch (err) {
+          console.error('❌ Error loading credits:', err);
+          // Set default values on error
+          setCreditStatus({ resumeCredits: 0, unlimited: false, planId: 'free' });
+        } finally {
+          setCreditsLoading(false);
+        }
       };
       loadCredits();
     } else {

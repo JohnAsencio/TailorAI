@@ -9,6 +9,28 @@ export function useAuth() {
   const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState("");
 
+  // Helper function to clear all auth-related storage
+  const clearAuthStorage = () => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        Object.keys(localStorage).forEach(key => {
+          if (key.includes('supabase') || key.includes('sb-') || key.startsWith('supabase.')) {
+            localStorage.removeItem(key);
+          }
+        });
+      }
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        Object.keys(sessionStorage).forEach(key => {
+          if (key.includes('supabase') || key.includes('sb-') || key.startsWith('supabase.')) {
+            sessionStorage.removeItem(key);
+          }
+        });
+      }
+    } catch (err) {
+      // Silently fail
+    }
+  };
+
   // Initialize Supabase auth listener (no getSession to avoid hanging promise)
   useEffect(() => {
     let ignore = false;
@@ -18,10 +40,107 @@ export function useAuth() {
       return;
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (ignore) return;
+      
+      // Handle sign out events (including when user is deleted)
+      if (event === 'SIGNED_OUT' || !session) {
+        setUser(null);
+        setAuthLoading(false);
+        // Clear auth storage when signed out
+        clearAuthStorage();
+        return;
+      }
+
+      // Handle token refresh failures (user might have been deleted)
+      if (event === 'TOKEN_REFRESHED' && !session?.user) {
+        setUser(null);
+        setAuthLoading(false);
+        clearAuthStorage();
+        return;
+      }
+
       setUser(session?.user ?? null);
       setAuthLoading(false);
+
+      // When a user signs in (including Google OAuth), ensure they have a profile
+      // This will send welcome email if they're a new user
+      if (event === 'SIGNED_IN' && session?.user) {
+        try {
+          // Verify the user actually exists in auth before creating profile
+          // This prevents creating profiles for deleted users
+          const { data: authUser, error: authError } = await supabase.auth.getUser();
+          
+          if (authError || !authUser?.user) {
+            console.warn('User session invalid, not creating profile');
+            setUser(null);
+            clearAuthStorage();
+            // Force sign out if user doesn't exist
+            try {
+              await supabase.auth.signOut({ scope: 'global' });
+            } catch (signOutErr) {
+              // Even if signOut fails, clear storage
+              clearAuthStorage();
+            }
+            return;
+          }
+
+          // Check if user profile exists, if not create it (which sends welcome email)
+          console.log('📞 Calling create-user-profile API for:', session.user.email);
+          const profileResponse = await fetch('/api/create-user-profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: session.user.id,
+              email: session.user.email,
+            }),
+          });
+
+          if (!profileResponse.ok) {
+            const errorText = await profileResponse.text();
+            console.warn('⚠️ Failed to ensure user profile exists:', profileResponse.status, errorText);
+          } else {
+            const profileData = await profileResponse.json();
+            console.log('✅ User profile created/updated:', profileData);
+          }
+        } catch (err) {
+          console.error('Error ensuring user profile:', err);
+          // Don't block auth flow if profile check fails
+        }
+      }
+
+      // On any auth state change, validate the session
+      if (session?.user) {
+        // Check if user still exists by trying to get user info
+        try {
+          const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+          if (userError || !currentUser) {
+            // User was deleted, force sign out
+            console.warn('User no longer exists, signing out');
+            setUser(null);
+            clearAuthStorage();
+            try {
+              await supabase.auth.signOut({ scope: 'global' });
+            } catch (signOutErr) {
+              // Even if signOut fails, clear storage
+              clearAuthStorage();
+            }
+          }
+        } catch (err) {
+          // If getUser fails, user might be deleted
+          if (err?.message?.includes('JWT') || err?.status === 401) {
+            setUser(null);
+            clearAuthStorage();
+            try {
+              await supabase.auth.signOut({ scope: 'global' });
+            } catch (signOutErr) {
+              clearAuthStorage();
+            }
+          }
+        }
+      }
     });
 
     // Immediately allow UI to render; onAuthStateChange will update user if any
@@ -124,39 +243,21 @@ export function useAuth() {
   };
 
   const handleSignOut = async () => {
+    // Always clear user state and storage, even if signOut fails
+    setUser(null);
+    clearAuthStorage();
+    
     if (!supabase) {
-      setUser(null);
-      clearAuthStorage();
       return;
     }
+    
     try {
       await supabase.auth.signOut({ scope: 'global' });
-      clearAuthStorage();
     } catch (err) {
+      // Even if signOut fails (e.g., user was deleted), we've already cleared state
+      console.warn('Sign out error (user may have been deleted):', err);
+      // Force clear storage again to be sure
       clearAuthStorage();
-      setUser(null);
-    }
-  };
-
-  // Helper function to clear all auth-related storage
-  const clearAuthStorage = () => {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        Object.keys(localStorage).forEach(key => {
-          if (key.includes('supabase') || key.includes('sb-') || key.startsWith('supabase.')) {
-            localStorage.removeItem(key);
-          }
-        });
-      }
-      if (typeof window !== 'undefined' && window.sessionStorage) {
-        Object.keys(sessionStorage).forEach(key => {
-          if (key.includes('supabase') || key.includes('sb-') || key.startsWith('supabase.')) {
-            sessionStorage.removeItem(key);
-          }
-        });
-      }
-    } catch (err) {
-      // Silently fail
     }
   };
 

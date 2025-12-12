@@ -5,6 +5,7 @@
 
 import { loadEnvFromLocal } from './utils/loadEnv.js';
 import { createClient } from '@supabase/supabase-js';
+import { sendWelcomeEmail } from './utils/sendWelcomeEmail.js';
 
 // Load env vars for local dev
 loadEnvFromLocal();
@@ -43,7 +44,10 @@ export default async function handler(req, res) {
   try {
     const { userId, email } = req.body;
 
+    console.log('📝 create-user-profile called for:', { userId, email });
+
     if (!userId || !email) {
+      console.error('❌ Missing userId or email');
       return res.status(400).json({
         error: 'userId and email are required',
       });
@@ -53,10 +57,27 @@ export default async function handler(req, res) {
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(userId);
     
     if (authError || !authUser) {
+      console.error('❌ User not found in auth.users:', authError);
       return res.status(404).json({
         error: 'User not found in auth.users',
       });
     }
+
+    console.log('✅ User verified in auth.users');
+
+    // Check if user already exists (to determine if this is a new sign-up)
+    const { data: existingUser, error: checkError } = await supabaseAdmin
+      .from('app_users')
+      .select('user_id')
+      .eq('user_id', userId)
+      .maybeSingle(); // Use maybeSingle to avoid errors if no row exists
+
+    if (checkError && checkError.code !== 'PGRST301') {
+      console.error('❌ Error checking existing user:', checkError);
+    }
+
+    const isNewUser = !existingUser;
+    console.log('👤 Is new user?', isNewUser);
 
     // Create or update app_users entry
     // Note: Don't include created_at/updated_at - let the database handle timestamps if they exist
@@ -67,9 +88,9 @@ export default async function handler(req, res) {
           email: email.toLowerCase().trim(),
           user_id: userId,
           plan_id: 'free',
-          plan_name: 'Free',
+          plan_name: 'beta_tester',
           plan_status: 'free',
-          resume_credits: 3, // Free tier gets 3 resume tailors
+          resume_credits: 3, // Beta testers get 3 free resume tailors
         },
         { onConflict: 'email' }
       )
@@ -106,9 +127,9 @@ export default async function handler(req, res) {
               email: email.toLowerCase().trim(),
               user_id: userId,
               plan_id: 'free',
-              plan_name: 'Free',
+              plan_name: 'beta_tester',
               plan_status: 'free',
-              resume_credits: 3, // Free tier gets 3 resume tailors
+              resume_credits: 3, // Beta testers get 3 free resume tailors
             },
             { onConflict: 'email' }
           )
@@ -138,6 +159,40 @@ export default async function handler(req, res) {
         details: error.message,
         code: error.code,
       });
+    }
+
+    // Send welcome email to new beta tester (only if this is a new user, not an update)
+    if (isNewUser) {
+      console.log('📧 New user detected, sending welcome email');
+      console.log('📧 Email:', email);
+      console.log('👤 User metadata:', authUser.user?.user_metadata);
+      
+      // Send email directly using the statically imported function
+      // This avoids origin detection issues in local dev
+      (async () => {
+        try {
+          console.log('✅ Calling sendWelcomeEmail function...');
+          
+          const userName = authUser.user?.user_metadata?.full_name || authUser.user?.user_metadata?.name || null;
+          console.log('👤 User name:', userName);
+          
+          const result = await sendWelcomeEmail(email.toLowerCase().trim(), userName);
+          console.log('📬 Email function returned:', result);
+          
+          if (result.success) {
+            console.log('✅ Welcome email sent successfully:', result.emailId);
+          } else {
+            console.error('❌ Failed to send welcome email:', result.error, result.details);
+          }
+        } catch (emailError) {
+          console.error('❌ Error sending welcome email:', emailError.message || emailError);
+          if (emailError.stack) {
+            console.error('❌ Stack trace:', emailError.stack);
+          }
+        }
+      })();
+    } else {
+      console.log('ℹ️ User already exists, skipping welcome email');
     }
 
     res.setHeader('Access-Control-Allow-Origin', '*');
