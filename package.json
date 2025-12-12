@@ -17,12 +17,14 @@
     "diff": "^8.0.2",
     "html2pdf.js": "^0.10.3",
     "mammoth": "^1.9.1",
+    "node-fetch": "^3.3.2",
     "openai": "^5.10.1",
     "pdfjs-dist": "^5.3.31",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-pdf": "^10.0.1",
     "react-router-dom": "^7.10.1",
+    "resend": "^6.6.0",
     "stripe": "^20.0.0"
   },
   "devDependencies": {

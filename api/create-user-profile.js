@@ -161,42 +161,34 @@ export default async function handler(req, res) {
       });
     }
 
-    // Send welcome email to new beta tester (only if this is a new user, not an update)
+    // Send welcome email synchronously (but errors won't block profile creation)
     if (isNewUser) {
-      console.log('📧 New user detected, sending welcome email');
+      console.log('📧 New user detected, sending welcome email now');
       console.log('📧 Email:', email);
       console.log('👤 User metadata:', authUser.user?.user_metadata);
-      
-      // Send email directly using the statically imported function
-      // This avoids origin detection issues in local dev
-      (async () => {
-        try {
-          console.log('✅ Calling sendWelcomeEmail function...');
-          
-          const userName = authUser.user?.user_metadata?.full_name || authUser.user?.user_metadata?.name || null;
-          console.log('👤 User name:', userName);
-          
-          const result = await sendWelcomeEmail(email.toLowerCase().trim(), userName);
-          console.log('📬 Email function returned:', result);
-          
-          if (result.success) {
-            console.log('✅ Welcome email sent successfully:', result.emailId);
-          } else {
-            console.error('❌ Failed to send welcome email:', result.error, result.details);
-          }
-        } catch (emailError) {
-          console.error('❌ Error sending welcome email:', emailError.message || emailError);
-          if (emailError.stack) {
-            console.error('❌ Stack trace:', emailError.stack);
-          }
+      try {
+        const userName = authUser.user?.user_metadata?.full_name || authUser.user?.user_metadata?.name || null;
+        console.log('👤 User name:', userName);
+        const result = await sendWelcomeEmail(email.toLowerCase().trim(), userName);
+        console.log('📬 Email function returned:', result);
+        if (result.success) {
+          console.log('✅ Welcome email sent successfully:', result.emailId);
+        } else {
+          console.error('❌ Failed to send welcome email:', result.error, result.details);
         }
-      })();
+      } catch (emailError) {
+        console.error('❌ Error sending welcome email:', emailError.message || emailError);
+        if (emailError.stack) {
+          console.error('❌ Stack trace:', emailError.stack);
+        }
+      }
     } else {
       console.log('ℹ️ User already exists, skipping welcome email');
     }
 
+    // Send response after processing welcome email attempt
     res.setHeader('Access-Control-Allow-Origin', '*');
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       data,
     });
