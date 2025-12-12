@@ -67,49 +67,75 @@ export default function TailorPage({ resumeState, user }) {
 
   // Fetch credit status when user is available
   useEffect(() => {
-    if (user?.id) {
-      const loadCredits = async () => {
-        setCreditsLoading(true);
-        try {
-          // Add timeout to prevent hanging (reduced to 5 seconds)
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Credit fetch timeout')), 5000)
-          );
-          
-          let status = await Promise.race([
-            fetchCreditStatus(user.id),
-            timeoutPromise
-          ]);
-          
-          // If credits are 0, wait a bit and retry once
-          // This handles the case where profile creation is still in progress for new users
-          if (status.resumeCredits === 0) {
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-            
-            const retryTimeoutPromise = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Credit fetch retry timeout')), 5000)
-            );
-            
-            status = await Promise.race([
-              fetchCreditStatus(user.id),
-              retryTimeoutPromise
-            ]);
-          }
-          
-          setCreditStatus(status);
-        } catch (err) {
-          console.error('❌ Error loading credits:', err);
-          // Set default values on error
-          setCreditStatus({ resumeCredits: 0, unlimited: false, planId: 'free' });
-        } finally {
-          setCreditsLoading(false);
-        }
-      };
-      loadCredits();
-    } else {
+    let cancelled = false;
+
+    if (!user?.id) {
       setCreditsLoading(false);
       setCreditStatus({ resumeCredits: 0, unlimited: false, planId: 'free' });
+      return;
     }
+
+    const loadCredits = async (hasRetried = false) => {
+      setCreditsLoading(true);
+      try {
+        const timeoutMs = 10000; // Allow a bit more time, especially when returning to the tab
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Credit fetch timeout')), timeoutMs)
+        );
+
+        let status = await Promise.race([
+          fetchCreditStatus(user.id),
+          timeoutPromise
+        ]);
+
+        // If credits are 0 (new user propagation) and we haven't retried, wait briefly and retry once
+        if (!hasRetried && status.resumeCredits === 0) {
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          const retryTimeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Credit fetch retry timeout')), timeoutMs)
+          );
+          status = await Promise.race([
+            fetchCreditStatus(user.id),
+            retryTimeoutPromise
+          ]);
+        }
+
+        if (!cancelled) {
+          setCreditStatus(status);
+        }
+      } catch (err) {
+        // On timeout, retry once before giving up
+        if (!hasRetried && (err?.message || '').toLowerCase().includes('timeout')) {
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          if (!cancelled) {
+            return loadCredits(true);
+          }
+        }
+        if (!cancelled) {
+          console.error('❌ Error loading credits:', err);
+          setCreditStatus({ resumeCredits: 0, unlimited: false, planId: 'free' });
+        }
+      } finally {
+        if (!cancelled) {
+          setCreditsLoading(false);
+        }
+      }
+    };
+
+    loadCredits();
+
+    // Refresh credits when coming back to the tab (helps if the first call timed out while inactive)
+    const handleVisibilityChange = () => {
+      if (!cancelled && document.visibilityState === 'visible') {
+        loadCredits();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [user]);
 
 
