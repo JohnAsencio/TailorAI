@@ -562,6 +562,11 @@
   flex-wrap: wrap;
 }
 
+.offer-price-current,
+.offer-price-period {
+  white-space: nowrap;
+}
+
 .offer-price-original {
   font-size: 1.5rem;
   color: var(--header-subtitle-color);

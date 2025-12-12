@@ -53,9 +53,9 @@ const cleanMarkdown = (text) => {
   return cleaned;
 };
 
-const isAllCaps = (text) => /^[A-Z\s]+$/.test(text.trim());
-const isBullet = (line) => /^[-•*]\s+/.test(line.trim());
-const hasNumbers = (text) => /\d/.test(text);
+const isAllCaps = (text) => text && /^[A-Z\s]+$/.test(text.trim());
+const isBullet = (line) => line && /^[-•*]\s+/.test(line.trim());
+const hasNumbers = (text) => text && /\d/.test(text);
 
 const MyResumePdfDocument = ({ resumeText }) => {
   if (!resumeText || !resumeText.trim()) {

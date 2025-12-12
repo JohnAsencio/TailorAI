@@ -43,7 +43,15 @@ ${allowExpansion ? '- IMPORTANT: When expansion mode is enabled, you MUST active
 - The header of each section should be in all caps and left-aligned.
 - Be sure to add key words from the job description (from the job description and qualifications) to the resume.
 - Make the candidate look like a high potential fit for the role.
-- PAGE LENGTH CONSTRAINT: The final resume MUST fit on ONE PAGE (approximately 500-700 words total). Use concise language, combine similar bullet points when possible, and prioritize the most relevant and impactful content. Count your words - if approaching 700 words, be more aggressive about removing less relevant content. Prioritize keyword-rich content over verbose descriptions.
+- CRITICAL PAGE LENGTH CONSTRAINT: The final resume MUST ABSOLUTELY fit on ONE PAGE. This is non-negotiable. Maximum word count is 600 words. If the resume exceeds one page, you MUST:
+  1. Remove less relevant bullet points entirely
+  2. Consolidate multiple bullet points into single, more concise ones
+  3. Shorten descriptions by removing filler words
+  4. Remove entire sections that are least relevant to the job
+  5. Use abbreviations where appropriate (e.g., "w/" instead of "with")
+  6. Prioritize keyword-rich content and remove verbose descriptions
+  7. If still too long, be more aggressive - cut entire experiences or projects that are least relevant
+  The resume MUST be under 600 words and fit on a single page. No exceptions.
 - QUALITY ASSURANCE: Before outputting, verify:
   * No markdown formatting (asterisks, underscores, hash symbols, backticks, etc.)
   * No all-caps text except section headers
@@ -82,7 +90,51 @@ After the resume, add a section titled "Summary of Changes:" and list 2-4 bullet
 `;
 
   const result = await generateContent(prompt);
-  const [tailoredResume, summary] = result.split("---SUMMARY OF CHANGES---");
+  
+  // Extract resume and summary - handle multiple possible separators
+  let tailoredResume = result;
+  let summary = '';
+  
+  // Try different separator patterns
+  const separators = [
+    '---SUMMARY OF CHANGES---',
+    '--- SUMMARY OF CHANGES ---',
+    'SUMMARY OF CHANGES:',
+    'Summary of Changes:',
+    'Summary of Changes',
+  ];
+  
+  for (const separator of separators) {
+    if (result.includes(separator)) {
+      const parts = result.split(separator);
+      tailoredResume = parts[0].trim();
+      summary = parts.slice(1).join(separator).trim();
+      break;
+    }
+  }
+  
+  // If no separator found, try to detect and remove summary text manually
+  if (!summary && tailoredResume === result) {
+    // Look for common summary patterns and remove them
+    const summaryPatterns = [
+      /Summary of Changes:[\s\S]*$/i,
+      /Key Changes:[\s\S]*$/i,
+      /Changes Made:[\s\S]*$/i,
+      /Summary:[\s\S]*$/i,
+    ];
+    
+    for (const pattern of summaryPatterns) {
+      if (pattern.test(tailoredResume)) {
+        tailoredResume = tailoredResume.replace(pattern, '').trim();
+        break;
+      }
+    }
+  }
+  
+  // Remove any remaining "Summary of Changes" text that might be in the resume
+  tailoredResume = tailoredResume.replace(/Summary of Changes:[\s\S]*$/i, '').trim();
+  tailoredResume = tailoredResume.replace(/---SUMMARY OF CHANGES---[\s\S]*$/i, '').trim();
+  tailoredResume = tailoredResume.replace(/--- SUMMARY OF CHANGES ---[\s\S]*$/i, '').trim();
   
   // Clean any Markdown formatting that might have slipped through
   let cleanedResume = cleanMarkdownFormatting(tailoredResume.trim());
@@ -159,10 +211,25 @@ function validateAndFixResumeFormat(resumeText) {
     .filter(line => line.trim().length > 0 || line === '') // Keep blank lines for spacing
     .join('\n');
   
-  // Word count check - warn if too long (but don't truncate, let user know)
+  // Word count check and enforce 1-page limit
   const wordCount = fixed.split(/\s+/).filter(word => word.length > 0).length;
-  if (wordCount > 750) {
-    console.warn(`Resume word count (${wordCount}) exceeds recommended one-page limit (~700 words). Consider condensing.`);
+  if (wordCount > 600) {
+    console.warn(`Resume word count (${wordCount}) exceeds one-page limit (600 words). Truncating...`);
+    // Aggressively truncate to ensure 1-page limit
+    const lines = fixed.split('\n');
+    let truncated = '';
+    let currentWordCount = 0;
+    const maxWords = 580; // Leave some buffer
+    
+    for (const line of lines) {
+      const lineWords = line.split(/\s+/).filter(word => word.length > 0).length;
+      if (currentWordCount + lineWords > maxWords) {
+        break;
+      }
+      truncated += line + '\n';
+      currentWordCount += lineWords;
+    }
+    fixed = truncated.trim();
   }
   
   // Final trim

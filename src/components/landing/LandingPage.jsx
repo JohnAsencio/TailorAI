@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import WaitlistForm from './WaitlistForm';
 import MockInterviewChat from './MockInterviewChat';
 import SubscriptionRequiredModal from '../common/SubscriptionRequiredModal';
 import Footer from '../common/Footer';
 import './LandingPage.css';
 
 export default function LandingPage() {
-  const [showWaitlist, setShowWaitlist] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -34,7 +32,7 @@ export default function LandingPage() {
       <section className="landing-hero">
         <div className="hero-content">
           <div className="hero-badge">
-            <span>Pre-Launch: Join the Waitlist</span>
+            <span>Beta is Live: Join as a Beta Tester</span>
           </div>
           <h1 className="hero-title">
             Tailor Your Resume
@@ -50,32 +48,23 @@ export default function LandingPage() {
           {/* Exclusive Offers Highlight */}
           <div className="hero-exclusives">
             <div className="exclusive-badge">
-              <span>Pre-Launch Special: $99 Lifetime (Save $50)</span>
-            </div>
-            <div className="exclusive-badge">
-              <span>Beta Tester Access: Shape the Product</span>
+              <span>Join as a Beta Tester: Shape the Product</span>
             </div>
           </div>
 
           <div className="hero-cta">
-            {!showWaitlist ? (
-              <>
-                <button 
-                  className="cta-button primary hero-waitlist-button"
-                  onClick={() => setShowWaitlist(true)}
-                >
-                  Join the Waitlist
-                  <svg className="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </button>
-                <p className="hero-cta-note">
-                  Free to join • Pre-launch specials via email • No spam, ever
-                </p>
-              </>
-            ) : (
-              <WaitlistForm onSuccess={() => setShowWaitlist(false)} />
-            )}
+            <Link 
+              to="/signin"
+              className="cta-button primary hero-waitlist-button"
+            >
+              Join as a Beta Tester
+              <svg className="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+            <p className="hero-cta-note">
+              Free to join • Get early access • Help shape the product
+            </p>
           </div>
         </div>
         <div className="hero-visual">
@@ -204,22 +193,22 @@ export default function LandingPage() {
       <section className="landing-exclusive-offers">
         <div className="exclusive-offers-container">
           <div className="exclusive-offers-header">
-            <h2 className="exclusive-offers-title">🎁 Pre-Launch Specials</h2>
+            <h2 className="exclusive-offers-title">🎁 Beta Tester Benefits</h2>
             <p className="exclusive-offers-subtitle">
-              Join the waitlist to unlock these pre-launch deals
+              Join as a beta tester to unlock these exclusive benefits
             </p>
           </div>
           
           <div className="exclusive-offers-grid">
             <div className="exclusive-offer-card">
-              <div className="offer-badge">Pre-Launch Special</div>
+              <div className="offer-badge">Beta Special</div>
               <h3 className="offer-title">Lifetime Plan Discount</h3>
               <p className="offer-price">
-                <span className="offer-price-original">$149</span>
-                <span className="offer-price-current">$99</span>
+                <span className="offer-price-original">$49.99</span>
+                <span className="offer-price-current">$32.99</span>
               </p>
               <p className="offer-description">
-                Secure lifetime access at a special pre-launch price. Save $50 off the regular price.
+                Secure lifetime access at a special pre-order price. Save $17 off the regular price.
               </p>
               <ul className="offer-features">
                 <li>✓ 500 credits included</li>
@@ -231,7 +220,7 @@ export default function LandingPage() {
 
             <div className="exclusive-offer-card">
               <div className="offer-badge">Beta Tester Program</div>
-              <h3 className="offer-title">Founders' Tier Access</h3>
+              <h3 className="offer-title">Join the Beta</h3>
               <p className="offer-price">
                 <span className="offer-price-current">Free</span>
               </p>
@@ -247,15 +236,17 @@ export default function LandingPage() {
             </div>
 
             <div className="exclusive-offer-card">
-              <div className="offer-badge">Limited Time</div>
+              <div className="offer-badge">Beta Pricing</div>
               <h3 className="offer-title">Monthly Plan Discount</h3>
               <p className="offer-price">
                 <span className="offer-price-original">$8.99</span>
-                <span className="offer-price-current">$6.99</span>
-                <span className="offer-price-period">/month</span>
+                <span style={{ whiteSpace: 'nowrap' }}>
+                  <span className="offer-price-current">$6.99</span>
+                  <span className="offer-price-period">/month</span>
+                </span>
               </p>
               <p className="offer-description">
-                Lock in the pre-launch price for Unlimited plan.
+                Lock in the beta price for Unlimited plan.
               </p>
               <ul className="offer-features">
                 <li>✓ Unlimited resumes</li>
@@ -267,24 +258,17 @@ export default function LandingPage() {
           </div>
 
           <div className="exclusive-offers-cta">
-            {!showWaitlist ? (
-              <button 
-                className="cta-button primary exclusive-cta-button"
-                onClick={() => {
-                  setShowWaitlist(true);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-              >
-                Join Waitlist to Unlock These Offers
-                <svg className="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </button>
-            ) : (
-              <WaitlistForm onSuccess={() => setShowWaitlist(false)} />
-            )}
+            <Link 
+              to="/signin"
+              className="cta-button primary exclusive-cta-button"
+            >
+              Join as a Beta Tester
+              <svg className="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
             <p className="exclusive-offers-note">
-              Pre-launch specials available to waitlist members. Join now to receive your invitation via email.
+              Beta tester benefits available to all beta members. Join now to get started.
             </p>
           </div>
         </div>

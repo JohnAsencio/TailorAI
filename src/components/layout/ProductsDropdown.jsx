@@ -5,7 +5,7 @@ import './ProductsDropdown.css';
 export default function ProductsDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const isProductsPage = location.pathname.startsWith('/products');
+  const isProductsPage = location.pathname.startsWith('/products') || location.pathname === '/about';
   const timeoutRef = useRef(null);
   const dropdownRef = useRef(null);
 
@@ -42,7 +42,7 @@ export default function ProductsDropdown() {
       onMouseLeave={handleMouseLeave}
     >
       <Link 
-        to="/products" 
+        to="/about" 
         className={`landing-nav-link ${isProductsPage ? "active" : ""}`}
       >
         About

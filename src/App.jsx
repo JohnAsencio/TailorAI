@@ -77,7 +77,7 @@ function App() {
               element={<PricingLoginPage />} 
             />
             <Route 
-              path="/products" 
+              path="/about" 
               element={<ProductsPage />} 
             />
             <Route 

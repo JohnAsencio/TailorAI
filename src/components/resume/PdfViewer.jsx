@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css'; // Required for annotations
 import 'react-pdf/dist/Page/TextLayer.css'; // Required for text layer
@@ -9,19 +9,22 @@ import 'react-pdf/dist/Page/TextLayer.css'; // Required for text layer
 // to your project's public/ directory.
 pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.mjs`;
 
-function PdfViewer({ pdfFileUrl }) {
+function PdfViewer({ pdfFileUrl, hidePagination = false }) {
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [loadingError, setLoadingError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   function onDocumentLoadSuccess({ numPages }) {
     setNumPages(numPages);
     setPageNumber(1); // Reset to first page on new document load
     setLoadingError(null); // Clear any previous errors
+    setIsLoading(false);
   }
 
   function onDocumentLoadError(error) {
     console.error("Error loading PDF document:", error);
+    setIsLoading(false);
     // Provide a more user-friendly message for common PDF loading issues.
     let errorMessage = "Failed to load PDF. ";
     if (error.name === "UnknownErrorException" && error.message.includes("Worker version")) {
@@ -46,6 +49,27 @@ function PdfViewer({ pdfFileUrl }) {
     setPageNumber((prevPageNumber) => Math.min(numPages, prevPageNumber + 1));
   };
 
+  // Reset loading state when pdfFileUrl changes
+  useEffect(() => {
+    if (pdfFileUrl) {
+      setIsLoading(true);
+    }
+  }, [pdfFileUrl]);
+
+  const loadingComponent = (
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      minHeight: '400px' 
+    }}>
+      <svg className="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ height: '1.25rem', width: '1.25rem', color: '#4f46e5', animation: 'spin 1s linear infinite' }}>
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+      </svg>
+    </div>
+  );
+
   return (
     <div className="pdf-viewer-container">
       {pdfFileUrl ? (
@@ -61,6 +85,7 @@ function PdfViewer({ pdfFileUrl }) {
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
             className="pdf-document"
+            loading={loadingComponent}
           >
             <Page
               pageNumber={pageNumber}
@@ -69,15 +94,27 @@ function PdfViewer({ pdfFileUrl }) {
               className="pdf-page"
             />
           </Document>
-          {numPages && (
+          {numPages && !hidePagination && numPages > 1 && (
             <div className="pdf-navigation">
-              <button onClick={goToPrevPage} disabled={pageNumber <= 1} className="pdf-nav-button">
+              <button 
+                type="button"
+                onClick={goToPrevPage} 
+                disabled={pageNumber <= 1} 
+                className="pdf-nav-button"
+                style={{ cursor: pageNumber <= 1 ? 'not-allowed' : 'pointer' }}
+              >
                 Previous
               </button>
               <span className="pdf-page-info">
                 Page {pageNumber} of {numPages}
               </span>
-              <button onClick={goToNextPage} disabled={pageNumber >= numPages} className="pdf-nav-button">
+              <button 
+                type="button"
+                onClick={goToNextPage} 
+                disabled={pageNumber >= numPages} 
+                className="pdf-nav-button"
+                style={{ cursor: pageNumber >= numPages ? 'not-allowed' : 'pointer' }}
+              >
                 Next
               </button>
             </div>
