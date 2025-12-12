@@ -789,6 +789,23 @@ body.dark {
 .tailor-button .spinner-path-fill {
   opacity: 0.75;
 }
+.tailor-button.vibrate {
+  animation: vibrate 0.5s ease;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes vibrate {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
 
 /* ATS Buttons Section - Below main grid */
 .ats-buttons-section {
@@ -944,8 +961,11 @@ body.dark {
   font-weight: 600;
   transition: background-color 0.2s ease-in-out;
   border: none;
-  cursor: pointer;
+  cursor: pointer !important;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  pointer-events: auto;
+  position: relative;
+  z-index: 10;
 }
 
 .pdf-nav-button:hover:not(:disabled) {

@@ -69,6 +69,7 @@ export default async function handler(req, res) {
           plan_id: 'free',
           plan_name: 'Free',
           plan_status: 'free',
+          resume_credits: 3, // Free tier gets 3 resume tailors
         },
         { onConflict: 'email' }
       )
@@ -107,6 +108,7 @@ export default async function handler(req, res) {
               plan_id: 'free',
               plan_name: 'Free',
               plan_status: 'free',
+              resume_credits: 3, // Free tier gets 3 resume tailors
             },
             { onConflict: 'email' }
           )

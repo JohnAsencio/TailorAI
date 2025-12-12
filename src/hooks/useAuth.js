@@ -91,8 +91,32 @@ export function useAuth() {
       if (error) {
         setAuthError(error.message);
       } else {
+        // Create user profile with free tier credits
+        if (data?.user) {
+          try {
+            const profileResponse = await fetch('/api/create-user-profile', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: data.user.id,
+                email: authEmail,
+              }),
+            });
+            
+            if (!profileResponse.ok) {
+              console.error('Failed to create user profile, but signup succeeded');
+            }
+          } catch (profileErr) {
+            console.error('Error creating user profile:', profileErr);
+            // Don't block signup if profile creation fails
+          }
+        }
+        
         setAuthEmail("");
         setAuthPassword("");
+        setAuthError("Account created! Please check your email to verify your account.");
       }
     } catch (err) {
       setAuthError("Failed to sign up. Please try again.");

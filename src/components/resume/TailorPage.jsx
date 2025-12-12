@@ -4,13 +4,14 @@ import { tailorResume } from "../../services/tailorService";
 import { checkATSCompatibility } from "../../services/atsService";
 import { saveTailoredResume } from "../../services/savedResumeService";
 import { ensureTailoredScoreHigher } from "../../utils/atsAlgorithm";
+import { fetchCreditStatus, consumeResumeCredit } from "../../services/creditService";
 import HighlightedResumeDisplay from "./ResumeDisplay";
 import PdfViewer from "./PdfViewer";
 import MyResumePdfDocument from "./MyResumePdfDocument";
 import ATSChecker from "../ats/ATSChecker";
 import ATSComparison from "../ats/ATSComparison";
 import LoadingSpinner from "../common/LoadingSpinner";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import '../../App.css';
 
 export default function TailorPage({ resumeState, user }) {
@@ -18,6 +19,12 @@ export default function TailorPage({ resumeState, user }) {
   const [saveMessage, setSaveMessage] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [jobTitle, setJobTitle] = useState('');
+  const [creditStatus, setCreditStatus] = useState({ resumeCredits: 0, unlimited: false, planId: 'free' });
+  const [creditsLoading, setCreditsLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [requestingCredits, setRequestingCredits] = useState(false);
+  const [vibrating, setVibrating] = useState(false);
+  
   // Use state from parent (App.jsx) so it persists across tab switches
   const {
     resumeText,
@@ -58,6 +65,25 @@ export default function TailorPage({ resumeState, user }) {
   // Local testing bypass flag (when set, we won't show real credits)
   const isBypass = import.meta.env.VITE_BYPASS === 'true';
 
+  // Fetch credit status when user is available
+  useEffect(() => {
+    if (user?.id) {
+      const loadCredits = async () => {
+        setCreditsLoading(true);
+        // Reset to default green state while loading
+        setCreditStatus({ resumeCredits: 0, unlimited: false, planId: 'free' });
+        const status = await fetchCreditStatus(user.id);
+        setCreditStatus(status);
+        setCreditsLoading(false);
+      };
+      loadCredits();
+    } else {
+      setCreditsLoading(false);
+      setCreditStatus({ resumeCredits: 0, unlimited: false, planId: 'free' });
+    }
+  }, [user]);
+
+
   // Function to clear error messages after a delay
   const clearMessages = () => {
     setTimeout(() => setErrorMessage(""), 5000);
@@ -88,8 +114,10 @@ export default function TailorPage({ resumeState, user }) {
       setOutput("");
       setTailoredPdfUrl(null);
       setDisplayResumeMode('empty');
+      setUploading(false);
       return;
     }
+    setUploading(true);
     setUploadedFileName(file.name);
     setOutput("");
     setResumeText("");
@@ -110,9 +138,11 @@ export default function TailorPage({ resumeState, user }) {
           setPdfFileUrl(null);
           setUploadedFileName("");
           setDisplayResumeMode('empty');
+          setUploading(false);
           return;
         }
         setResumeText(text);
+        setUploading(false);
       } catch (error) {
         console.error("Error processing PDF:", error);
         setErrorMessage("Failed to extract text from PDF. Try a different file.");
@@ -120,6 +150,7 @@ export default function TailorPage({ resumeState, user }) {
         setPdfFileUrl(null);
         setUploadedFileName("");
         setDisplayResumeMode('empty');
+        setUploading(false);
       }
     } else if (fileType === "docx") {
       setPdfFileUrl(null);
@@ -131,15 +162,18 @@ export default function TailorPage({ resumeState, user }) {
           clearMessages();
           setUploadedFileName("");
           setDisplayResumeMode('empty');
+          setUploading(false);
           return;
         }
         setResumeText(text);
+        setUploading(false);
       } catch (error) {
         console.error("Error processing DOCX:", error);
         setErrorMessage("Failed to process DOCX. Try a different file.");
         clearMessages();
         setUploadedFileName("");
         setDisplayResumeMode('empty');
+        setUploading(false);
       }
     } else {
       setErrorMessage("Please upload a PDF or DOCX resume.");
@@ -148,6 +182,7 @@ export default function TailorPage({ resumeState, user }) {
       setResumeText("");
       setPdfFileUrl(null);
       setDisplayResumeMode('empty');
+      setUploading(false);
     }
   };
 
@@ -204,6 +239,42 @@ export default function TailorPage({ resumeState, user }) {
     }
   };
 
+  // Handle credit request
+  const handleRequestCredits = async () => {
+    if (!user?.id || !user?.email) return;
+    
+    setRequestingCredits(true);
+    try {
+      const response = await fetch('/api/request-credits', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          email: user.email,
+          userName: user.email?.split('@')[0] || 'User',
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSaveMessage('Credit request submitted! We\'ll notify you when more credits are added.');
+        setTimeout(() => setSaveMessage(''), 5000);
+      } else {
+        setErrorMessage('Failed to submit request. Please try again.');
+        clearMessages();
+      }
+    } catch (error) {
+      console.error('Error requesting credits:', error);
+      setErrorMessage('Failed to submit request. Please try again.');
+      clearMessages();
+    } finally {
+      setRequestingCredits(false);
+    }
+  };
+
   // Handles the resume tailoring process with AI
   const handleTailor = async () => {
     setErrorMessage("");
@@ -211,6 +282,18 @@ export default function TailorPage({ resumeState, user }) {
       setErrorMessage("Please upload your resume and enter a job description.");
       clearMessages();
       return;
+    }
+
+    // Check credits (unless bypass is enabled)
+    if (!isBypass && user?.id) {
+      if (!creditStatus.unlimited && creditStatus.resumeCredits <= 0) {
+        // Vibrate the button
+        setVibrating(true);
+        setTimeout(() => setVibrating(false), 500);
+        setErrorMessage("You're out of credits! Request more below.");
+        clearMessages();
+        return;
+      }
     }
 
     setLoading(true);
@@ -229,6 +312,25 @@ export default function TailorPage({ resumeState, user }) {
       const blob = await pdf(<MyResumePdfDocument resumeText={tailoredResume} />).toBlob();
       const tailoredBlobUrl = URL.createObjectURL(blob);
       setTailoredPdfUrl(tailoredBlobUrl);
+
+      // Consume credit after successful tailoring (unless bypass or unlimited)
+      if (!isBypass && user?.id && !creditStatus.unlimited) {
+        const consumeResult = await consumeResumeCredit(user.id);
+        if (consumeResult.success) {
+          const beforeCredits = creditStatus.resumeCredits;
+          const afterCredits = consumeResult.remainingCredits;
+          
+          // Update credit status
+          setCreditStatus(prev => ({
+            ...prev,
+            resumeCredits: afterCredits,
+          }));
+
+        } else {
+          console.error('Failed to consume credit:', consumeResult.error);
+          // Don't block the user, but log the error
+        }
+      }
     } catch (error) {
       console.error("Error generating content:", error);
       setErrorMessage("Something went wrong. Please try again.");
@@ -290,6 +392,97 @@ export default function TailorPage({ resumeState, user }) {
 
   return (
     <>
+      {/* Credit Display - Top of page */}
+      {user && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '1rem',
+          marginBottom: '0.75rem',
+          marginTop: '2rem'
+        }}>
+          {/* Beta Badge */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            padding: '0.5rem 1rem',
+            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+            borderRadius: '1.5rem',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            color: 'white',
+            boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em'
+          }}>
+            Beta
+          </div>
+
+          {/* Credit Button - Always shows credits, turns red when 0 */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.75rem 1.5rem',
+            background: !creditsLoading && !isBypass && !creditStatus.unlimited && creditStatus.resumeCredits <= 0 
+              ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' 
+              : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            borderRadius: '2rem',
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            color: 'white',
+            boxShadow: !creditsLoading && !isBypass && !creditStatus.unlimited && creditStatus.resumeCredits <= 0
+              ? '0 4px 12px rgba(239, 68, 68, 0.3)'
+              : '0 4px 12px rgba(16, 185, 129, 0.3)',
+            border: 'none',
+            cursor: 'default'
+          }}>
+            {creditsLoading ? (
+              <span>Loading credits...</span>
+            ) : isBypass ? (
+              <span>Credits: <strong>testing</strong></span>
+            ) : creditStatus.unlimited ? (
+              <span>Plan: <strong>{creditStatus.planId === 'pro' ? 'Pro' : 'Unlimited'}</strong> (Unlimited)</span>
+            ) : (
+              <span>Credits: <strong>{creditStatus.resumeCredits}</strong> remaining</span>
+            )}
+          </div>
+
+          {/* Request More Button - Only shows when out of credits */}
+          {!isBypass && !creditStatus.unlimited && !creditsLoading && creditStatus.resumeCredits <= 0 && (
+            <div 
+              onClick={handleRequestCredits}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '0.5rem 1rem',
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                borderRadius: '1.5rem',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                color: 'white',
+                boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(139, 92, 246, 0.3)';
+              }}
+            >
+              Request More
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="main-grid-container">
         <section className="section-card">
           {isBypass && (
@@ -438,8 +631,8 @@ export default function TailorPage({ resumeState, user }) {
 
           <button
             onClick={handleTailor}
-            className={`tailor-button ${loading ? ' loading' : ''}`}
-            disabled={loading || !resumeText}
+            className={`tailor-button ${loading ? ' loading' : ''} ${vibrating ? ' vibrate' : ''}`}
+            disabled={loading || !resumeText || (!isBypass && user?.id && !creditStatus.unlimited && creditStatus.resumeCredits <= 0)}
           >
             {loading ? (
               <span className="flex-center-gap">
@@ -454,6 +647,48 @@ export default function TailorPage({ resumeState, user }) {
             )}
           </button>
 
+          {/* Credits Display - Under Tailor Button */}
+          {user && !creditsLoading && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginTop: '1rem'
+            }}>
+              <div 
+                onClick={!isBypass && !creditStatus.unlimited && creditStatus.resumeCredits <= 0 ? handleRequestCredits : undefined}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.5rem 1rem',
+                  background: !isBypass && !creditStatus.unlimited && creditStatus.resumeCredits <= 0
+                    ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+                    : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  borderRadius: '1.5rem',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: 'white',
+                  boxShadow: !isBypass && !creditStatus.unlimited && creditStatus.resumeCredits <= 0
+                    ? '0 2px 8px rgba(239, 68, 68, 0.3)'
+                    : '0 2px 8px rgba(16, 185, 129, 0.3)',
+                  border: 'none',
+                  cursor: !isBypass && !creditStatus.unlimited && creditStatus.resumeCredits <= 0 ? 'pointer' : 'default',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {isBypass ? (
+                  <span>Credits: <strong>testing</strong></span>
+                ) : creditStatus.unlimited ? (
+                  <span>Plan: <strong>{creditStatus.planId === 'pro' ? 'Pro' : 'Unlimited'}</strong> (Unlimited)</span>
+                ) : creditStatus.resumeCredits <= 0 ? (
+                  <span>Out of testing credits? <strong>Request more</strong></span>
+                ) : (
+                  <span>Credits: <strong>{creditStatus.resumeCredits}</strong> remaining</span>
+                )}
+              </div>
+            </div>
+          )}
+
         </section>
 
         <section className="section-card right-panel">
@@ -463,12 +698,24 @@ export default function TailorPage({ resumeState, user }) {
             {!loading && displayResumeMode === 'tailored_highlighted' && "Tailored Resume "}
           </h2>
 
-          {loading ? (
+          {uploading ? (
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center', 
+              minHeight: '400px' 
+            }}>
+              <svg className="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ height: '1.25rem', width: '1.25rem', color: '#4f46e5', animation: 'spin 1s linear infinite' }}>
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            </div>
+          ) : loading ? (
             <LoadingSpinner message="Tailoring your resume to match the job description..." />
           ) : displayResumeMode === 'original' && pdfFileUrl ? (
-            <PdfViewer pdfFileUrl={pdfFileUrl} />
+            <PdfViewer pdfFileUrl={pdfFileUrl} hidePagination={false} />
           ) : displayResumeMode === 'tailored_highlighted' && tailoredPdfUrl ? (
-            <PdfViewer pdfFileUrl={tailoredPdfUrl} />
+            <PdfViewer pdfFileUrl={tailoredPdfUrl} hidePagination={true} />
           ) : (displayResumeMode === 'original' || displayResumeMode === 'tailored_highlighted') && resumeText && !pdfFileUrl && !tailoredPdfUrl ? (
             <HighlightedResumeDisplay
               originalText={resumeText}
