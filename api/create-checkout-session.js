@@ -37,19 +37,19 @@ function getPlanConfig(planId) {
   const plans = {
     unlimited: {
       priceId: process.env.STRIPE_PRICE_UNLIMITED || '',
-      specialAmount: 699, // $6.99 in cents
-      regularAmount: 899, // $8.99 in cents
+      specialAmount: 299, // $2.99 in cents
+      regularAmount: 1599, // $15.99 in cents
       specialName: 'Unlimited Plan (Pre-Launch Special)',
       regularName: 'Unlimited Plan',
     },
     pro: {
       priceId: process.env.STRIPE_PRICE_PRO || '',
-      amount: 2399, // $23.99 in cents
+      amount: 1299, // $12.99 in cents
       name: 'Pro Plan',
     },
     lifetime: {
-      specialAmount: 10000, // $100.00 in cents
-      regularAmount: 14900, // $149.00 in cents
+      specialAmount: 2299, // $22.99 in cents
+      regularAmount: 4999, // $49.99 in cents
       specialName: 'Lifetime Plan (Pre-Launch Special)',
       regularName: 'Lifetime Plan',
     },

@@ -10,46 +10,36 @@ import { supabase } from '../supabaseClient';
  * @returns {Promise<{success: boolean, data?: object, error?: string}>}
  */
 export async function saveTailoredResume(userId, tailoredResumeText, jobDescription, jobTitle = null, originalResumeText = null) {
-  if (!supabase) {
-    return {
-      success: false,
-      error: 'Database not configured'
-    };
-  }
-
   try {
-    const { data, error } = await supabase
-      .from('saved_resumes')
-      .insert([
-        {
-          user_id: userId,
-          tailored_resume_text: tailoredResumeText,
-          job_description: jobDescription,
-          job_title: jobTitle,
-          original_resume_text: originalResumeText,
-          created_at: new Date().toISOString()
-        }
-      ])
-      .select()
-      .single();
+    const response = await fetch('/api/save-resume', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId,
+        tailoredResumeText,
+        jobDescription,
+        jobTitle,
+        originalResumeText,
+      }),
+    });
 
-    if (error) {
-      console.error('Error saving resume:', error);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
       return {
         success: false,
-        error: error.message || 'Failed to save resume'
+        error: errorData.error || `HTTP error! status: ${response.status}`
       };
     }
 
-    return {
-      success: true,
-      data
-    };
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error('Error saving resume:', error);
     return {
       success: false,
-      error: error.message || 'An unexpected error occurred'
+      error: error.message || 'Failed to save resume'
     };
   }
 }
@@ -60,37 +50,29 @@ export async function saveTailoredResume(userId, tailoredResumeText, jobDescript
  * @returns {Promise<{success: boolean, data?: array, error?: string}>}
  */
 export async function getSavedResumes(userId) {
-  if (!supabase) {
-    return {
-      success: false,
-      error: 'Database not configured'
-    };
-  }
-
   try {
-    const { data, error } = await supabase
-      .from('saved_resumes')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+    const response = await fetch(`/api/get-saved-resumes?userId=${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-    if (error) {
-      console.error('Error fetching resumes:', error);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
       return {
         success: false,
-        error: error.message || 'Failed to fetch resumes'
+        error: errorData.error || `HTTP error! status: ${response.status}`
       };
     }
 
-    return {
-      success: true,
-      data: data || []
-    };
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error('Error fetching resumes:', error);
     return {
       success: false,
-      error: error.message || 'An unexpected error occurred'
+      error: error.message || 'Failed to fetch resumes'
     };
   }
 }
@@ -102,38 +84,29 @@ export async function getSavedResumes(userId) {
  * @returns {Promise<{success: boolean, data?: object, error?: string}>}
  */
 export async function getSavedResumeById(resumeId, userId) {
-  if (!supabase) {
-    return {
-      success: false,
-      error: 'Database not configured'
-    };
-  }
-
   try {
-    const { data, error } = await supabase
-      .from('saved_resumes')
-      .select('*')
-      .eq('id', resumeId)
-      .eq('user_id', userId)
-      .single();
+    const response = await fetch(`/api/get-saved-resume?resumeId=${resumeId}&userId=${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-    if (error) {
-      console.error('Error fetching resume:', error);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
       return {
         success: false,
-        error: error.message || 'Failed to fetch resume'
+        error: errorData.error || `HTTP error! status: ${response.status}`
       };
     }
 
-    return {
-      success: true,
-      data
-    };
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error('Error fetching resume:', error);
     return {
       success: false,
-      error: error.message || 'An unexpected error occurred'
+      error: error.message || 'Failed to fetch resume'
     };
   }
 }

@@ -3,7 +3,7 @@ import { useTheme } from "./hooks/useTheme";
 import { useAuth } from "./hooks/useAuth";
 import { useResume } from "./hooks/useResume";
 import { initializePdfWorker } from "./utils/pdfUtils";
-import { Header, LoginPage, ProfilePage, TailorPage, MockPage, LandingPage, MyResumesPage, PrivacyPolicy, PricingPage, PricingLoginPage, ProductsPage, ResumeTailorPage, MockInterviewsPage } from "./components";
+import { Header, LoginPage, ProfilePage, TailorPage, MockPage, LandingPage, MyResumesPage, PrivacyPolicy, PricingPage, PricingLoginPage, ProductsPage, ResumeTailorPage, MockInterviewsPage, MockInterviewPage } from "./components";
 import { Analytics } from "@vercel/analytics/react"
 import './App.css';
 
@@ -116,7 +116,17 @@ function App() {
                 authLoading ? null : (!user || !user.id) ? (
                   <Navigate to="/signin" replace />
                 ) : (
-                  <MockPage />
+                  <MockPage user={user} />
+                )
+              }
+            />
+            <Route
+              path="/mockinterview/start"
+              element={
+                authLoading ? null : (!user || !user.id) ? (
+                  <Navigate to="/signin" replace />
+                ) : (
+                  <MockInterviewPage user={user} />
                 )
               }
             />

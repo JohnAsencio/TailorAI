@@ -8,16 +8,16 @@ export const PRE_LAUNCH_SPECIALS = {
   unlimited: {
     active: true,
     expiresAt: new Date('2025-12-31T23:59:59Z'), // Set your expiration date
-    specialPrice: 699, // $6.99 in cents
-    regularPrice: 899, // $8.99 in cents
+    specialPrice: 299, // $2.99 in cents
+    regularPrice: 599, // $15.99 in cents
     name: 'Unlimited Plan (Pre-Launch Special)',
     regularName: 'Unlimited Plan',
   },
   lifetime: {
     active: true,
     expiresAt: new Date('2025-12-31T23:59:59Z'), // Set your expiration date
-    specialPrice: 10000, // $100.00 in cents
-    regularPrice: 14900, // $149.00 in cents
+    specialPrice: 2299, // $22.99 in cents
+    regularPrice: 3999, // $49.99 in cents
     name: 'Lifetime Plan (Pre-Launch Special)',
     regularName: 'Lifetime Plan',
   },

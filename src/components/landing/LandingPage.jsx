@@ -205,10 +205,10 @@ export default function LandingPage() {
               <h3 className="offer-title">Lifetime Plan Discount</h3>
               <p className="offer-price">
                 <span className="offer-price-original">$49.99</span>
-                <span className="offer-price-current">$32.99</span>
+                <span className="offer-price-current">$22.99</span>
               </p>
               <p className="offer-description">
-                Secure lifetime access at a special pre-order price. Save $17 off the regular price.
+                Secure lifetime access at a special pre-order price. Save $27 off the regular price.
               </p>
               <ul className="offer-features">
                 <li>✓ 500 credits included</li>
@@ -239,9 +239,9 @@ export default function LandingPage() {
               <div className="offer-badge">Beta Pricing</div>
               <h3 className="offer-title">Monthly Plan Discount</h3>
               <p className="offer-price">
-                <span className="offer-price-original">$8.99</span>
+                <span className="offer-price-original">$15.99</span>
                 <span style={{ whiteSpace: 'nowrap' }}>
-                  <span className="offer-price-current">$6.99</span>
+                  <span className="offer-price-current">$2.99</span>
                   <span className="offer-price-period">/month</span>
                 </span>
               </p>

@@ -188,7 +188,7 @@ export default function PricingPage() {
             <div className="pricing-card-header">
               <h2 className="pricing-card-title">Pro</h2>
               <div className="pricing-card-price">
-                <span className="price-amount">$23.99</span>
+                <span className="price-amount">$12.99</span>
                 <span className="price-period">/month</span>
               </div>
             </div>
@@ -310,7 +310,7 @@ export default function PricingPage() {
             <div className="pricing-card-header">
               <h2 className="pricing-card-title">Lifetime</h2>
               <div className="pricing-card-price">
-                <span className="price-amount">$149</span>
+                <span className="price-amount">$39.99</span>
                 <span className="price-period">one-time</span>
               </div>
             </div>
