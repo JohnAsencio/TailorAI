@@ -4,6 +4,7 @@ export default function InputControls({
   inputMode,
   setInputMode,
   isListening,
+  volumeLevel = 0,
   onVoiceClick,
   textInput,
   setTextInput,
@@ -41,6 +42,12 @@ export default function InputControls({
             {isListening ? 'mic' : 'mic_none'}
           </span>
           {isListening ? 'Listening...' : 'Click to Speak'}
+          <div className="voice-meter" aria-hidden="true">
+            <div
+              className="voice-meter-level"
+              style={{ width: `${Math.min(100, Math.max(0, volumeLevel * 100))}%` }}
+            />
+          </div>
         </button>
       ) : (
         <form onSubmit={onSubmit} className="text-input-form">

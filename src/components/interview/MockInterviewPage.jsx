@@ -42,6 +42,10 @@ export default function MockInterviewPage({ user }) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const userResponseTimeoutRef = useRef(null);
+  const silenceTimeoutRef = useRef(null);
+  const interimTranscriptRef = useRef('');
+  const volumeIntervalRef = useRef(null);
+  const [volumeLevel, setVolumeLevel] = useState(0);
   
   // Check if resume ID or data was passed from navigation
   useEffect(() => {
@@ -65,7 +69,7 @@ export default function MockInterviewPage({ user }) {
     }
   }, [location.state?.resumeId, location.state?.resumeData, user?.id]);
 
-  // Initialize speech recognition
+  // Initialize speech recognition with auto-stop on silence
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -75,6 +79,15 @@ export default function MockInterviewPage({ user }) {
       recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onresult = (event) => {
+        // If AI is speaking or we are not actively listening, ignore input
+        if (isSpeaking || !isListening) {
+          interimTranscriptRef.current = '';
+          if (silenceTimeoutRef.current) {
+            clearTimeout(silenceTimeoutRef.current);
+          }
+          return;
+        }
+
         let interimTranscript = '';
         let finalTranscript = '';
 
@@ -87,28 +100,52 @@ export default function MockInterviewPage({ user }) {
           }
         }
 
-        if (finalTranscript) {
-          handleUserMessage(finalTranscript.trim());
+        // Update interim transcript
+        interimTranscriptRef.current = interimTranscript;
+
+        // Clear existing silence timeout
+        if (silenceTimeoutRef.current) {
+          clearTimeout(silenceTimeoutRef.current);
+        }
+
+        // If we have final transcript, process it immediately
+        if (finalTranscript.trim()) {
+          const fullText = (interimTranscriptRef.current + ' ' + finalTranscript).trim();
+          handleUserMessage(fullText);
           setIsListening(false);
           recognitionRef.current.stop();
+          interimTranscriptRef.current = '';
+        } else if (interimTranscript.trim()) {
+          // User is speaking, reset silence timeout
+          // If silence for 1.5 seconds, auto-submit
+          silenceTimeoutRef.current = setTimeout(() => {
+            if (interimTranscriptRef.current.trim() && isListening) {
+              handleUserMessage(interimTranscriptRef.current.trim());
+              setIsListening(false);
+              recognitionRef.current.stop();
+              interimTranscriptRef.current = '';
+            }
+          }, 1500);
         }
       };
 
       recognitionRef.current.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
-        setError('Speech recognition error. Please try typing instead.');
+        if (silenceTimeoutRef.current) {
+          clearTimeout(silenceTimeoutRef.current);
+        }
+        if (event.error !== 'no-speech') {
+          setError('Speech recognition error. Please try typing instead.');
+        }
       };
 
       recognitionRef.current.onend = () => {
-        if (isListening) {
-          // Restart if still supposed to be listening
-          try {
-            recognitionRef.current.start();
-          } catch (e) {
-            setIsListening(false);
-          }
+        if (silenceTimeoutRef.current) {
+          clearTimeout(silenceTimeoutRef.current);
         }
+        // Don't auto-restart - user will click to speak again
+        setIsListening(false);
       };
     }
 
@@ -127,11 +164,39 @@ export default function MockInterviewPage({ user }) {
     }
 
     return () => {
+      if (silenceTimeoutRef.current) {
+        clearTimeout(silenceTimeoutRef.current);
+      }
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
       if (synthRef.current) {
         synthRef.current.cancel();
+      }
+    };
+  }, [isListening]);
+
+  // Simulated volume meter while listening
+  useEffect(() => {
+    if (isListening) {
+      volumeIntervalRef.current = setInterval(() => {
+        setVolumeLevel(prev => {
+          const target = Math.random() * 0.9 + 0.1;
+          return prev * 0.5 + target * 0.5;
+        });
+      }, 120);
+    } else {
+      if (volumeIntervalRef.current) {
+        clearInterval(volumeIntervalRef.current);
+        volumeIntervalRef.current = null;
+      }
+      setVolumeLevel(0);
+    }
+
+    return () => {
+      if (volumeIntervalRef.current) {
+        clearInterval(volumeIntervalRef.current);
+        volumeIntervalRef.current = null;
       }
     };
   }, [isListening]);
@@ -177,11 +242,17 @@ export default function MockInterviewPage({ user }) {
     setMessages([]);
     setInterviewStage('beginning');
     
-    // Start with AI greeting
+    // Always start with AI greeting - don't send empty messages array
     setIsLoading(true);
     try {
+      // Create initial greeting message
+      const greetingMessages = [{
+        role: 'assistant',
+        content: 'Hi, welcome! How are you doing today?'
+      }];
+      
       const result = await sendInterviewMessage(
-        [],
+        greetingMessages,
         resumeData?.tailored_resume_text || resumeData?.original_resume_text || '',
         resumeData?.job_description || '',
         resumeData?.job_title || '',
@@ -190,13 +261,15 @@ export default function MockInterviewPage({ user }) {
       );
       
       if (result.success) {
+        // Use the AI's response or fallback to our greeting
+        const greetingContent = result.message || 'Hi, welcome! How are you doing today?';
         const greeting = {
           role: 'assistant',
-          content: result.message,
+          content: greetingContent,
           timestamp: new Date().toISOString(),
         };
         setMessages([greeting]);
-        speakText(greeting.content);
+        speakText(greetingContent);
         // Start timeout after greeting
         setTimeout(() => {
           if (isInterviewActive && !isSpeaking) {
@@ -301,10 +374,20 @@ export default function MockInterviewPage({ user }) {
     }
     
     if (isListening) {
+      // Stop listening and process any interim transcript
+      if (interimTranscriptRef.current.trim()) {
+        handleUserMessage(interimTranscriptRef.current.trim());
+        interimTranscriptRef.current = '';
+      }
       recognitionRef.current.stop();
       setIsListening(false);
+      if (silenceTimeoutRef.current) {
+        clearTimeout(silenceTimeoutRef.current);
+      }
     } else {
       try {
+        interimTranscriptRef.current = '';
+        setVolumeLevel(0);
         recognitionRef.current.start();
         setIsListening(true);
       } catch (e) {
@@ -331,25 +414,37 @@ export default function MockInterviewPage({ user }) {
     
     const utterance = new SpeechSynthesisUtterance(text);
     
-    // More natural voice settings
-    utterance.rate = 0.85; // Slightly slower for more natural speech
-    utterance.pitch = 1.1; // Slightly higher pitch
+    // More natural voice settings - slower and more conversational
+    utterance.rate = 0.9; // Slightly slower for natural conversation
+    utterance.pitch = 1.0; // Neutral pitch
     utterance.volume = 1;
     
-    // Try to select a more natural voice
+    // Try to select a more natural, professional voice
     const voices = synthRef.current.getVoices();
     const preferredVoices = [
-      'Google US English',
+      'Google US English', // Most natural
       'Microsoft Zira - English (United States)',
-      'Alex',
-      'Samantha',
-      'Karen',
-      'Daniel',
+      'Microsoft David - English (United States)', // Male professional voice
+      'Samantha', // macOS natural voice
+      'Alex', // macOS natural voice
+      'Karen', // Australian English - very natural
+      'Daniel', // UK English - natural
+      'Microsoft Mark - English (United States)', // Professional male
     ];
     
-    const selectedVoice = voices.find(voice => 
-      preferredVoices.some(pref => voice.name.includes(pref))
-    ) || voices.find(voice => voice.lang.startsWith('en')) || voices[0];
+    // Prefer female voices for interviewer (more common)
+    const femaleVoices = voices.filter(voice => 
+      preferredVoices.some(pref => voice.name.includes(pref)) &&
+      (voice.name.toLowerCase().includes('zira') || 
+       voice.name.toLowerCase().includes('samantha') ||
+       voice.name.toLowerCase().includes('karen'))
+    );
+    
+    const selectedVoice = femaleVoices[0] || 
+      voices.find(voice => preferredVoices.some(pref => voice.name.includes(pref))) ||
+      voices.find(voice => voice.lang.startsWith('en-US') && voice.name.includes('Female')) ||
+      voices.find(voice => voice.lang.startsWith('en')) || 
+      voices[0];
     
     if (selectedVoice) {
       utterance.voice = selectedVoice;
@@ -357,6 +452,16 @@ export default function MockInterviewPage({ user }) {
     
     // Track when speech actually starts and ends
     utterance.onstart = () => {
+      // Stop listening while AI speaks to avoid picking up its own voice
+      if (recognitionRef.current && isListening) {
+        recognitionRef.current.stop();
+        setIsListening(false);
+        interimTranscriptRef.current = '';
+        if (silenceTimeoutRef.current) {
+          clearTimeout(silenceTimeoutRef.current);
+          silenceTimeoutRef.current = null;
+        }
+      }
       setIsSpeaking(true);
       setIsPaused(false);
     };
@@ -420,6 +525,15 @@ export default function MockInterviewPage({ user }) {
       clearTimeout(userResponseTimeoutRef.current);
       userResponseTimeoutRef.current = null;
     }
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+      silenceTimeoutRef.current = null;
+    }
+    if (volumeIntervalRef.current) {
+      clearInterval(volumeIntervalRef.current);
+      volumeIntervalRef.current = null;
+    }
+    setVolumeLevel(0);
     
     if (synthRef.current) {
       synthRef.current.cancel();
@@ -428,28 +542,33 @@ export default function MockInterviewPage({ user }) {
       recognitionRef.current.stop();
       setIsListening(false);
     }
+    interimTranscriptRef.current = '';
   };
 
   if (showSettings) {
     // Show loading state while resume is being loaded
     if (loadingResume) {
       return (
-        <div className="mock-interview-settings-page">
+        <div style={{ 
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          background: 'transparent',
+          zIndex: 9999
+        }}>
           <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            minHeight: '100vh'
-          }}>
-            <div style={{ 
-              width: '48px', 
-              height: '48px', 
-              border: '4px solid var(--card-border)',
-              borderTop: '4px solid var(--header-subtitle-color)',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }}></div>
-          </div>
+            width: '48px', 
+            height: '48px', 
+            border: '4px solid var(--card-border)',
+            borderTop: '4px solid var(--header-subtitle-color)',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }}></div>
         </div>
       );
     }
@@ -524,6 +643,7 @@ export default function MockInterviewPage({ user }) {
               inputMode={inputMode}
               setInputMode={setInputMode}
               isListening={isListening}
+              volumeLevel={volumeLevel}
               onVoiceClick={handleVoiceInput}
               textInput={textInput}
               setTextInput={setTextInput}

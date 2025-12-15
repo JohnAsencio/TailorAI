@@ -18,7 +18,7 @@
 
 .interview-container {
   width: 100%;
-  background: var(--card-bg);
+  background: transparent;
   border: none;
   border-radius: 0;
   box-shadow: none;
@@ -30,11 +30,11 @@
 
 .interview-header {
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid var(--card-border);
+  border-bottom: none;
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: var(--header-bg);
+  background: transparent;
 }
 
 .back-button {
@@ -42,8 +42,9 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
@@ -52,8 +53,8 @@
 }
 
 .back-button:hover {
-  background: var(--upload-area-drag-bg);
-  border-color: var(--upload-area-drag-border);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .interview-title {
@@ -65,16 +66,18 @@
 .interview-main {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: 2rem;
-  padding: 2rem;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 1.5rem;
+  padding: 1.5rem 2rem 1.25rem;
   overflow: hidden;
+  background: transparent;
 }
 
 .interview-center {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
+  min-height: 0;
 }
 
 .interview-sidebar {
@@ -85,8 +88,8 @@
 
 .interview-controls {
   padding: 1.5rem 2rem;
-  border-top: 1px solid var(--card-border);
-  background: var(--summary-box-bg);
+  border-top: none;
+  background: transparent;
 }
 
 .controls-row {
