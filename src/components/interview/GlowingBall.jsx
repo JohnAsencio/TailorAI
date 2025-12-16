@@ -1,6 +1,6 @@
 import './GlowingBall.css';
 
-export default function GlowingBall({ isSpeaking, isListening, isPaused }) {
+export default function GlowingBall({ isSpeaking, isListening, isPaused, messages = [] }) {
   return (
     <div className="glowing-ball-container">
       <div 
@@ -11,7 +11,7 @@ export default function GlowingBall({ isSpeaking, isListening, isPaused }) {
         {isSpeaking && !isPaused && <div className="ball-ripple"></div>}
       </div>
       <div className="ball-status">
-        {isPaused ? 'Paused' : isSpeaking ? 'Interviewer speaking' : isListening ? 'Listening...' : 'Your turn'}
+        {isPaused ? 'Paused' : isSpeaking ? 'Interviewer speaking' : isListening ? 'Listening...' : messages.length === 0 ? 'Starting interview...' : 'Your turn'}
       </div>
     </div>
   );

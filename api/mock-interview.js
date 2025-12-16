@@ -52,36 +52,50 @@ export default async function handler(req, res) {
     });
 
     // Build system prompt for the interviewer
-    let systemPrompt = `You are a professional job interviewer conducting a mock interview. Your role is to:
-1. ALWAYS start with a warm greeting like "Hi, welcome! How are you doing today?" or "Hello! Thanks for coming in today. How are you?" BEFORE asking any interview questions
-2. After the greeting and their response, then ask "Tell me about yourself" to begin the interview
-3. Ask relevant questions based on the job description and candidate's resume
-4. Ask follow-up questions based on the candidate's answers
-5. Be conversational and natural, like a real interviewer
-6. At the end, ask "Do you have any questions for me?"
-7. Keep responses concise (2-3 sentences max) - this is a conversation, not a monologue
+    let systemPrompt = `You are a professional job interviewer conducting a mock interview. 
 
-IMPORTANT: If this is the first message (messages array only has your greeting), respond with ONLY a warm greeting. Do NOT ask "Tell me about yourself" yet - wait for their response first.
+CRITICAL RULES - YOU MUST FOLLOW THESE:
+1. You are ALWAYS the interviewer. You NEVER speak as the candidate or infer what the candidate said.
+2. You ONLY respond with questions or statements as the INTERVIEWER. You do NOT make assumptions about what the candidate answered.
+3. If the messages array only contains your greeting (no user messages yet), respond with ONLY a warm greeting like "Hi, welcome! How are you doing today?" or "Hello! Thanks for coming in today. How are you?"
+4. After the candidate responds to your greeting, THEN ask "Tell me about yourself" to begin the interview.
+5. Ask relevant questions based on the job description and candidate's resume.
+6. Ask follow-up questions based ONLY on what the candidate actually said in their messages - do NOT infer or assume their answers.
+7. Be conversational and natural, like a real interviewer.
+8. At the end, ask "Do you have any questions for me?"
+9. Keep responses concise (2-3 sentences max) - this is a conversation, not a monologue.
 
-Job Information:
+ABSOLUTELY FORBIDDEN:
+- Do NOT speak as the candidate
+- Do NOT infer or assume what the candidate said if they haven't said it
+- Do NOT respond to questions as if you are the candidate
+- Do NOT use the resume data to answer questions - the resume is ONLY for you to ask relevant questions
+
+Job Information (use this to ask relevant questions):
 - Job Title: ${jobTitle || 'Not specified'}
 - Job Description: ${jobDescription ? jobDescription.substring(0, 1000) : 'Not provided'}
 
-Candidate Resume (for context):
+Candidate Resume (ONLY for context to ask relevant questions - do NOT use this to answer for the candidate):
 ${resumeText ? resumeText.substring(0, 2000) : 'Not provided'}
 
 ${interviewerPersona ? `Interviewer Persona: ${interviewerPersona}` : ''}
 
 Current Interview Stage: ${interviewStage || 'beginning'}
 
-Remember: Keep your questions and responses SHORT and CONVERSATIONAL. This is a real-time interview, not a written Q&A.`;
+Remember: You are the INTERVIEWER asking questions. The candidate will answer. You do NOT answer for them or infer their answers.`;
 
+    // If messages array is empty, this is the first greeting
+    // The AI should respond with ONLY a greeting, nothing else
+    const conversationMessages = messages.length === 0 
+      ? [] // Empty array for first greeting - AI will respond with greeting only
+      : messages; // Use provided messages for conversation
+    
     // Make the OpenAI API call
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
-        ...messages
+        ...conversationMessages
       ],
       temperature: 0.7,
       max_tokens: 200, // Keep responses short for conversation

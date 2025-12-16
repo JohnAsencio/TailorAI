@@ -4,12 +4,13 @@ export default function InputControls({
   inputMode,
   setInputMode,
   isListening,
-  volumeLevel = 0,
+  waveformHeights = Array(20).fill(0.1),
   onVoiceClick,
   textInput,
   setTextInput,
   onSubmit,
   disabled,
+  countdown = null,
 }) {
   return (
     <div className="input-controls">
@@ -34,20 +35,29 @@ export default function InputControls({
 
       {inputMode === 'voice' ? (
         <button
-          className={`voice-button ${isListening ? 'listening' : ''}`}
+          className={`voice-button ${isListening ? 'listening' : ''} ${countdown !== null ? 'countdown' : ''}`}
           onClick={onVoiceClick}
           disabled={disabled}
+          type="button"
         >
           <span className="material-icons">
             {isListening ? 'mic' : 'mic_none'}
           </span>
-          {isListening ? 'Listening...' : 'Click to Speak'}
-          <div className="voice-meter" aria-hidden="true">
-            <div
-              className="voice-meter-level"
-              style={{ width: `${Math.min(100, Math.max(0, volumeLevel * 100))}%` }}
-            />
-          </div>
+          {countdown !== null ? `${countdown}...` : isListening ? 'Listening...' : 'Click to Speak'}
+          {isListening && (
+            <div className="voice-waveform" aria-hidden="true">
+              {waveformHeights.map((height, i) => (
+                <div
+                  key={i}
+                  className="waveform-bar"
+                  style={{
+                    height: `${Math.min(100, Math.max(15, height * 100))}%`,
+                    animationDelay: `${i * 30}ms`
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </button>
       ) : (
         <form onSubmit={onSubmit} className="text-input-form">

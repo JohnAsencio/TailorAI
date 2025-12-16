@@ -79,19 +79,28 @@ export default async function handler(req, res) {
     const isNewUser = !existingUser;
     console.log('👤 Is new user?', isNewUser);
 
+    // Prepare the data object - only set resume_credits for new users
+    // For existing users, preserve their current credits
+    const userData = {
+      email: email.toLowerCase().trim(),
+      user_id: userId,
+      plan_id: 'free',
+      plan_name: 'beta_tester',
+      plan_status: 'free',
+    };
+
+    // Only set resume_credits for new users (beta testers get 3 free resume tailors)
+    if (isNewUser) {
+      userData.resume_credits = 3;
+    }
+    // For existing users, we don't include resume_credits so it preserves the existing value
+
     // Create or update app_users entry
     // Note: Don't include created_at/updated_at - let the database handle timestamps if they exist
     const { data, error } = await supabaseAdmin
       .from('app_users')
       .upsert(
-        {
-          email: email.toLowerCase().trim(),
-          user_id: userId,
-          plan_id: 'free',
-          plan_name: 'beta_tester',
-          plan_status: 'free',
-          resume_credits: 3, // Beta testers get 3 free resume tailors
-        },
+        userData,
         { onConflict: 'email' }
       )
       .select()
@@ -119,18 +128,24 @@ export default async function handler(req, res) {
       // If column doesn't exist (like created_at), try without it
       if (error.code === 'PGRST204' && error.message.includes('column')) {
         console.warn('⚠️ Column missing in app_users table, retrying without timestamps...');
-        // Retry without any timestamp fields
+        // Retry without any timestamp fields - use the same userData logic
+        const retryUserData = {
+          email: email.toLowerCase().trim(),
+          user_id: userId,
+          plan_id: 'free',
+          plan_name: 'beta_tester',
+          plan_status: 'free',
+        };
+        
+        // Only set resume_credits for new users
+        if (isNewUser) {
+          retryUserData.resume_credits = 3;
+        }
+        
         const { data: retryData, error: retryError } = await supabaseAdmin
           .from('app_users')
           .upsert(
-            {
-              email: email.toLowerCase().trim(),
-              user_id: userId,
-              plan_id: 'free',
-              plan_name: 'beta_tester',
-              plan_status: 'free',
-              resume_credits: 3, // Beta testers get 3 free resume tailors
-            },
+            retryUserData,
             { onConflict: 'email' }
           )
           .select()

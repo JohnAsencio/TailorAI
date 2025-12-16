@@ -1,6 +1,6 @@
 .mock-interview-settings-page {
   min-height: 100vh;
-  background: linear-gradient(to bottom right, var(--bg-primary), var(--bg-secondary));
+  background: var(--bg-primary);
   padding: 2rem;
   display: flex;
   align-items: center;
@@ -9,11 +9,13 @@
 
 .mock-interview-page {
   min-height: 100vh;
-  background: linear-gradient(to bottom right, var(--bg-primary), var(--bg-secondary));
+  background: var(--bg-primary);
   padding: 0;
   display: flex;
   align-items: stretch;
   justify-content: stretch;
+  position: relative;
+  z-index: 1;
 }
 
 .interview-container {
@@ -26,6 +28,8 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 .interview-header {
@@ -35,6 +39,8 @@
   align-items: center;
   gap: 1rem;
   background: transparent;
+  flex-shrink: 0;
+  position: relative;
 }
 
 .back-button {
@@ -61,6 +67,18 @@
   margin: 0;
   font-size: 1.5rem;
   color: var(--header-title-color);
+  flex: 1;
+}
+
+.interview-timer {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--header-title-color);
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
 }
 
 .interview-main {
@@ -71,31 +89,42 @@
   padding: 1.5rem 2rem 1.25rem;
   overflow: hidden;
   background: transparent;
+  min-height: 0;
 }
 
 .interview-center {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
   min-height: 0;
+  background: transparent;
+  padding: 2rem;
+  position: relative;
+  z-index: 1;
 }
 
 .interview-sidebar {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .interview-controls {
   padding: 1.5rem 2rem;
   border-top: none;
   background: transparent;
+  display: flex;
+  justify-content: center;
 }
 
 .controls-row {
   display: flex;
   align-items: center;
   gap: 1rem;
+  max-width: 800px;
+  width: 100%;
+  justify-content: center;
 }
 
 .pause-button {
