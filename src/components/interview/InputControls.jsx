@@ -51,8 +51,8 @@ export default function InputControls({
                   key={i}
                   className="waveform-bar"
                   style={{
-                    height: `${Math.min(100, Math.max(15, height * 100))}%`,
-                    animationDelay: `${i * 30}ms`
+                    height: `${Math.min(100, Math.max(20, height * 100))}%`,
+                    animationDelay: `${i * 20}ms`
                   }}
                 />
               ))}

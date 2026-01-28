@@ -4,10 +4,8 @@ import 'react-pdf/dist/Page/AnnotationLayer.css'; // Required for annotations
 import 'react-pdf/dist/Page/TextLayer.css'; // Required for text layer
 
 // Set workerSrc for react-pdf.
-// This path assumes pdf.worker.mjs (and its .map file)
-// has been copied from node_modules/pdfjs-dist/build/
-// to your project's public/ directory.
-pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.mjs`;
+// Using worker from public folder (which includes Safari polyfill)
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
 
 function PdfViewer({ pdfFileUrl, hidePagination = false }) {
   const [numPages, setNumPages] = useState(null);

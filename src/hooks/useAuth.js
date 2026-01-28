@@ -263,7 +263,12 @@ export function useAuth() {
 
   const handleGoogleSignIn = async () => {
     if (!supabase) {
-      setAuthError("Supabase is not configured.");
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+      if (!supabaseUrl || supabaseUrl.trim() === '' || supabaseUrl === 'undefined') {
+        setAuthError("Supabase URL is not configured. Please check your VITE_SUPABASE_URL environment variable.");
+      } else {
+        setAuthError("Supabase is not properly configured. Please check your environment variables.");
+      }
       return;
     }
     
@@ -280,10 +285,16 @@ export function useAuth() {
       });
       
       if (error) {
-        setAuthError(error.message);
+        console.error('Google sign-in error:', error);
+        if (error.message && error.message.includes('URL')) {
+          setAuthError("Please check your Supabase URL configuration. Make sure VITE_SUPABASE_URL is set correctly in your environment variables.");
+        } else {
+          setAuthError(error.message || "Failed to sign in with Google. Please try again.");
+        }
       }
     } catch (err) {
-      setAuthError("Failed to sign in with Google. Please try again.");
+      console.error('Google sign-in exception:', err);
+      setAuthError("Failed to sign in with Google. Please check your Supabase configuration and try again.");
     }
   };
 

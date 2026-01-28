@@ -1,60 +1,15 @@
-.settings-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(to bottom right, var(--bg-primary), var(--bg-secondary));
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  z-index: 1000;
-  padding: 2rem 1rem;
-  animation: fadeIn 0.2s ease;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.settings-modal {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  padding: 2rem;
-  max-width: 600px;
+.mock-interview-settings-page {
   width: 100%;
-  max-height: calc(100vh - 4rem);
-  overflow-y: auto;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  animation: slideUp 0.3s ease;
-  margin: 2rem auto;
-  position: relative;
-  -webkit-overflow-scrolling: touch;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  max-width: 100%;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .settings-modal-title {
   margin: 0 0 2rem 0;
   font-size: 1.75rem;
   color: var(--header-title-color);
+  transition: color 0.3s ease;
 }
 
 .settings-section {
@@ -67,37 +22,30 @@
   font-weight: 600;
   color: var(--header-title-color);
   font-size: 0.95rem;
+  transition: color 0.3s ease;
 }
 
 .settings-input,
 .settings-textarea,
 .settings-select {
   width: 100%;
+  max-width: 100%;
   padding: 0.75rem 1rem;
   border: 2px solid var(--card-border);
   border-radius: 8px;
   font-size: 1rem;
   font-family: inherit;
-  transition: all 0.2s;
   background: var(--card-bg);
-  color: var(--summary-item-color);
+  color: var(--job-desc-textarea-color);
+  transition: all 0.3s ease;
   box-sizing: border-box;
-}
-
-.settings-select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236366f1' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  padding-right: 2.5rem;
-  cursor: pointer;
 }
 
 .settings-input:focus,
 .settings-textarea:focus,
 .settings-select:focus {
   outline: none;
-  border-color: var(--header-subtitle-color);
+  border-color: var(--header-title-color);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
@@ -106,19 +54,79 @@
   min-height: 80px;
 }
 
+.settings-input::placeholder,
+.settings-textarea::placeholder {
+  color: var(--job-desc-textarea-placeholder);
+}
+
 .settings-hint {
   margin-top: 0.5rem;
   font-size: 0.85rem;
-  color: var(--pdf-placeholder-color);
+  color: var(--header-subtitle-color);
+  transition: color 0.3s ease;
 }
 
 .settings-loading,
 .settings-empty {
   padding: 2rem;
   text-align: center;
-  color: var(--pdf-placeholder-color);
-  background: var(--summary-box-bg);
+  color: var(--header-subtitle-color);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 8px;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.selected-resume-display {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--card-bg);
+  border: 2px solid var(--card-border);
+  border-radius: 8px;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.selected-resume-info {
+  flex: 1;
+}
+
+.selected-resume-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: var(--header-title-color);
+  transition: color 0.3s ease;
+}
+
+.selected-resume-preview {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--header-subtitle-color);
+  line-height: 1.5;
+  transition: color 0.3s ease;
+}
+
+.choose-another-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--header-subtitle-color);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.choose-another-button:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: var(--header-title-color);
+  color: var(--header-title-color);
 }
 
 .resume-selector {
@@ -134,18 +142,18 @@
   border: 2px solid var(--card-border);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s;
   background: var(--card-bg);
+  transition: all 0.3s ease;
 }
 
 .resume-option:hover {
-  border-color: var(--header-subtitle-color);
-  background: var(--upload-area-drag-bg);
+  border-color: var(--header-title-color);
+  background: rgba(99, 102, 241, 0.05);
 }
 
 .resume-option.selected {
-  border-color: var(--header-subtitle-color);
-  background: var(--summary-box-bg);
+  border-color: var(--header-title-color);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
 }
 
 .resume-option-header {
@@ -159,72 +167,21 @@
   margin: 0;
   font-size: 1rem;
   color: var(--header-title-color);
+  transition: color 0.3s ease;
 }
 
 .check-icon {
-  color: var(--header-subtitle-color);
+  color: var(--header-title-color);
   font-size: 1.5rem;
+  transition: color 0.3s ease;
 }
 
 .resume-option-preview {
   margin: 0;
   font-size: 0.85rem;
-  color: var(--pdf-placeholder-color);
+  color: var(--header-subtitle-color);
   line-height: 1.4;
-}
-
-.selected-resume-display {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1rem;
-  background: var(--summary-box-bg);
-  border: 2px solid var(--card-border);
-  border-radius: 8px;
-}
-
-.selected-resume-info {
-  flex: 1;
-}
-
-.selected-resume-title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.1rem;
-  color: var(--header-title-color);
-  font-weight: 600;
-}
-
-.selected-resume-preview {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--pdf-placeholder-color);
-  line-height: 1.5;
-}
-
-.choose-another-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: var(--card-bg);
-  border: 2px solid var(--card-border);
-  border-radius: 8px;
-  color: var(--header-title-color);
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.choose-another-button:hover {
-  background: var(--upload-area-drag-bg);
-  border-color: var(--header-subtitle-color);
-  transform: translateY(-1px);
-}
-
-.choose-another-button .material-icons {
-  font-size: 1.2rem;
+  transition: color 0.3s ease;
 }
 
 .settings-actions {
@@ -234,9 +191,7 @@
   margin-top: 2rem;
   padding-top: 2rem;
   border-top: 1px solid var(--card-border);
-  position: sticky;
-  bottom: 0;
-  background: var(--card-bg);
+  transition: border-color 0.3s ease;
 }
 
 .settings-button {
@@ -246,29 +201,29 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .settings-button.secondary {
   background: var(--card-bg);
-  color: var(--summary-item-color);
+  color: var(--header-title-color);
   border: 1px solid var(--card-border);
 }
 
 .settings-button.secondary:hover {
-  background: var(--upload-area-drag-bg);
-  border-color: var(--card-border);
+  background: rgba(99, 102, 241, 0.1);
+  border-color: var(--header-title-color);
 }
 
 .settings-button.primary {
-  background: linear-gradient(135deg, var(--header-subtitle-color) 0%, var(--header-title-color) 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
   color: white;
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
 }
 
 .settings-button.primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
 .settings-button.primary:disabled {

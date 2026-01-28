@@ -53,8 +53,8 @@ export default function InterviewSettingsModal({
   const canStart = resumeData && duration > 0;
 
   return (
-    <div className="settings-modal-overlay">
-      <div className="settings-modal">
+    <section className="mock-interview-settings-page">
+      <div className="simple-section-card">
         <h2 className="settings-modal-title">Configure Mock Interview</h2>
         
         <div className="settings-section">
@@ -150,6 +150,7 @@ export default function InterviewSettingsModal({
           </p>
         </div>
 
+
         <div className="settings-actions">
           <button className="settings-button secondary" onClick={onCancel}>
             Cancel
@@ -163,7 +164,7 @@ export default function InterviewSettingsModal({
           </button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

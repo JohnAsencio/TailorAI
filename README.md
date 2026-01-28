@@ -47,7 +47,14 @@ RESEND_API_KEY=your-resend-api-key
 STRIPE_SECRET_KEY=your-stripe-secret-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 STRIPE_WEBHOOK_SECRET=your-stripe-webhook-secret
+GOOGLE_TTS_API_KEY=your-google-cloud-tts-api-key  # Optional: for high-quality TTS voices
 ```
+
+**Note:** `GOOGLE_TTS_API_KEY` is optional. If not provided, the app will use browser-based text-to-speech. To get a Google Cloud TTS API key:
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Enable the Cloud Text-to-Speech API
+3. Create an API key with Text-to-Speech permissions
+4. Add it to your environment variables
 
 Or pull from Vercel:
 ```bash
@@ -78,6 +85,7 @@ This project is configured for Vercel deployment:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
    - `OPENAI_API_KEY`
+   - `GOOGLE_TTS_API_KEY` (optional, for high-quality TTS)
 4. Deploy!
 
 ## 🛠️ Tech Stack

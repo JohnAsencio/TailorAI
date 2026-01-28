@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import './TranscriptionPanel.css';
 
-export default function TranscriptionPanel({ messages }) {
+export default function TranscriptionPanel({ messages, isSpeaking, interimTranscript }) {
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -30,20 +30,35 @@ export default function TranscriptionPanel({ messages }) {
             <p>The interview conversation will appear here.</p>
           </div>
         ) : (
-          messages.map((message, index) => (
-            <div
-              key={index}
-              className={`transcription-message ${message.role === 'assistant' ? 'assistant' : 'user'}`}
-            >
-              <div className="message-header">
-                <span className="message-role">
-                  {message.role === 'assistant' ? 'Interviewer' : 'You'}
-                </span>
-                <span className="message-time">{formatTime(message.timestamp)}</span>
+          <>
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`transcription-message ${message.role === 'assistant' ? 'assistant' : 'user'} ${message.role === 'assistant' && isSpeaking ? 'speaking' : ''}`}
+              >
+                <div className="message-header">
+                  <span className="message-role">
+                    {message.role === 'assistant' ? 'Interviewer' : 'You'}
+                    {message.role === 'assistant' && isSpeaking && (
+                      <span className="speaking-indicator">
+                        <span className="material-icons">mic</span>
+                      </span>
+                    )}
+                  </span>
+                  <span className="message-time">{formatTime(message.timestamp)}</span>
+                </div>
+                <div className="message-content">{message.content}</div>
               </div>
-              <div className="message-content">{message.content}</div>
-            </div>
-          ))
+            ))}
+            {interimTranscript && (
+              <div className="transcription-message user interim">
+                <div className="message-header">
+                  <span className="message-role">You (speaking...)</span>
+                </div>
+                <div className="message-content">{interimTranscript}</div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

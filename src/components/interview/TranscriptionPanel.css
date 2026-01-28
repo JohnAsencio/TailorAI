@@ -2,19 +2,21 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--card-bg);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--card-border);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .transcription-header {
   padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.8);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--card-border);
   backdrop-filter: blur(10px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .transcription-header h3 {
@@ -42,12 +44,13 @@
 }
 
 .transcription-messages::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--card-border);
   border-radius: 3px;
+  transition: background 0.3s ease;
 }
 
 .transcription-messages::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--header-subtitle-color);
 }
 
 .transcription-empty {
@@ -78,10 +81,13 @@
 }
 
 .transcription-message.assistant {
-  background: linear-gradient(135deg, var(--header-subtitle-color) 0%, var(--header-title-color) 100%);
-  color: white;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
+  color: var(--header-title-color);
   align-self: flex-start;
   border-bottom-left-radius: 4px;
+  border: 1px solid var(--header-title-color);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+  transition: all 0.3s ease;
 }
 
 .transcription-message.user {
@@ -114,3 +120,45 @@
   word-wrap: break-word;
 }
 
+.transcription-message.assistant.speaking {
+  animation: speaking-pulse 1.5s ease-in-out infinite;
+  border-color: var(--header-subtitle-color);
+}
+
+@keyframes speaking-pulse {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+  }
+}
+
+.speaking-indicator {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.5rem;
+  animation: mic-pulse 1s ease-in-out infinite;
+}
+
+.speaking-indicator .material-icons {
+  font-size: 1rem;
+  color: var(--header-subtitle-color);
+}
+
+@keyframes mic-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+.transcription-message.interim {
+  opacity: 0.7;
+  font-style: italic;
+  border-style: dashed;
+}
