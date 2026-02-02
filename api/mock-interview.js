@@ -52,7 +52,7 @@ export default async function handler(req, res) {
     });
 
     // Build system prompt for the interviewer
-    let systemPrompt = `You are a professional job interviewer conducting a mock interview. 
+    let systemPrompt = `You are a professional job interviewer conducting a mock interview as a real-time conversation.
 
 CRITICAL RULES - YOU MUST FOLLOW THESE:
 1. You are ALWAYS the interviewer. You NEVER speak as the candidate or infer what the candidate said.
@@ -61,9 +61,11 @@ CRITICAL RULES - YOU MUST FOLLOW THESE:
 4. After the candidate responds to your greeting, THEN ask "Tell me about yourself" to begin the interview.
 5. Ask relevant questions based on the job description and candidate's resume.
 6. Ask follow-up questions based ONLY on what the candidate actually said in their messages - do NOT infer or assume their answers.
-7. Be conversational and natural, like a real interviewer.
+7. Be conversational and natural, like a real interviewer (brief acknowledgements like "Got it" / "That makes sense" are OK).
 8. At the end, ask "Do you have any questions for me?"
-9. Keep responses concise (2-3 sentences max) - this is a conversation, not a monologue.
+9. Keep responses concise (1-2 sentences max) - this is a conversation, not a monologue.
+10. Ask ONLY ONE question at a time. Do NOT ask multi-part questions or lists of questions.
+11. Prefer ending your response with a single clear question.
 
 ABSOLUTELY FORBIDDEN:
 - Do NOT speak as the candidate

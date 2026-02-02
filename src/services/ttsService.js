@@ -67,6 +67,7 @@ export async function synthesizeSpeech(text, voiceName = null) {
 export function playAudio(audioUrl) {
   return new Promise((resolve, reject) => {
     const audio = new Audio(audioUrl);
+<<<<<<< HEAD
     
     audio.onended = () => {
       URL.revokeObjectURL(audioUrl); // Clean up
@@ -79,6 +80,56 @@ export function playAudio(audioUrl) {
     };
     
     audio.play().catch(reject);
+=======
+    const opts = arguments.length > 1 ? arguments[1] : undefined;
+
+    try {
+      if (opts?.onAudioCreated) opts.onAudioCreated(audio);
+    } catch (e) {
+      // Don't block playback if a consumer hook fails
+      console.warn('playAudio onAudioCreated hook failed:', e);
+    }
+
+    const cleanup = () => {
+      // Only revoke blob/object URLs
+      if (typeof audioUrl === 'string' && audioUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
+
+    audio.onended = () => {
+      try {
+        if (opts?.onEnded) opts.onEnded();
+      } catch (e) {
+        console.warn('playAudio onEnded hook failed:', e);
+      } finally {
+        cleanup();
+        resolve();
+      }
+    };
+
+    audio.onerror = (error) => {
+      try {
+        if (opts?.onError) opts.onError(error);
+      } catch (e) {
+        console.warn('playAudio onError hook failed:', e);
+      } finally {
+        cleanup();
+        reject(error);
+      }
+    };
+
+    audio.play().catch((error) => {
+      try {
+        if (opts?.onError) opts.onError(error);
+      } catch (e) {
+        console.warn('playAudio onError hook failed:', e);
+      } finally {
+        cleanup();
+        reject(error);
+      }
+    });
+>>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
   });
 }
 

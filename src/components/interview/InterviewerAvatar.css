@@ -1,0 +1,245 @@
+.interviewer-avatar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.interviewer-avatar {
+  width: 260px;
+  height: 260px;
+  border-radius: 999px;
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  transform: translateY(0);
+  animation: avatar-float 3s ease-in-out infinite;
+  transition: filter 200ms ease, transform 200ms ease;
+}
+
+.interviewer-avatar.speaking {
+  filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.22)) drop-shadow(0 0 28px rgba(99, 102, 241, 0.35));
+}
+
+.interviewer-avatar.listening {
+  filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.18)) drop-shadow(0 0 22px rgba(99, 102, 241, 0.25));
+}
+
+.interviewer-avatar.paused {
+  filter: grayscale(0.8);
+  opacity: 0.85;
+}
+
+@keyframes avatar-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+/* Face (no photo) */
+.interviewer-avatar-face {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+
+.interviewer-avatar-head {
+  width: 76%;
+  height: 82%;
+  border-radius: 999px;
+  background: radial-gradient(90% 80% at 35% 30%, rgba(255, 255, 255, 0.95), rgba(241, 245, 249, 0.86) 45%, rgba(226, 232, 240, 0.82) 100%);
+  box-shadow: inset 0 -16px 40px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  position: relative;
+  transform: translateY(2px);
+}
+
+/* Friendly eyes */
+.interviewer-avatar-eyes {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70%;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.interviewer-avatar-eyes .eye {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.78);
+  position: relative;
+  transform-origin: center;
+  animation: eye-blink 6.2s infinite;
+}
+
+.interviewer-avatar-eyes .eye.right {
+  animation-delay: 180ms;
+}
+
+/* Circle eyes with mirrored sparkle (friendly, not cross-eyed) */
+.interviewer-avatar-eyes .eye::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.interviewer-avatar-eyes .eye.right::before {
+  left: auto;
+  right: 4px;
+}
+
+/* Slightly bigger/rounder while listening (more friendly/attentive) */
+.interviewer-avatar-head.listening .interviewer-avatar-eyes .eye {
+  transform: scale(1.08);
+}
+
+/* Thinking: gentle blink a bit more often */
+.interviewer-avatar-head.thinking .interviewer-avatar-eyes .eye {
+  animation-duration: 4.8s;
+}
+
+@keyframes eye-blink {
+  0%,
+  93%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.12);
+  }
+  97% {
+    transform: scaleY(1);
+  }
+}
+
+/* Simple brows-only "expression" (no eyes) */
+.interviewer-avatar-brows {
+  position: absolute;
+  top: 31%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 62%;
+  height: 22px;
+  opacity: 0.42;
+}
+
+.interviewer-avatar-brows::before,
+.interviewer-avatar-brows::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 44%;
+  height: 18px;
+  border-radius: 999px 999px 0 0;
+  background: transparent;
+  border-top: 4px solid rgba(15, 23, 42, 0.36);
+  transform-origin: center;
+  transform: translateY(-50%) rotate(0deg);
+}
+
+.interviewer-avatar-brows::before {
+  left: 0;
+}
+
+.interviewer-avatar-brows::after {
+  right: 0;
+}
+
+.interviewer-avatar-head.listening .interviewer-avatar-brows::before,
+.interviewer-avatar-head.listening .interviewer-avatar-brows::after {
+  transform: translateY(-58%) rotate(-3deg);
+  border-top-color: rgba(15, 23, 42, 0.42);
+}
+
+.interviewer-avatar-head.speaking .interviewer-avatar-brows::before,
+.interviewer-avatar-head.speaking .interviewer-avatar-brows::after {
+  transform: translateY(-55%) rotate(-1deg);
+  border-top-color: rgba(15, 23, 42, 0.46);
+}
+
+.interviewer-avatar-head.neutral .interviewer-avatar-brows::before,
+.interviewer-avatar-head.neutral .interviewer-avatar-brows::after {
+  border-top-color: rgba(15, 23, 42, 0.30);
+}
+
+.interviewer-avatar-mouth {
+  position: absolute;
+  left: 50%;
+  top: 68%;
+  transform: translateX(-50%);
+  width: 74px;
+  height: 12px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.78);
+  opacity: 0.85;
+  transform-origin: center;
+}
+
+/* Talk animation:
+   - If we have real energy, it flows via --mouth-open (0..1)
+   - Otherwise we still wiggle while speaking */
+.interviewer-avatar.speaking .interviewer-avatar-mouth {
+  animation: mouth-talk 170ms ease-in-out infinite;
+}
+
+@keyframes mouth-talk {
+  0% {
+    transform: translateX(-50%) scaleY(calc(0.25 + (var(--mouth-open) * 1.8)));
+  }
+  50% {
+    transform: translateX(-50%) scaleY(calc(0.25 + (var(--mouth-open) * 2.6)));
+  }
+  100% {
+    transform: translateX(-50%) scaleY(calc(0.25 + (var(--mouth-open) * 1.9)));
+  }
+}
+
+/* Listening/idle expressions (subtle mouth curve changes) */
+.interviewer-avatar-head.idle .interviewer-avatar-mouth {
+  opacity: 0.82;
+  border-radius: 999px;
+  height: 10px;
+}
+
+.interviewer-avatar-head.listening .interviewer-avatar-mouth {
+  opacity: 0.85;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.interviewer-avatar-head.neutral .interviewer-avatar-mouth {
+  opacity: 0.72;
+  height: 9px;
+}
+
+.interviewer-avatar-status {
+  font-size: 1.1rem;
+  color: var(--summary-item-color);
+  font-weight: 500;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .interviewer-avatar {
+    width: 220px;
+    height: 220px;
+  }
+}
+
