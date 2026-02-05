@@ -17,12 +17,12 @@ export async function fetchCreditStatus(userId) {
 
   try {
     // Use API endpoint instead of direct Supabase query to bypass RLS issues
-    const response = await fetch('/api/get-credits', {
+    const response = await fetch('/api/credits', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ userId }),
+      body: JSON.stringify({ action: 'get', userId }),
     });
 
     if (!response.ok) {
@@ -70,12 +70,13 @@ export async function consumeResumeCredit(userId) {
   }
 
   try {
-    const response = await fetch('/api/consume-credit', {
+    const response = await fetch('/api/credits', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        action: 'consume',
         userId,
         creditType: 'resume',
       }),
