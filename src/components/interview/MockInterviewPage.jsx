@@ -4,11 +4,7 @@ import { sendInterviewMessage } from '../../services/mockInterviewService';
 import { getSavedResumeById } from '../../services/savedResumeService';
 import { synthesizeSpeech, playAudio } from '../../services/ttsService';
 import InterviewSettingsModal from './InterviewSettingsModal';
-<<<<<<< HEAD
-import GlowingBall from './GlowingBall';
-=======
 import InterviewerAvatar from './InterviewerAvatar';
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
 import TranscriptionPanel from './TranscriptionPanel';
 import InputControls from './InputControls';
 import './MockInterviewPage.css';
@@ -41,10 +37,7 @@ export default function MockInterviewPage({ user }) {
   const [interimTranscript, setInterimTranscript] = useState('');
   const [countdown, setCountdown] = useState(null);
   const [audioLevels, setAudioLevels] = useState(Array(20).fill(0.1));
-<<<<<<< HEAD
-=======
   const [interviewerEnergy, setInterviewerEnergy] = useState(0);
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
   
   // Speech synthesis
   const synthRef = useRef(null);
@@ -57,11 +50,8 @@ export default function MockInterviewPage({ user }) {
   const inputModeRef = useRef(inputMode);
   const isInterviewActiveRef = useRef(isInterviewActive);
   const componentActiveRef = useRef(true);
-<<<<<<< HEAD
-=======
   const isListeningRef = useRef(isListening);
   const isLoadingRef = useRef(isLoading);
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
   const countdownIntervalRef = useRef(null);
   const silenceTimeoutRef = useRef(null);
   const countdownStartedRef = useRef(false);
