@@ -67,20 +67,6 @@ export async function synthesizeSpeech(text, voiceName = null) {
 export function playAudio(audioUrl) {
   return new Promise((resolve, reject) => {
     const audio = new Audio(audioUrl);
-<<<<<<< HEAD
-    
-    audio.onended = () => {
-      URL.revokeObjectURL(audioUrl); // Clean up
-      resolve();
-    };
-    
-    audio.onerror = (error) => {
-      URL.revokeObjectURL(audioUrl); // Clean up
-      reject(error);
-    };
-    
-    audio.play().catch(reject);
-=======
     const opts = arguments.length > 1 ? arguments[1] : undefined;
 
     try {
@@ -129,7 +115,6 @@ export function playAudio(audioUrl) {
         reject(error);
       }
     });
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
   });
 }
 

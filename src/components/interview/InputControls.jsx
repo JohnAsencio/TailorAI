@@ -6,10 +6,7 @@ export default function InputControls({
   isListening,
   waveformHeights = Array(20).fill(0.1),
   onVoiceClick,
-<<<<<<< HEAD
-=======
   isSpeaking = false,
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
   textInput,
   setTextInput,
   onSubmit,
@@ -41,15 +38,6 @@ export default function InputControls({
         <button
           className={`voice-button ${isListening ? 'listening' : ''} ${countdown !== null ? 'countdown' : ''}`}
           onClick={onVoiceClick}
-<<<<<<< HEAD
-          disabled={disabled}
-          type="button"
-        >
-          <span className="material-icons">
-            {isListening ? 'mic' : 'mic_none'}
-          </span>
-          {countdown !== null ? `${countdown}...` : isListening ? 'Listening...' : 'Click to Speak'}
-=======
           disabled={disabled && !isSpeaking}
           type="button"
         >
@@ -63,7 +51,6 @@ export default function InputControls({
               : isListening
                 ? 'Listening...'
                 : 'Click to Speak'}
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
           {isListening && (
             <div className="voice-waveform" aria-hidden="true">
               {waveformHeights.map((height, i) => (

@@ -24,6 +24,7 @@ export default function MockInterviewPage({ user }) {
   const [duration, setDuration] = useState(30); // minutes
   const [interviewerPersona, setInterviewerPersona] = useState('');
   const [interviewStage, setInterviewStage] = useState('beginning');
+  const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(null);
   
   // Resume data
   const [resumeData, setResumeData] = useState(null);
@@ -61,14 +62,13 @@ export default function MockInterviewPage({ user }) {
   const recognitionStartingRef = useRef(false);
   const processingMessageRef = useRef(false);
   const lastProcessedTextRef = useRef('');
-<<<<<<< HEAD
-  const idleTimeoutRef = useRef(null);
-  const lastSpeechTimeRef = useRef(null);
-=======
   const finalTranscriptsRef = useRef([]);
   const lastFinalAtRef = useRef(null);
   const idleTimeoutRef = useRef(null);
   const lastSpeechTimeRef = useRef(null);
+  const messagesRef = useRef([]);
+  const interviewEndsAtRef = useRef(null);
+  const interviewTimerIntervalRef = useRef(null);
 
   const normalizeSpokenTextForTurnDetection = (text) => {
     const s = String(text || '').toLowerCase();
@@ -87,13 +87,47 @@ export default function MockInterviewPage({ user }) {
     return t.split(/\s+/).filter(Boolean).length;
   };
 
+  const formatCountdown = (totalSeconds) => {
+    if (!Number.isFinite(totalSeconds) || totalSeconds === null) return '';
+    const s = Math.max(0, Math.floor(totalSeconds));
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return `${m}:${String(r).padStart(2, '0')}`;
+  };
+
+  const getTimeRemainingSeconds = () => {
+    const endsAt = interviewEndsAtRef.current;
+    if (!endsAt) return null;
+    return Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+  };
+
+  const stopInterviewTimer = () => {
+    if (interviewTimerIntervalRef.current) {
+      clearInterval(interviewTimerIntervalRef.current);
+      interviewTimerIntervalRef.current = null;
+    }
+  };
+
+  const startInterviewTimer = (endsAtMs) => {
+    interviewEndsAtRef.current = endsAtMs;
+    stopInterviewTimer();
+    setTimeRemainingSeconds(getTimeRemainingSeconds());
+    interviewTimerIntervalRef.current = setInterval(() => {
+      const next = getTimeRemainingSeconds();
+      setTimeRemainingSeconds(next);
+      if (next !== null && next <= 0) {
+        stopInterviewTimer();
+        setInterviewStage('ending');
+      }
+    }, 1000);
+  };
+
   // External TTS (Audio element) visualization for avatar mouth movement
   const ttsAudioRef = useRef(null);
   const ttsAudioContextRef = useRef(null);
   const ttsAnalyserRef = useRef(null);
   const ttsSourceRef = useRef(null);
   const ttsAnimationFrameRef = useRef(null);
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
   
   // Keep refs in sync with state
   useEffect(() => {
@@ -105,8 +139,6 @@ export default function MockInterviewPage({ user }) {
   }, [isInterviewActive]);
 
   useEffect(() => {
-<<<<<<< HEAD
-=======
     isListeningRef.current = isListening;
   }, [isListening]);
 
@@ -115,7 +147,17 @@ export default function MockInterviewPage({ user }) {
   }, [isLoading]);
 
   useEffect(() => {
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
+    messagesRef.current = messages;
+  }, [messages]);
+
+  useEffect(() => {
+    // When time is almost up, move to ending so the interviewer starts wrapping up.
+    if (timeRemainingSeconds !== null && timeRemainingSeconds <= 120 && interviewStage !== 'ending') {
+      setInterviewStage('ending');
+    }
+  }, [timeRemainingSeconds, interviewStage]);
+
+  useEffect(() => {
     isSpeakingRef.current = isSpeaking;
     
     // Stop recognition immediately when AI starts speaking
@@ -144,6 +186,7 @@ export default function MockInterviewPage({ user }) {
     return () => {
       componentActiveRef.current = false;
       // Ensure timers and audio are fully stopped on unmount (e.g., browser back)
+      stopInterviewTimer();
       if (countdownIntervalRef.current) {
         clearInterval(countdownIntervalRef.current);
         countdownIntervalRef.current = null;
@@ -157,8 +200,6 @@ export default function MockInterviewPage({ user }) {
         idleTimeoutRef.current = null;
       }
       stopAudioVisualization();
-<<<<<<< HEAD
-=======
       stopInterviewerAudioAnalysis();
       if (ttsAudioRef.current) {
         try {
@@ -167,7 +208,6 @@ export default function MockInterviewPage({ user }) {
         } catch {}
         ttsAudioRef.current = null;
       }
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
       if (synthRef.current) {
         synthRef.current.cancel();
       }
@@ -177,8 +217,6 @@ export default function MockInterviewPage({ user }) {
     };
   }, [location, user]);
 
-<<<<<<< HEAD
-=======
   const stopInterviewerAudioAnalysis = () => {
     if (ttsAnimationFrameRef.current) {
       cancelAnimationFrame(ttsAnimationFrameRef.current);
@@ -265,7 +303,6 @@ export default function MockInterviewPage({ user }) {
     }
   };
 
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
   // Reset countdown started flag when speaking starts (to allow new countdown when speaking stops)
   useEffect(() => {
     if (isSpeaking) {
@@ -284,13 +321,8 @@ export default function MockInterviewPage({ user }) {
       recognitionRef.current.maxAlternatives = 1;
       // Don't automatically stop on silence - wait for explicit stop
       // recognitionRef.current.serviceURI = ''; // Not available in all browsers
-<<<<<<< HEAD
-
-      let finalTranscripts = [];
-=======
       finalTranscriptsRef.current = [];
       lastFinalAtRef.current = null;
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
 
       recognitionRef.current.onresult = (event) => {
         let interimText = '';
@@ -299,18 +331,11 @@ export default function MockInterviewPage({ user }) {
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-<<<<<<< HEAD
-            finalTranscripts.push(transcript);
-            hasNewFinal = true;
-            // Update last speech time when we get final results
-            lastSpeechTimeRef.current = Date.now();
-=======
             finalTranscriptsRef.current.push(transcript);
             hasNewFinal = true;
             // Update last speech time when we get final results
             lastSpeechTimeRef.current = Date.now();
             lastFinalAtRef.current = Date.now();
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
           } else {
             interimText += transcript;
           }
@@ -331,11 +356,7 @@ export default function MockInterviewPage({ user }) {
           }
           // Set new idle timeout (30 seconds of no speech = stop listening)
           idleTimeoutRef.current = setTimeout(() => {
-<<<<<<< HEAD
-            if (isListening && isInterviewActiveRef.current) {
-=======
             if (isListeningRef.current && isInterviewActiveRef.current) {
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
               console.log('⏸️ No speech detected for 30 seconds, stopping recognition');
               recognitionStopRequestedRef.current = true;
               setIsListening(false);
@@ -357,36 +378,20 @@ export default function MockInterviewPage({ user }) {
         }
 
         // If we have final results, process them after a short delay (in case more are coming)
-<<<<<<< HEAD
-        if (hasNewFinal && finalTranscripts.length > 0) {
-=======
         // Longer delay makes it feel more natural and reduces mid-sentence cutoffs.
         if (hasNewFinal && finalTranscriptsRef.current.length > 0) {
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
           // Clear any existing timeout
           if (silenceTimeoutRef.current) {
             clearTimeout(silenceTimeoutRef.current);
             silenceTimeoutRef.current = null;
           }
           
-<<<<<<< HEAD
-          // Process final results quickly for responsive conversation
-          silenceTimeoutRef.current = setTimeout(() => {
-            const completeText = finalTranscripts.join(' ').trim();
-            
-            // Filter out empty, very short, or meaningless transcripts
-            const meaningfulText = completeText.replace(/[^\w\s]/g, '').trim();
-            if (!meaningfulText || meaningfulText.length < 2) {
-              finalTranscripts = [];
-=======
           const candidateTextNow = finalTranscriptsRef.current.join(' ').trim();
           const normalizedNow = normalizeSpokenTextForTurnDetection(candidateTextNow);
           const wordCountNow = countWords(normalizedNow);
 
-          // Dynamic delay:
-          // - very short utterances (often hesitation) get more time
-          // - longer responses can submit faster
-          const delayMs = wordCountNow < 4 ? 2500 : wordCountNow < 8 ? 1600 : 1100;
+          // Dynamic delay: longer pauses before "end of turn" so we don't cut off mid-sentence
+          const delayMs = wordCountNow < 4 ? 3200 : wordCountNow < 8 ? 2200 : 1500;
 
           silenceTimeoutRef.current = setTimeout(() => {
             // If we are still getting interim speech, wait a bit longer
@@ -403,18 +408,13 @@ export default function MockInterviewPage({ user }) {
             const words = countWords(normalized);
             if (!normalized || normalized.length < 2 || words < 2) {
               finalTranscriptsRef.current = [];
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
               return;
             }
             
             if (completeText && !processingMessageRef.current) {
               // Check for duplicates
               if (completeText === lastProcessedTextRef.current && lastProcessedTextRef.current !== '') {
-<<<<<<< HEAD
-                finalTranscripts = [];
-=======
                 finalTranscriptsRef.current = [];
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
                 return;
               }
               
@@ -425,7 +425,8 @@ export default function MockInterviewPage({ user }) {
                 timestamp: new Date().toISOString(),
               };
               setMessages(prev => [...prev, userMessage]);
-              
+              messagesRef.current = [...(messagesRef.current || []), userMessage];
+
               // Clear interim transcript
               setInterimTranscript('');
               
@@ -441,11 +442,7 @@ export default function MockInterviewPage({ user }) {
               setIsListening(false);
               
               const textToProcess = completeText;
-<<<<<<< HEAD
-              finalTranscripts = [];
-=======
               finalTranscriptsRef.current = [];
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
               
               try {
                 recognitionRef.current.stop();
@@ -456,15 +453,9 @@ export default function MockInterviewPage({ user }) {
               // Process the message (sends to AI)
               handleUserMessage(textToProcess);
             } else {
-<<<<<<< HEAD
-              finalTranscripts = [];
-            }
-          }, 500); // Reduced to 500ms for faster response
-=======
               finalTranscriptsRef.current = [];
             }
           }, delayMs);
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
         }
       };
 
@@ -505,39 +496,31 @@ export default function MockInterviewPage({ user }) {
         
         // If recognition ended naturally (not stopped by us) and we're still supposed to be listening,
         // check if we should restart (only if actively listening and interview is active)
-<<<<<<< HEAD
-        if (isListening && isInterviewActiveRef.current && !isSpeakingRef.current) {
-=======
         if (isListeningRef.current && isInterviewActiveRef.current && !isSpeakingRef.current) {
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
-          // Small delay before restarting
-          setTimeout(() => {
-            // Double check conditions before restarting
+          const tryRestart = (attempt = 0) => {
             if (
-<<<<<<< HEAD
-              isListening && 
-=======
-              isListeningRef.current && 
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
-              isInterviewActiveRef.current && 
-              !recognitionStopRequestedRef.current &&
-              !recognitionStartingRef.current &&
-              !isSpeakingRef.current &&
-              inputModeRef.current === 'voice'
-            ) {
-              try {
-                recognitionRef.current.start();
-              } catch (e) {
-                if (e.name === 'InvalidStateError') {
-                  // Already running, that's fine
-                } else {
-                  console.error('Error restarting recognition:', e);
-                  setIsListening(false);
-                  stopAudioVisualization();
-                }
+              !isListeningRef.current ||
+              !isInterviewActiveRef.current ||
+              recognitionStopRequestedRef.current ||
+              recognitionStartingRef.current ||
+              isSpeakingRef.current ||
+              inputModeRef.current !== 'voice'
+            ) return;
+            try {
+              recognitionRef.current.start();
+            } catch (e) {
+              if (e.name === 'InvalidStateError') {
+                // Already running
+              } else if (attempt < 2) {
+                setTimeout(() => tryRestart(attempt + 1), 300);
+              } else {
+                console.error('Error restarting recognition:', e);
+                setIsListening(false);
+                stopAudioVisualization();
               }
             }
-          }, 200);
+          };
+          setTimeout(() => tryRestart(), 200);
         } else {
           // Not supposed to be listening, make sure we're stopped
           setIsListening(false);
@@ -586,11 +569,7 @@ export default function MockInterviewPage({ user }) {
         synthRef.current.cancel();
       }
     };
-<<<<<<< HEAD
-  }, [isListening, isInterviewActive]);
-=======
   }, []);
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
 
   const loadResume = async (id) => {
     if (!user?.id) return;
@@ -614,6 +593,8 @@ export default function MockInterviewPage({ user }) {
     setIsInterviewActive(true);
     setMessages([]);
     setInterviewStage('beginning');
+    const totalSeconds = Math.max(1, Math.round(duration * 60));
+    startInterviewTimer(Date.now() + totalSeconds * 1000);
     
     // Start with AI greeting
     setIsLoading(true);
@@ -624,7 +605,9 @@ export default function MockInterviewPage({ user }) {
         resumeData?.job_description || '',
         resumeData?.job_title || '',
         interviewerPersona,
-        'beginning'
+        'beginning',
+        totalSeconds,
+        duration
       );
       
       if (result.success) {
@@ -634,6 +617,7 @@ export default function MockInterviewPage({ user }) {
           timestamp: new Date().toISOString(),
         };
         setMessages([greeting]);
+        messagesRef.current = [greeting];
         speakText(greeting.content);
       }
     } catch (err) {
@@ -676,30 +660,32 @@ export default function MockInterviewPage({ user }) {
     setIsLoading(true);
     setError('');
     
-    // Check if message already exists (might have been added during recognition)
-    const messageExists = messages.some(m => m.role === 'user' && m.content === trimmedText);
-    
-    // Add user message to chat immediately for instant feedback
+    // Use latest messages (ref is updated when we add user message in onresult)
+    const latestMessages = messagesRef.current?.length ? messagesRef.current : messages;
+    const messageExists = latestMessages.some(m => m.role === 'user' && m.content === trimmedText);
     const userMessage = {
       role: 'user',
       content: trimmedText,
       timestamp: new Date().toISOString(),
     };
-    
-    const updatedMessages = messageExists ? messages : [...messages, userMessage];
+    const toSend = messageExists ? latestMessages : [...latestMessages, userMessage];
     if (!messageExists) {
-      setMessages(updatedMessages);
+      setMessages(prev => (prev.some(m => m.role === 'user' && m.content === trimmedText) ? prev : [...prev, userMessage]));
+      messagesRef.current = toSend;
       console.log('✅ User message added to chat immediately:', trimmedText);
     }
-    
+
     try {
+      const remaining = getTimeRemainingSeconds();
       const result = await sendInterviewMessage(
-        updatedMessages,
+        toSend,
         resumeData?.tailored_resume_text || resumeData?.original_resume_text || '',
         resumeData?.job_description || '',
         resumeData?.job_title || '',
         interviewerPersona,
-        interviewStage
+        interviewStage,
+        remaining,
+        duration
       );
       
       // If component is no longer active (navigated away), ignore results
@@ -717,16 +703,9 @@ export default function MockInterviewPage({ user }) {
         };
         
         setMessages(prev => {
-          // Ensure user message is still there before adding AI message
-          const lastMessage = prev[prev.length - 1];
-          if (lastMessage && lastMessage.role === 'user' && lastMessage.content === trimmedText) {
-            console.log('✅ Adding AI response to chat');
-            return [...prev, aiMessage];
-          } else {
-            // User message missing, add it back
-            console.warn('⚠️ User message missing, restoring it');
-            return [...prev, userMessage, aiMessage];
-          }
+          const next = [...prev, aiMessage];
+          messagesRef.current = next;
+          return next;
         });
         
         // Speak the AI response
@@ -782,11 +761,7 @@ export default function MockInterviewPage({ user }) {
       const dataArray = new Uint8Array(bufferLength);
       
       const updateLevels = () => {
-<<<<<<< HEAD
-        if (!analyserRef.current || !isListening) {
-=======
         if (!analyserRef.current || !isListeningRef.current) {
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
           return;
         }
         
@@ -855,13 +830,6 @@ export default function MockInterviewPage({ user }) {
       setInterimTranscript('');
       stopAudioVisualization();
     } else {
-<<<<<<< HEAD
-      // Don't start if AI is speaking
-      if (isSpeaking || isSpeakingRef.current) {
-        console.log('AI is speaking, cannot start listening');
-        setError('Please wait for the interviewer to finish speaking.');
-        return;
-=======
       // If AI is speaking, allow barge-in (interrupt).
       if (isSpeaking || isSpeakingRef.current) {
         console.log('Barge-in: interrupting interviewer TTS');
@@ -883,7 +851,6 @@ export default function MockInterviewPage({ user }) {
         }
         setIsSpeaking(false);
         isSpeakingRef.current = false;
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
       }
       
       // Don't start if already starting
@@ -930,11 +897,7 @@ export default function MockInterviewPage({ user }) {
         setTimeout(() => {
           try {
             // Double-check state before starting
-<<<<<<< HEAD
-            if (isListening || isSpeakingRef.current) {
-=======
             if (isListeningRef.current || isSpeakingRef.current) {
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
               console.log('State changed, aborting start');
               recognitionStartingRef.current = false;
               return;
@@ -955,11 +918,7 @@ export default function MockInterviewPage({ user }) {
               clearTimeout(idleTimeoutRef.current);
             }
             idleTimeoutRef.current = setTimeout(() => {
-<<<<<<< HEAD
-              if (isListening && isInterviewActiveRef.current) {
-=======
               if (isListeningRef.current && isInterviewActiveRef.current) {
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
                 console.log('⏸️ No speech detected for 30 seconds, stopping recognition');
                 recognitionStopRequestedRef.current = true;
                 setIsListening(false);
@@ -980,11 +939,7 @@ export default function MockInterviewPage({ user }) {
             if (startErr.name === 'InvalidStateError') {
               console.log('Recognition already running, checking state...');
               // If it's already running, update our state to match
-<<<<<<< HEAD
-              if (!isListening) {
-=======
               if (!isListeningRef.current) {
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
                 setIsListening(true);
                 startAudioVisualization();
                 console.log('Updated state to match running recognition');
@@ -1001,11 +956,7 @@ export default function MockInterviewPage({ user }) {
               console.log('Retrying recognition start after error...');
               setTimeout(() => {
                 // Check state again
-<<<<<<< HEAD
-                if (isListening || isSpeakingRef.current || recognitionStartingRef.current) {
-=======
                 if (isListeningRef.current || isSpeakingRef.current || recognitionStartingRef.current) {
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
                   console.log('State changed during retry, aborting');
                   return;
                 }
@@ -1033,11 +984,7 @@ export default function MockInterviewPage({ user }) {
                   console.error('Retry failed:', retryErr);
                       if (retryErr.name === 'InvalidStateError') {
                         // If it's already running, just update state
-<<<<<<< HEAD
-                        if (!isListening) {
-=======
                         if (!isListeningRef.current) {
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
                           setIsListening(true);
                           startAudioVisualization();
                         }
@@ -1094,9 +1041,6 @@ export default function MockInterviewPage({ user }) {
       setIsSpeaking(true);
       
       try {
-<<<<<<< HEAD
-        await playAudio(ttsResult.audioUrl);
-=======
         await playAudio(ttsResult.audioUrl, {
           onAudioCreated: (audioEl) => {
             startInterviewerAudioAnalysis(audioEl);
@@ -1108,7 +1052,6 @@ export default function MockInterviewPage({ user }) {
             stopInterviewerAudioAnalysis();
           },
         });
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
         console.log('🔊 External TTS finished playing');
         setIsSpeaking(false);
         
@@ -1123,10 +1066,7 @@ export default function MockInterviewPage({ user }) {
         }
       } catch (error) {
         console.error('Error playing audio:', error);
-<<<<<<< HEAD
-=======
         stopInterviewerAudioAnalysis();
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
         setIsSpeaking(false);
         // Fall back to browser TTS on playback error
         speakTextBrowser(text);
@@ -1479,9 +1419,10 @@ export default function MockInterviewPage({ user }) {
     setIsSpeaking(false);
     setInterimTranscript('');
     setCountdown(null);
+    setTimeRemainingSeconds(null);
+    interviewEndsAtRef.current = null;
+    stopInterviewTimer();
     countdownStartedRef.current = false; // Reset countdown flag
-<<<<<<< HEAD
-=======
     stopInterviewerAudioAnalysis();
     if (ttsAudioRef.current) {
       try {
@@ -1490,7 +1431,6 @@ export default function MockInterviewPage({ user }) {
       } catch {}
       ttsAudioRef.current = null;
     }
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
     if (countdownIntervalRef.current) {
       clearInterval(countdownIntervalRef.current);
       countdownIntervalRef.current = null;
@@ -1545,6 +1485,18 @@ export default function MockInterviewPage({ user }) {
           <h2 className="interview-title">
             {resumeData?.job_title || 'Mock Interview'}
           </h2>
+          {timeRemainingSeconds !== null && (
+            <div
+              className={[
+                'interview-timer',
+                timeRemainingSeconds <= 120 ? 'ending' : '',
+              ].filter(Boolean).join(' ')}
+              aria-label="Interview time remaining"
+            >
+              <span className="material-icons" aria-hidden="true">schedule</span>
+              <span className="timer-text">{formatCountdown(timeRemainingSeconds)}</span>
+            </div>
+          )}
         </div>
 
         {error && (
@@ -1556,11 +1508,6 @@ export default function MockInterviewPage({ user }) {
 
         <div className="interview-main">
           <div className="interview-center">
-<<<<<<< HEAD
-            <GlowingBall 
-              isSpeaking={isSpeaking || isLoading}
-              isListening={isListening}
-=======
             <InterviewerAvatar
               isSpeaking={isSpeaking}
               isThinking={isLoading}
@@ -1568,7 +1515,6 @@ export default function MockInterviewPage({ user }) {
               messages={messages}
               energy={interviewerEnergy}
               name="Interviewer"
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
             />
           </div>
 
@@ -1587,10 +1533,7 @@ export default function MockInterviewPage({ user }) {
             setInputMode={setInputMode}
             isListening={isListening}
             onVoiceClick={handleVoiceInput}
-<<<<<<< HEAD
-=======
-          isSpeaking={isSpeaking}
->>>>>>> 2de61af (Recovering uncommitted work after local .git deletion)
+            isSpeaking={isSpeaking}
             textInput={textInput}
             setTextInput={setTextInput}
             onSubmit={handleTextSubmit}

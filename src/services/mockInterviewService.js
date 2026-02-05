@@ -2,7 +2,16 @@
  * Service for mock interview functionality
  */
 
-export async function sendInterviewMessage(messages, resumeText, jobDescription, jobTitle, interviewerPersona, interviewStage) {
+export async function sendInterviewMessage(
+  messages,
+  resumeText,
+  jobDescription,
+  jobTitle,
+  interviewerPersona,
+  interviewStage,
+  timeRemainingSeconds = null,
+  durationMinutes = null
+) {
   try {
     const response = await fetch('/api/mock-interview', {
       method: 'POST',
@@ -16,6 +25,8 @@ export async function sendInterviewMessage(messages, resumeText, jobDescription,
         jobTitle,
         interviewerPersona,
         interviewStage,
+        timeRemainingSeconds,
+        durationMinutes,
       }),
     });
 
