@@ -51,7 +51,7 @@ export async function saveTailoredResume(userId, tailoredResumeText, jobDescript
  */
 export async function getSavedResumes(userId) {
   try {
-    const response = await fetch(`/api/get-saved-resumes?userId=${userId}`, {
+    const response = await fetch(`/api/saved-resumes?userId=${encodeURIComponent(userId)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ export async function getSavedResumes(userId) {
  */
 export async function getSavedResumeById(resumeId, userId) {
   try {
-    const response = await fetch(`/api/get-saved-resume?resumeId=${resumeId}&userId=${userId}`, {
+    const response = await fetch(`/api/saved-resumes?userId=${encodeURIComponent(userId)}&resumeId=${encodeURIComponent(resumeId)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

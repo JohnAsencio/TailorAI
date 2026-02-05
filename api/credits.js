@@ -41,7 +41,16 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Supabase service role not configured' });
   }
 
-  const { action = 'get', userId, creditType } = req.body || {};
+  let body = req.body;
+  if (typeof body === 'string') {
+    try {
+      body = JSON.parse(body);
+    } catch {
+      setCors(res);
+      return res.status(400).json({ error: 'Invalid JSON body' });
+    }
+  }
+  const { action = 'get', userId, creditType } = body || {};
 
   if (!userId) {
     setCors(res);
