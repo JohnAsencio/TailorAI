@@ -97,7 +97,7 @@
 
 .pricing-card-featured {
   border: 2px solid var(--header-title-color);
-  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.15);
 }
 
 .pricing-badge {
@@ -105,7 +105,7 @@
   top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background-color: var(--accent);
   color: white;
   padding: 0.4rem 1.25rem;
   border-radius: 2rem;
@@ -161,7 +161,7 @@
 }
 
 .pricing-badge-special {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background-color: #059669;
   color: white;
   padding: 0.4rem 1.25rem;
   border-radius: 2rem;
@@ -299,18 +299,18 @@
 }
 
 .pricing-button-primary {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background-color: var(--accent);
   color: white;
-  box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.4);
+  box-shadow: 0 2px 6px rgba(74, 111, 165, 0.2);
 }
 
 .pricing-button-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.5);
+  box-shadow: 0 4px 12px rgba(74, 111, 165, 0.25);
 }
 
 .pricing-button-lifetime {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background-color: #059669;
   color: white;
   box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4);
 }
@@ -360,7 +360,7 @@
   margin-top: 4rem;
   margin-bottom: 2rem;
   padding: 3rem 2rem;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+  background-color: rgba(74, 111, 165, 0.05);
   border-radius: 1.5rem;
   border: 1px solid var(--card-border);
   text-align: center;
@@ -404,10 +404,7 @@
 .value-stat-number {
   font-size: 2.5rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--header-title-color);
   line-height: 1.2;
   min-height: 3rem;
   display: flex;
@@ -583,7 +580,7 @@
 }
 
 .beta-tester-button {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background-color: var(--accent);
   color: white;
   border: none;
   border-radius: 0.75rem;
@@ -592,12 +589,12 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.4);
+  box-shadow: 0 2px 6px rgba(74, 111, 165, 0.2);
 }
 
 .beta-tester-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.5);
+  box-shadow: 0 4px 12px rgba(74, 111, 165, 0.25);
 }
 
 @media (max-width: 640px) {

@@ -75,7 +75,12 @@ export default function MockPage({ user }) {
     <section className="mock-page">
       <div className="mock-page-container">
         <div className="mock-page-header">
-          <h2 className="mock-page-title">Mock Interviews</h2>
+          <div className="mock-page-title-row">
+            <h2 className="mock-page-title">Mock Interviews</h2>
+            <div className="mock-page-beta-badge" aria-label="Beta feature">
+              Beta
+            </div>
+          </div>
           <p className="mock-page-subtitle">
             Practice your interview skills with AI-powered mock interviews. Select a saved resume to get started.
           </p>

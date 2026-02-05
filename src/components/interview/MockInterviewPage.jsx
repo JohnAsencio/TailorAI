@@ -1482,9 +1482,17 @@ export default function MockInterviewPage({ user }) {
             <span className="material-icons">arrow_back</span>
             End Interview
           </button>
-          <h2 className="interview-title">
-            {resumeData?.job_title || 'Mock Interview'}
-          </h2>
+          <div className="interview-header-center">
+            <h2 className="interview-title">
+              {resumeData?.job_title || 'Mock Interview'}
+            </h2>
+            <div
+              className="interview-beta-badge"
+              aria-label="Beta feature"
+            >
+              Beta
+            </div>
+          </div>
           {timeRemainingSeconds !== null && (
             <div
               className={[

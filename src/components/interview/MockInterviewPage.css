@@ -31,9 +31,15 @@
 }
 
 .back-button:hover {
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(74, 111, 165, 0.08);
   border-color: var(--header-title-color);
   color: var(--header-title-color);
+}
+
+.interview-header-center {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .interview-title {
@@ -42,6 +48,20 @@
   font-weight: 700;
   color: var(--header-title-color);
   transition: color 0.3s ease;
+}
+
+.interview-beta-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #d97706;
+  border-radius: 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .interview-timer {

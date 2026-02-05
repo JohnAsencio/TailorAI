@@ -84,7 +84,7 @@
 
 .subscription-modal-button-primary {
   padding: 0.875rem 1.5rem;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background-color: var(--accent);
   color: white;
   border: none;
   border-radius: 0.75rem;
@@ -112,8 +112,8 @@
 }
 
 .subscription-modal-button-secondary:hover {
-  border-color: var(--header-title-color, #6366f1);
-  color: var(--header-title-color, #6366f1);
+  border-color: var(--header-title-color, #4a6fa5);
+  color: var(--header-title-color, #4a6fa5);
 }
 
 @media (max-width: 640px) {

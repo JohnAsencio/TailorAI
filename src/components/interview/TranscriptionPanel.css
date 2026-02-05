@@ -81,7 +81,7 @@
 }
 
 .transcription-message.assistant {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
+  background-color: rgba(74, 111, 165, 0.06);
   color: var(--header-title-color);
   align-self: flex-start;
   border-bottom-left-radius: 4px;

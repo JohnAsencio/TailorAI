@@ -35,8 +35,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: rgba(99, 102, 241, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  background-color: rgba(74, 111, 165, 0.08);
+  border: 1px solid rgba(74, 111, 165, 0.2);
   border-radius: 2rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -46,7 +46,7 @@
 }
 
 .hero-badge:hover {
-  background-color: rgba(99, 102, 241, 0.15);
+  background-color: rgba(74, 111, 165, 0.12);
   transform: translateY(-2px);
 }
 
@@ -63,10 +63,7 @@
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--header-title-color);
 }
 
 .hero-subtitle {
@@ -89,8 +86,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background-color: rgba(5, 150, 105, 0.08);
+  border: 1px solid rgba(5, 150, 105, 0.25);
   border-radius: 2rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -118,7 +115,7 @@
 .hero-waitlist-button {
   font-size: 1.25rem;
   padding: 1.25rem 2.5rem;
-  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.2);
 }
 
 .hero-cta-note {
@@ -160,14 +157,14 @@
 }
 
 .cta-button.primary {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background-color: var(--accent);
   color: white;
-  box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.4);
+  box-shadow: 0 2px 6px rgba(74, 111, 165, 0.2);
 }
 
 .cta-button.primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.5);
+  box-shadow: 0 4px 12px rgba(74, 111, 165, 0.25);
 }
 
 .cta-button.secondary {
@@ -299,7 +296,7 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+  background-color: rgba(74, 111, 165, 0.04);
   border-radius: 2rem;
 }
 
@@ -328,8 +325,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: rgba(236, 72, 153, 0.1);
-  border: 1px solid rgba(236, 72, 153, 0.2);
+  background-color: rgba(74, 111, 165, 0.08);
+  border: 1px solid rgba(74, 111, 165, 0.2);
   border-radius: 2rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -398,7 +395,7 @@
 /* Features Section */
 .landing-features {
   padding: 4rem 0;
-  background: linear-gradient(to bottom, transparent, rgba(99, 102, 241, 0.05));
+  background-color: transparent;
   border-radius: 2rem;
   margin: 1rem 0 3rem 0;
   width: 100%;
@@ -472,9 +469,9 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+  background-color: rgba(74, 111, 165, 0.04);
   border-radius: 2rem;
-  border: 2px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(74, 111, 165, 0.15);
 }
 
 .exclusive-offers-container {
@@ -534,7 +531,7 @@
   top: -1rem;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background-color: #059669;
   color: white;
   padding: 0.45rem 1.2rem;
   border-radius: 2rem;
@@ -633,7 +630,7 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  background-color: rgba(74, 111, 165, 0.05);
   border-radius: 2rem;
 }
 
@@ -682,9 +679,9 @@
   max-width: 800px;
   margin: 0 auto;
   padding: 4rem 2rem;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  background-color: rgba(74, 111, 165, 0.05);
   border-radius: 2rem;
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(74, 111, 165, 0.15);
   width: 100%;
   box-sizing: border-box;
 }
@@ -909,7 +906,7 @@
 .landing-footer {
   margin-top: 4rem;
   padding: 3rem 2rem 2rem;
-  background: linear-gradient(to bottom, transparent, rgba(99, 102, 241, 0.05));
+  background-color: rgba(74, 111, 165, 0.03);
   border-top: 1px solid var(--card-border);
   width: 100%;
   box-sizing: border-box;

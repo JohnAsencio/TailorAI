@@ -162,7 +162,7 @@
 }
 
 .profile-theme-toggle-input:checked + .profile-theme-toggle-slider {
-  background-color: #6366f1;
+  background-color: var(--accent);
 }
 
 .profile-theme-toggle-input:checked + .profile-theme-toggle-slider:before {

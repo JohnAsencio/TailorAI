@@ -9,12 +9,12 @@
   width: 240px;
   height: 240px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--header-subtitle-color) 0%, var(--header-title-color) 100%);
+  background-color: var(--header-title-color);
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 60px rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 60px rgba(74, 111, 165, 0.4);
   transition: all 0.3s ease;
   animation: float 3s ease-in-out infinite;
 }
@@ -30,18 +30,18 @@
 
 .glowing-ball.speaking {
   animation: pulse 1s ease-in-out infinite, float 3s ease-in-out infinite;
-  box-shadow: 0 0 60px rgba(99, 102, 241, 0.8);
+  box-shadow: 0 0 60px rgba(74, 111, 165, 0.5);
 }
 
 .glowing-ball.listening {
   animation: pulse 1.5s ease-in-out infinite, float 3s ease-in-out infinite;
-  box-shadow: 0 0 50px rgba(99, 102, 241, 0.7);
-  background: linear-gradient(135deg, var(--header-title-color) 0%, var(--header-subtitle-color) 100%);
+  box-shadow: 0 0 50px rgba(74, 111, 165, 0.45);
+  background-color: var(--header-title-color);
 }
 
 .glowing-ball.paused {
   animation: float 3s ease-in-out infinite;
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  background-color: #6b7280;
   box-shadow: 0 0 30px rgba(107, 114, 128, 0.5);
 }
 

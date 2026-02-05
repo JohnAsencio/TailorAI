@@ -109,7 +109,7 @@ body.dark .google-button {
 }
 
 body.dark .google-button:hover {
-  background-color: rgba(129, 140, 248, 0.1);
+  background-color: rgba(74, 111, 165, 0.1);
 }
 
 .auth-form {
@@ -166,7 +166,7 @@ body.dark .google-button:hover {
 }
 
 .auth-button.primary {
-  background: linear-gradient(to right, #6366f1, #4f46e5);
+  background-color: var(--accent);
   color: #ffffff;
 }
 

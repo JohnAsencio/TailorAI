@@ -2,7 +2,7 @@
 .app-footer {
   margin-top: 4rem;
   padding: 3rem 2rem 2rem;
-  background: linear-gradient(to bottom, transparent, rgba(99, 102, 241, 0.05));
+  background-color: rgba(74, 111, 165, 0.03);
   border-top: 1px solid var(--card-border);
   width: 100%;
   box-sizing: border-box;
@@ -89,7 +89,7 @@
   background: var(--header-title-color);
   color: white;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.3);
+  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.2);
 }
 
 .footer-contact-icon {

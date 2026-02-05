@@ -148,12 +148,12 @@
 
 .resume-option:hover {
   border-color: var(--header-title-color);
-  background: rgba(99, 102, 241, 0.05);
+  background: rgba(74, 111, 165, 0.05);
 }
 
 .resume-option.selected {
   border-color: var(--header-title-color);
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
+  background: rgba(74, 111, 165, 0.08);
 }
 
 .resume-option-header {
@@ -211,19 +211,19 @@
 }
 
 .settings-button.secondary:hover {
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(74, 111, 165, 0.08);
   border-color: var(--header-title-color);
 }
 
 .settings-button.primary {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  background-color: var(--accent);
   color: white;
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 2px 6px rgba(74, 111, 165, 0.2);
 }
 
 .settings-button.primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  box-shadow: 0 4px 12px rgba(74, 111, 165, 0.3);
 }
 
 .settings-button.primary:disabled {
