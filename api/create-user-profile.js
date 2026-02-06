@@ -1,6 +1,8 @@
 /**
- * Vercel serverless function to create an app_users entry when a user signs up
- * This ensures all users have a profile entry, even if they don't have a subscription yet
+ * Vercel serverless function to create an app_users entry when a user signs up.
+ * This ensures all users have a profile entry, even if they don't have a subscription yet.
+ * plan_id and plan_status must only be changed by the Stripe webhook (on purchase); we do not
+ * overwrite them for existing users so sign-in/sign-out does not revert paying plans to free.
  */
 
 import { loadEnvFromLocal } from './utils/loadEnv.js';
@@ -79,20 +81,17 @@ export default async function handler(req, res) {
     const isNewUser = !existingUser;
     console.log('👤 Is new user?', isNewUser);
 
-    // Prepare the data object - only set resume_credits for new users
-    // For existing users, preserve their current credits
+    // New users: set plan_id, plan_status, resume_credits. Existing users: only email and user_id
+    // so we never overwrite their plan or credits (only Stripe webhook may change plan on purchase).
     const userData = {
       email: email.toLowerCase().trim(),
       user_id: userId,
-      plan_id: 'free',
-      plan_status: 'free',
     };
-
-    // Only set resume_credits for new users (free tier gets 2 credits to try features)
     if (isNewUser) {
+      userData.plan_id = 'free';
+      userData.plan_status = 'free';
       userData.resume_credits = 2;
     }
-    // For existing users, we don't include resume_credits so it preserves the existing value
 
     // Create or update app_users entry
     // Note: Don't include created_at/updated_at - let the database handle timestamps if they exist
@@ -127,16 +126,13 @@ export default async function handler(req, res) {
       // If column doesn't exist (like created_at), try without it
       if (error.code === 'PGRST204' && error.message.includes('column')) {
         console.warn('⚠️ Column missing in app_users table, retrying without timestamps...');
-        // Retry without any timestamp fields - use the same userData logic
         const retryUserData = {
           email: email.toLowerCase().trim(),
           user_id: userId,
-          plan_id: 'free',
-          plan_status: 'free',
         };
-        
-        // Only set resume_credits for new users
         if (isNewUser) {
+          retryUserData.plan_id = 'free';
+          retryUserData.plan_status = 'free';
           retryUserData.resume_credits = 2;
         }
         

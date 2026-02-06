@@ -18,6 +18,7 @@ export default function Footer() {
               <Link to="/about" className="footer-link">About</Link>
               <Link to="/pricing" className="footer-link">Pricing</Link>
               <Link to="/privacy" className="footer-link">Privacy Policy</Link>
+              <a href="https://github.com/JohnAsencio/TailorAI/issues" target="_blank" rel="noopener noreferrer" className="footer-link">Report an issue</a>
             </div>
           </div>
           <div className="footer-section">

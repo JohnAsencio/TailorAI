@@ -5,6 +5,7 @@ import { checkATSCompatibility } from "../../services/atsService";
 import { saveTailoredResume } from "../../services/savedResumeService";
 import { ensureTailoredScoreHigher } from "../../utils/atsAlgorithm";
 import { fetchCreditStatus, consumeResumeCredit } from "../../services/creditService";
+import { notifyCreditsUpdated } from "../../hooks/useCreditStatus";
 import HighlightedResumeDisplay from "./ResumeDisplay";
 import PdfViewer from "./PdfViewer";
 import MyResumePdfDocument from "./MyResumePdfDocument";
@@ -382,15 +383,12 @@ export default function TailorPage({ resumeState, user }) {
       if (!isBypass && user?.id && !creditStatus.unlimited) {
         const consumeResult = await consumeResumeCredit(user.id);
         if (consumeResult.success) {
-          const beforeCredits = creditStatus.resumeCredits;
           const afterCredits = consumeResult.remainingCredits;
-          
-          // Update credit status
           setCreditStatus(prev => ({
             ...prev,
             resumeCredits: afterCredits,
           }));
-
+          notifyCreditsUpdated();
         } else {
           console.error('Failed to consume credit:', consumeResult.error);
           // Don't block the user, but log the error
