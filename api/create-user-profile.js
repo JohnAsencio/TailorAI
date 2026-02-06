@@ -1,8 +1,5 @@
 /**
- * Vercel serverless function to create an app_users entry when a user signs up.
- * This ensures all users have a profile entry, even if they don't have a subscription yet.
- * plan_id and plan_status must only be changed by the Stripe webhook (on purchase); we do not
- * overwrite them for existing users so sign-in/sign-out does not revert paying plans to free.
+ * Create or update app_users on sign-in. New users get free tier; existing users keep plan/credits (only Stripe webhook may change them).
  */
 
 import { loadEnvFromLocal } from './utils/loadEnv.js';
@@ -46,28 +43,22 @@ export default async function handler(req, res) {
   try {
     const { userId, email } = req.body;
 
-    console.log('📝 create-user-profile called for:', { userId, email });
-
     if (!userId || !email) {
-      console.error('❌ Missing userId or email');
+      console.error('create-user-profile: missing userId or email');
       return res.status(400).json({
         error: 'userId and email are required',
       });
     }
 
-    // Verify the user exists in auth.users
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(userId);
     
     if (authError || !authUser) {
-      console.error('❌ User not found in auth.users:', authError);
+      console.error('create-user-profile: user not found in auth.users', authError?.message);
       return res.status(404).json({
         error: 'User not found in auth.users',
       });
     }
 
-    console.log('✅ User verified in auth.users');
-
-    // Check if user already exists (to determine if this is a new sign-up)
     const { data: existingUser, error: checkError } = await supabaseAdmin
       .from('app_users')
       .select('user_id')
@@ -75,14 +66,11 @@ export default async function handler(req, res) {
       .maybeSingle(); // Use maybeSingle to avoid errors if no row exists
 
     if (checkError && checkError.code !== 'PGRST301') {
-      console.error('❌ Error checking existing user:', checkError);
+      console.error('create-user-profile: error checking existing user', checkError?.message);
     }
 
     const isNewUser = !existingUser;
-    console.log('👤 Is new user?', isNewUser);
 
-    // New users: set plan_id, plan_status, resume_credits. Existing users: only email and user_id
-    // so we never overwrite their plan or credits (only Stripe webhook may change plan on purchase).
     const userData = {
       email: email.toLowerCase().trim(),
       user_id: userId,
@@ -93,8 +81,6 @@ export default async function handler(req, res) {
       userData.resume_credits = 2;
     }
 
-    // Create or update app_users entry
-    // Note: Don't include created_at/updated_at - let the database handle timestamps if they exist
     const { data, error } = await supabaseAdmin
       .from('app_users')
       .upsert(
@@ -105,7 +91,7 @@ export default async function handler(req, res) {
       .single();
 
     if (error) {
-      console.error('❌ Error creating app_users entry:', error);
+      console.error('create-user-profile: app_users error', error.code, error.message);
       console.error('Error details:', {
         code: error.code,
         message: error.message,
@@ -115,7 +101,7 @@ export default async function handler(req, res) {
       
       // If table doesn't exist, that's okay - just log a warning
       if (error.message.includes('does not exist') || error.code === '42P01') {
-        console.warn('⚠️ app_users table does not exist. Skipping profile creation.');
+        console.warn('create-user-profile: app_users table does not exist');
         return res.status(200).json({
           success: true,
           skipped: true,
@@ -125,7 +111,7 @@ export default async function handler(req, res) {
       
       // If column doesn't exist (like created_at), try without it
       if (error.code === 'PGRST204' && error.message.includes('column')) {
-        console.warn('⚠️ Column missing in app_users table, retrying without timestamps...');
+        console.warn('create-user-profile: column missing, retrying without timestamps');
         const retryUserData = {
           email: email.toLowerCase().trim(),
           user_id: userId,
@@ -146,7 +132,7 @@ export default async function handler(req, res) {
           .single();
           
         if (retryError) {
-          console.error('❌ Retry also failed:', retryError);
+          console.error('create-user-profile: retry failed', retryError?.message);
           return res.status(500).json({
             error: 'Failed to create user profile',
             details: retryError.message,
@@ -154,7 +140,6 @@ export default async function handler(req, res) {
           });
         }
         
-        console.log('✅ Successfully created app_users entry on retry');
         res.setHeader('Access-Control-Allow-Origin', '*');
         return res.status(200).json({
           success: true,
@@ -172,27 +157,15 @@ export default async function handler(req, res) {
 
     // Send welcome email synchronously (but errors won't block profile creation)
     if (isNewUser) {
-      console.log('📧 New user detected, sending welcome email now');
-      console.log('📧 Email:', email);
-      console.log('👤 User metadata:', authUser.user?.user_metadata);
       try {
         const userName = authUser.user?.user_metadata?.full_name || authUser.user?.user_metadata?.name || null;
-        console.log('👤 User name:', userName);
         const result = await sendWelcomeEmail(email.toLowerCase().trim(), userName);
-        console.log('📬 Email function returned:', result);
-        if (result.success) {
-          console.log('✅ Welcome email sent successfully:', result.emailId);
-        } else {
-          console.error('❌ Failed to send welcome email:', result.error, result.details);
+        if (!result.success) {
+          console.error('create-user-profile: welcome email failed', result.error);
         }
       } catch (emailError) {
-        console.error('❌ Error sending welcome email:', emailError.message || emailError);
-        if (emailError.stack) {
-          console.error('❌ Stack trace:', emailError.stack);
-        }
+        console.error('create-user-profile: welcome email error', emailError?.message);
       }
-    } else {
-      console.log('ℹ️ User already exists, skipping welcome email');
     }
 
     // Send response after processing welcome email attempt

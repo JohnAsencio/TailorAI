@@ -1,46 +1,25 @@
 /**
- * Shared function to send welcome email
- * Can be called directly from other serverless functions
- * * FIX: Replaced manual 'fetch' with the robust Resend SDK to solve network hangs/timeouts.
+ * Send welcome email via Resend. Used by create-user-profile for new signups.
  */
 
-// We keep this for local development environment variable loading
 import { loadEnvFromLocal } from './loadEnv.js';
-
-// ✨ NEW: Import the official Resend SDK
 import { Resend } from 'resend';
 
-// Load env vars for local dev
 loadEnvFromLocal();
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
-
-// Initialize Resend client globally (or semi-globally) for reuse
 const resend = new Resend(RESEND_API_KEY);
-
-// Define the sender details (must be on a verified domain in Resend)
 const SENDER_EMAIL = 'Tailor AI <waitlist@tailor-ai.app>';
 
 export async function sendWelcomeEmail(email, userName = null) {
-  console.log('📧 sendWelcomeEmail function called with:', { email, userName });
-  
   if (!email) {
-    console.error('❌ Email is required but not provided');
-    // It's cleaner to return an error object here rather than throwing a generic error
     return { success: false, error: 'Email is required' };
   }
-
-  console.log('🔑 Checking RESEND_API_KEY...');
   if (!RESEND_API_KEY) {
-    console.warn('⚠️ RESEND_API_KEY not configured - welcome email not sent');
     return { success: false, error: 'Email service not configured' };
   }
-  console.log('✅ RESEND_API_KEY is configured');
-  
+
   try {
-    console.log(`📧 Sending welcome email via Resend to: ${email} from ${SENDER_EMAIL}`);
-    
-    // ✨ NEW: Simplified API call using the Resend SDK
     const { data, error } = await resend.emails.send({
       from: SENDER_EMAIL,
       to: [email], // Resend SDK requires an array for 'to' recipients
@@ -89,21 +68,16 @@ export async function sendWelcomeEmail(email, userName = null) {
     });
 
     if (error) {
-      // The SDK returns a clear error object on API failure (e.g., domain not verified)
-      console.error('❌ Resend SDK API Error:', error);
-      return { 
-        success: false, 
-        error: error.name || 'Failed to send email via Resend SDK', 
-        details: error.message 
+      console.error('sendWelcomeEmail: Resend API error', error?.message);
+      return {
+        success: false,
+        error: error.name || 'Failed to send email',
+        details: error.message,
       };
     }
-
-    console.log('✅ Welcome email sent successfully via Resend:', data.id);
     return { success: true, emailId: data.id };
-    
   } catch (sdkError) {
-    // This catches issues like initialization failures or unhandled network errors.
-    console.error('❌ Unexpected SDK Error:', sdkError.message || sdkError);
+    console.error('sendWelcomeEmail error', sdkError?.message);
     return { 
       success: false, 
       error: 'An unexpected email sending error occurred', 

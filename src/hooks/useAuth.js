@@ -73,7 +73,6 @@ export function useAuth() {
             // Do not clear user—we have a valid session from the event; clearing caused login to appear broken
           } else {
             // Check if user profile exists, if not create it (which sends welcome email)
-            console.log('📞 Calling create-user-profile API for:', session.user.email);
             const profileResponse = await fetch('/api/create-user-profile', {
               method: 'POST',
               headers: {
@@ -89,8 +88,7 @@ export function useAuth() {
               const errorText = await profileResponse.text();
               console.warn('⚠️ Failed to ensure user profile exists:', profileResponse.status, errorText);
             } else {
-              const profileData = await profileResponse.json();
-              console.log('✅ User profile created/updated:', profileData);
+              await profileResponse.json();
             }
           }
         } catch (err) {

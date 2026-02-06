@@ -48,13 +48,11 @@ export async function POST(request) {
     const signature = request.headers.get('stripe-signature');
 
     if (!rawBody) {
-      console.error('⚠️ Webhook Error: Empty body received');
+      console.error('stripe-webhook: empty body');
       return new Response('Empty body', { status: 400 });
     }
 
-    // Verify Stripe Signature
     const event = stripe.webhooks.constructEvent(rawBody, signature, endpointSecret);
-    console.log('✅ Signature verified. Event:', event.type);
 
     // Handle Checkout Completion
     if (event.type === 'checkout.session.completed') {
@@ -65,8 +63,6 @@ export async function POST(request) {
       const userId = session.metadata?.userId || null;
 
       if (isCreditPurchase && creditsQuantity > 0) {
-        // One-time credit purchase: add purchased amount to current balance
-        console.log(`[Stripe] Credit purchase: +${creditsQuantity} for ${email || userId}`);
 
         let currentCredits = 0;
         let updateBy = null; // 'user_id' | 'email'
@@ -103,7 +99,7 @@ export async function POST(request) {
             .update({ resume_credits: newCredits, updated_at: now })
             .eq('user_id', userId);
           if (error) {
-            console.error('❌ Supabase credit update (user_id) Error:', error.message);
+            console.error('stripe-webhook: credit update by user_id failed', error.message);
             throw error;
           }
         } else if (updateBy === 'email') {
@@ -112,14 +108,12 @@ export async function POST(request) {
             .update({ resume_credits: newCredits, updated_at: now })
             .eq('email', email);
           if (error) {
-            console.error('❌ Supabase credit update (email) Error:', error.message);
+            console.error('stripe-webhook: credit update by email failed', error.message);
             throw error;
           }
         } else {
-          console.warn('[Stripe] Credit purchase: no app_users row found for userId or email');
+          console.warn('stripe-webhook: credit purchase, no app_users row for userId or email');
         }
-
-        console.log(`✅ Credits updated: ${currentCredits} + ${creditsQuantity} = ${newCredits}`);
       } else {
         // Plan purchase (subscription or one-time plan): set plan and ADD plan credits to current balance
         const planId = session.metadata?.planId || 'free';
@@ -154,15 +148,13 @@ export async function POST(request) {
         const newCredits = currentCredits + creditsFromPlan;
         const now = new Date().toISOString();
 
-        console.log(`[Stripe] Plan purchase: ${planId} for ${email || userId}, credits ${currentCredits} + ${creditsFromPlan} = ${newCredits}`);
-
         if (updateBy === 'user_id') {
           const { error } = await supabaseAdmin
             .from('app_users')
             .update({ plan_id: planId, resume_credits: newCredits, updated_at: now })
             .eq('user_id', userId);
           if (error) {
-            console.error('❌ Supabase plan update (user_id) Error:', error.message);
+            console.error('stripe-webhook: plan update by user_id failed', error.message);
             throw error;
           }
         } else if (updateBy === 'email') {
@@ -171,21 +163,19 @@ export async function POST(request) {
             .update({ plan_id: planId, resume_credits: newCredits, updated_at: now })
             .eq('email', email);
           if (error) {
-            console.error('❌ Supabase plan update (email) Error:', error.message);
+            console.error('stripe-webhook: plan update by email failed', error.message);
             throw error;
           }
         } else {
-          console.warn('[Stripe] Plan purchase: no app_users row found for userId or email');
+          console.warn('stripe-webhook: plan purchase, no app_users row for userId or email');
         }
-
-        console.log(`✅ Plan updated for ${email || userId}`);
       }
     }
 
     return new Response(JSON.stringify({ received: true }), { status: 200 });
 
   } catch (err) {
-    console.error('⚠️ Webhook failed:', err.message);
+    console.error('stripe-webhook failed', err.message);
     return new Response(`Webhook Error: ${err.message}`, { status: 400 });
   }
 }

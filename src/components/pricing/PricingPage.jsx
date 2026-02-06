@@ -78,7 +78,7 @@ export default function PricingPage() {
 
     return baseTiers.map(({ key, plan, defaultCta, onCta, featured }) => {
       const tierLevel = PLAN_ORDER.indexOf(key);
-      const isCurrentPlan = (resolvedPlanId || 'free') === key;
+      const isCurrentPlan = (resolvedPlanId || 'free') === key && (key !== 'free' || hasUser);
       const isCheaper = isPayingUser && tierLevel < currentLevel;
       const isUpgrade = isPayingUser && tierLevel > currentLevel;
 
