@@ -2,312 +2,197 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { loadEnvFromLocal } from './utils/loadEnv.js';
 
-// Load env vars for local dev
 loadEnvFromLocal();
 
-// Helper to read raw request body (needed for Stripe signature verification)
-async function getRawBody(req) {
-  const chunks = [];
-  for await (const chunk of req) {
-    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
-  }
-  return Buffer.concat(chunks);
-}
+const STRIPE_API_VERSION = '2024-12-18.acacia';
 
-// Environment variables (server-side only)
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
-const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
-// Use SUPABASE_URL if set, otherwise fall back to VITE_SUPABASE_URL (server-side can access VITE_ vars)
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-
-// Initialize Stripe only if key is present
-const stripe = stripeSecretKey
-  ? new Stripe(stripeSecretKey, { apiVersion: '2024-12-18.acacia' })
-  : null;
-
-// Initialize Supabase admin client (service role)
-const supabaseAdmin =
-  supabaseUrl && supabaseServiceRoleKey
-    ? createClient(supabaseUrl, supabaseServiceRoleKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
-      })
-    : null;
-
-export default async function handler(req, res) {
-  // Stripe requires the raw body
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
-    return res.status(405).send('Method Not Allowed');
-  }
-
-  if (!stripe || !stripeWebhookSecret) {
-    console.error('Stripe webhook not configured');
-    return res
-      .status(500)
-      .json({ error: 'Stripe webhook not configured on the server' });
-  }
-
-  if (!supabaseAdmin) {
-    console.error('Supabase service role not configured');
-    return res.status(500).json({
-      error:
-        'Supabase service role not configured. Set SUPABASE_SERVICE_ROLE_KEY (and optionally SUPABASE_URL, or use existing VITE_SUPABASE_URL).',
-    });
-  }
-
-  let event;
-  try {
-    const rawBody = await getRawBody(req);
-    const signature = req.headers['stripe-signature'];
-    event = stripe.webhooks.constructEvent(
-      rawBody,
-      signature,
-      stripeWebhookSecret
-    );
-  } catch (err) {
-    console.error('⚠️  Webhook signature verification failed.', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  try {
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object;
-        const planId = session.metadata?.planId || 'unknown';
-        const status = planId === 'lifetime' ? 'lifetime' : 'active';
-        await upsertSubscriptionFromSession(session, status);
-        // Mark waitlist entry as converted if user was on waitlist
-        await markWaitlistAsConverted(session);
-        break;
-      }
-      case 'customer.subscription.updated': {
-        const subscription = event.data.object;
-        await upsertSubscriptionFromStripeSubscription(subscription);
-        break;
-      }
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object;
-        await upsertSubscriptionFromStripeSubscription(subscription, 'canceled');
-        break;
-      }
-      default:
-        // Ignore other events
-        break;
-    }
-
-    return res.status(200).json({ received: true });
-  } catch (err) {
-    console.error('Webhook handler error:', err);
-    return res.status(500).json({ error: 'Webhook handler failed' });
-  }
-}
-
-async function upsertSubscriptionFromSession(session, status = 'active') {
-  const email = session.customer_details?.email || session.customer_email;
-  const customerId = session.customer;
-  const planId = session.metadata?.planId || 'unknown';
-  const planName = session.metadata?.planName || 'unknown';
-  const isPreLaunchSpecial = session.metadata?.isPreLaunchSpecial === 'true';
-  const pricePaid = session.metadata?.pricePaid
-    ? parseInt(session.metadata.pricePaid, 10)
-    : null;
-  const userId = session.metadata?.userId || null;
-
-  if (!email && !customerId) {
-    throw new Error('Missing email and customerId in session');
-  }
-
-  const { error } = await supabaseAdmin.from('subscriptions').upsert(
-    {
-      email: email || null,
-      user_id: userId || null,
-      stripe_customer_id: customerId || null,
-      plan_id: planId,
-      plan_name: planName,
-      status,
-      is_prelaunch_special: isPreLaunchSpecial,
-      price_paid_cents: pricePaid,
-      current_period_end: session.expires_at
-        ? new Date(session.expires_at * 1000).toISOString()
-        : null,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'email' }
-  );
-
-  if (error) {
-    throw error;
-  }
-
-  // Also upsert lightweight user profile (non-auth) for status lookup by email
-  await upsertAppUserProfile({
-    userId,
-    email,
-    customerId,
-    planId,
-    planName,
-    status,
-  });
-}
-
-async function upsertSubscriptionFromStripeSubscription(
-  subscription,
-  overrideStatus
-) {
-  const customerId = subscription.customer;
-  const status = overrideStatus || subscription.status || 'active';
-  const currentPeriodEnd = subscription.current_period_end
-    ? new Date(subscription.current_period_end * 1000).toISOString()
-    : null;
-  const userId =
-    subscription.metadata?.userId ||
-    subscription.items?.data?.[0]?.price?.metadata?.userId ||
-    null;
-
-  // Fetch customer to get email
-  const customer =
-    customerId && stripe ? await stripe.customers.retrieve(customerId) : null;
-  const email = customer?.email || null;
-
-  const { error } = await supabaseAdmin.from('subscriptions').upsert(
-    {
-      email,
-      user_id: userId || null,
-      stripe_customer_id: customerId,
-      plan_id: subscription.items?.data?.[0]?.price?.id || 'unknown',
-      plan_name: subscription.items?.data?.[0]?.price?.nickname || 'unknown',
-      status,
-      is_prelaunch_special:
-        subscription.metadata?.isPreLaunchSpecial === 'true',
-      price_paid_cents: subscription.items?.data?.[0]?.price?.unit_amount || 0,
-      current_period_end: currentPeriodEnd,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'email' }
-  );
-
-  if (error) {
-    throw error;
-  }
-
-  await upsertAppUserProfile({
-    userId,
-    email,
-    customerId,
-    planId: subscription.items?.data?.[0]?.price?.id || 'unknown',
-    planName: subscription.items?.data?.[0]?.price?.nickname || 'unknown',
-    status,
-  });
-}
-
-// Mark waitlist entry as converted when user purchases a plan
-async function markWaitlistAsConverted(session) {
-  if (!supabaseAdmin) return;
-
-  try {
-    const userId = session.metadata?.userId || null;
-    const email = session.customer_email || session.customer_details?.email || null;
-
-    if (!userId && !email) {
-      return; // Can't identify user
-    }
-
-    // Update waitlist entry
-    const updateData = {
-      converted: true,
-      converted_at: new Date().toISOString(),
-    };
-
-    let query = supabaseAdmin.from('waitlist');
-
-    if (userId) {
-      // Try to update by user_id first
-      const { data: waitlistEntry } = await supabaseAdmin
-        .from('waitlist')
-        .select('id, converted')
-        .eq('user_id', userId)
-        .single();
-
-      if (waitlistEntry && !waitlistEntry.converted) {
-        await query.update(updateData).eq('id', waitlistEntry.id);
-        return;
-      }
-    }
-
-    // Fallback: update by email
-    if (email) {
-      const { data: waitlistEntry } = await supabaseAdmin
-        .from('waitlist')
-        .select('id, converted')
-        .eq('email', email.toLowerCase().trim())
-        .single();
-
-      if (waitlistEntry && !waitlistEntry.converted) {
-        await query.update(updateData).eq('id', waitlistEntry.id);
-      }
-    }
-  } catch (error) {
-    // Don't fail webhook if waitlist update fails
-    console.error('Error marking waitlist as converted:', error);
-  }
-}
-
-// Credit balance to set on purchase: basic=10, pro=50, lifetime=effectively unlimited (high number for display)
 const CREDITS_ON_PURCHASE = { basic: 10, pro: 50, lifetime: 999999 };
 
-async function upsertAppUserProfile({
-  userId,
-  email,
-  customerId,
-  planId,
-  planName,
-  status,
-}) {
-  const normalizedEmail = email ? String(email).toLowerCase().trim() : '';
-  if (!normalizedEmail && !userId) return;
+export async function POST(request) {
+  let rawBody;
   try {
-    const normalizedPlanId = (planId || 'unknown').toLowerCase();
-    const creditsToSet = CREDITS_ON_PURCHASE[normalizedPlanId];
-    const now = new Date().toISOString();
-    const planUpdate = {
-      plan_id: normalizedPlanId,
-      plan_name: planName || 'unknown',
-      plan_status: status || 'active',
-      updated_at: now,
-    };
-    if (creditsToSet != null) {
-      planUpdate.resume_credits = creditsToSet;
+    // Ensure local env is loaded even if cwd differs
+    loadEnvFromLocal();
+
+    const stripeSecretKey = (process.env.STRIPE_SECRET_KEY || '').trim();
+    const endpointSecret = (process.env.STRIPE_WEBHOOK_SECRET || '').trim();
+    const supabaseUrl =
+      (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim();
+    const supabaseServiceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+
+    if (!stripeSecretKey) {
+      console.error('[stripe-webhook] Missing STRIPE_SECRET_KEY');
+      return new Response('Webhook Error: STRIPE_SECRET_KEY is not set', { status: 500 });
+    }
+    if (!endpointSecret) {
+      console.error('[stripe-webhook] Missing STRIPE_WEBHOOK_SECRET');
+      return new Response('Webhook Error: STRIPE_WEBHOOK_SECRET is not set', { status: 500 });
+    }
+    if (!supabaseUrl) {
+      console.error('[stripe-webhook] Missing SUPABASE_URL (or VITE_SUPABASE_URL)');
+      return new Response('Webhook Error: SUPABASE_URL is not set', { status: 500 });
+    }
+    if (!supabaseServiceRoleKey) {
+      console.error('[stripe-webhook] Missing SUPABASE_SERVICE_ROLE_KEY');
+      return new Response('Webhook Error: SUPABASE_SERVICE_ROLE_KEY is not set', { status: 500 });
     }
 
-    // 1) Update by user_id so the row the credits API reads (by user_id) always gets new credits/plan
-    if (userId) {
-      const { error: updateByUserError } = await supabaseAdmin
-        .from('app_users')
-        .update(planUpdate)
-        .eq('user_id', userId);
-      if (updateByUserError) {
-        console.warn('app_users update by user_id warning:', updateByUserError.message);
+    // Lazily initialize clients AFTER env validation
+    const stripe = new Stripe(stripeSecretKey, { apiVersion: STRIPE_API_VERSION });
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    // Attempt to get raw text
+    rawBody = await request.text();
+    const signature = request.headers.get('stripe-signature');
+
+    if (!rawBody) {
+      console.error('⚠️ Webhook Error: Empty body received');
+      return new Response('Empty body', { status: 400 });
+    }
+
+    // Verify Stripe Signature
+    const event = stripe.webhooks.constructEvent(rawBody, signature, endpointSecret);
+    console.log('✅ Signature verified. Event:', event.type);
+
+    // Handle Checkout Completion
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      const email = (session.customer_details?.email || session.metadata?.email || '').toLowerCase().trim();
+      const isCreditPurchase = session.mode === 'payment' && session.metadata?.type === 'credits';
+      const creditsQuantity = parseInt(session.metadata?.creditsQuantity, 10) || 0;
+      const userId = session.metadata?.userId || null;
+
+      if (isCreditPurchase && creditsQuantity > 0) {
+        // One-time credit purchase: add purchased amount to current balance
+        console.log(`[Stripe] Credit purchase: +${creditsQuantity} for ${email || userId}`);
+
+        let currentCredits = 0;
+        let updateBy = null; // 'user_id' | 'email'
+
+        if (userId) {
+          const { data: byUser } = await supabaseAdmin
+            .from('app_users')
+            .select('resume_credits')
+            .eq('user_id', userId)
+            .maybeSingle();
+          if (byUser != null) {
+            currentCredits = byUser.resume_credits ?? 0;
+            updateBy = 'user_id';
+          }
+        }
+        if (updateBy === null && email) {
+          const { data: byEmail } = await supabaseAdmin
+            .from('app_users')
+            .select('resume_credits')
+            .eq('email', email)
+            .maybeSingle();
+          if (byEmail != null) {
+            currentCredits = byEmail.resume_credits ?? 0;
+            updateBy = 'email';
+          }
+        }
+
+        const newCredits = currentCredits + creditsQuantity;
+        const now = new Date().toISOString();
+
+        if (updateBy === 'user_id') {
+          const { error } = await supabaseAdmin
+            .from('app_users')
+            .update({ resume_credits: newCredits, updated_at: now })
+            .eq('user_id', userId);
+          if (error) {
+            console.error('❌ Supabase credit update (user_id) Error:', error.message);
+            throw error;
+          }
+        } else if (updateBy === 'email') {
+          const { error } = await supabaseAdmin
+            .from('app_users')
+            .update({ resume_credits: newCredits, updated_at: now })
+            .eq('email', email);
+          if (error) {
+            console.error('❌ Supabase credit update (email) Error:', error.message);
+            throw error;
+          }
+        } else {
+          console.warn('[Stripe] Credit purchase: no app_users row found for userId or email');
+        }
+
+        console.log(`✅ Credits updated: ${currentCredits} + ${creditsQuantity} = ${newCredits}`);
+      } else {
+        // Plan purchase (subscription or one-time plan): set plan and ADD plan credits to current balance
+        const planId = session.metadata?.planId || 'free';
+        const creditsFromPlan = CREDITS_ON_PURCHASE[planId] ?? 0;
+        const userId = session.metadata?.userId || null;
+
+        let currentCredits = 0;
+        let updateBy = null; // 'user_id' | 'email'
+        if (userId) {
+          const { data: byUser } = await supabaseAdmin
+            .from('app_users')
+            .select('resume_credits')
+            .eq('user_id', userId)
+            .maybeSingle();
+          if (byUser != null) {
+            currentCredits = byUser.resume_credits ?? 0;
+            updateBy = 'user_id';
+          }
+        }
+        if (updateBy === null && email) {
+          const { data: byEmail } = await supabaseAdmin
+            .from('app_users')
+            .select('resume_credits')
+            .eq('email', email)
+            .maybeSingle();
+          if (byEmail != null) {
+            currentCredits = byEmail.resume_credits ?? 0;
+            updateBy = 'email';
+          }
+        }
+
+        const newCredits = currentCredits + creditsFromPlan;
+        const now = new Date().toISOString();
+
+        console.log(`[Stripe] Plan purchase: ${planId} for ${email || userId}, credits ${currentCredits} + ${creditsFromPlan} = ${newCredits}`);
+
+        if (updateBy === 'user_id') {
+          const { error } = await supabaseAdmin
+            .from('app_users')
+            .update({ plan_id: planId, resume_credits: newCredits, updated_at: now })
+            .eq('user_id', userId);
+          if (error) {
+            console.error('❌ Supabase plan update (user_id) Error:', error.message);
+            throw error;
+          }
+        } else if (updateBy === 'email') {
+          const { error } = await supabaseAdmin
+            .from('app_users')
+            .update({ plan_id: planId, resume_credits: newCredits, updated_at: now })
+            .eq('email', email);
+          if (error) {
+            console.error('❌ Supabase plan update (email) Error:', error.message);
+            throw error;
+          }
+        } else {
+          console.warn('[Stripe] Plan purchase: no app_users row found for userId or email');
+        }
+
+        console.log(`✅ Plan updated for ${email || userId}`);
       }
     }
 
-    // 2) Upsert by email (normalized to match create-user-profile) so row exists and stays in sync
-    if (normalizedEmail) {
-      const row = {
-        email: normalizedEmail,
-        user_id: userId || null,
-        stripe_customer_id: customerId || null,
-        ...planUpdate,
-      };
-      const { error } = await supabaseAdmin
-        .from('app_users')
-        .upsert(row, { onConflict: 'email' });
-      if (error) {
-        console.warn('app_users upsert warning (table missing?):', error.message);
-      }
-    }
+    return new Response(JSON.stringify({ received: true }), { status: 200 });
+
   } catch (err) {
-    console.warn('app_users upsert exception (ignored):', err.message);
+    console.error('⚠️ Webhook failed:', err.message);
+    return new Response(`Webhook Error: ${err.message}`, { status: 400 });
   }
 }
 
+// Critical for Next.js/Vercel to prevent body parsing
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};

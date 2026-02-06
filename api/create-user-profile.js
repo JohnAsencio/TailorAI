@@ -85,7 +85,6 @@ export default async function handler(req, res) {
       email: email.toLowerCase().trim(),
       user_id: userId,
       plan_id: 'free',
-      plan_name: 'Free',
       plan_status: 'free',
     };
 
@@ -133,7 +132,6 @@ export default async function handler(req, res) {
           email: email.toLowerCase().trim(),
           user_id: userId,
           plan_id: 'free',
-          plan_name: 'Free',
           plan_status: 'free',
         };
         

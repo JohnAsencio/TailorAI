@@ -29,6 +29,7 @@ function getPlanConfig(planId) {
       mode: 'subscription',
     },
     lifetime: {
+      priceId: process.env.STRIPE_PRICE_LIFETIME || '',
       amount: 2299, // $22.99 in cents
       name: 'Lifetime Plan',
       description: 'Unlimited credits, one-time purchase',
@@ -79,24 +80,24 @@ export default async function handler(req, res) {
 
     const metadata = { planId, planName: plan.name, userId, email: email || '' };
 
-    // Lifetime: one-time payment $22.99
+    // Lifetime: one-time payment $22.99 (use Dashboard price if set)
     if (planId === 'lifetime') {
+      const lineItems = plan.priceId
+        ? [{ price: plan.priceId, quantity: 1 }]
+        : [
+            {
+              price_data: {
+                currency: 'usd',
+                product_data: { name: plan.name, description: plan.description },
+                unit_amount: plan.amount,
+              },
+              quantity: 1,
+            },
+          ];
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         mode: 'payment',
-        line_items: [
-          {
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: plan.name,
-                description: plan.description,
-              },
-              unit_amount: plan.amount,
-            },
-            quantity: 1,
-          },
-        ],
+        line_items: lineItems,
         customer_email: email || undefined,
         allow_promotion_codes: true,
         success_url: successUrl,

@@ -138,6 +138,16 @@ export default function TailorPage({ resumeState, user }) {
     };
   }, [user]);
 
+  // Refetch credits when subscription/credits updated (e.g. after purchase on another tab or return from Stripe)
+  useEffect(() => {
+    const handler = () => {
+      if (user?.id) {
+        fetchCreditStatus(user.id).then(setCreditStatus);
+      }
+    };
+    window.addEventListener('credits-updated', handler);
+    return () => window.removeEventListener('credits-updated', handler);
+  }, [user?.id]);
 
   // Function to clear error messages after a delay
   const clearMessages = () => {

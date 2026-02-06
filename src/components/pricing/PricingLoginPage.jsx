@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuthFromContext } from '../../contexts/AuthContext';
 import { supabase } from '../../supabaseClient';
 import './PricingLoginPage.css';
 
 export default function PricingLoginPage() {
-  const { user } = useAuth();
+  const { user } = useAuthFromContext();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState('');

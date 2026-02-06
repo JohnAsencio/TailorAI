@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../hooks/useAuth';
+import { useState, useEffect, useMemo } from 'react';
+import { useAuthFromContext } from '../../contexts/AuthContext';
+import { useCreditStatusFromContext } from '../../contexts/CreditStatusContext';
+import { notifyCreditsUpdated } from '../../hooks/useCreditStatus';
 import { createCheckoutSession } from '../../services/paymentService';
 import { notifySubscriptionUpdated } from '../../hooks/useSubscription';
 import { PLANS, formatPrice, CREDIT_COSTS } from '../../config/pricing';
@@ -7,8 +9,11 @@ import WaitlistForm from '../landing/WaitlistForm';
 import Footer from '../common/Footer';
 import './PricingPage.css';
 
+const PLAN_ORDER = ['free', 'basic', 'pro', 'lifetime'];
+
 export default function PricingPage() {
-  const { user } = useAuth();
+  const { user } = useAuthFromContext();
+  const { planId: currentPlanId, loading: creditStatusLoading } = useCreditStatusFromContext();
   const [loading, setLoading] = useState(null);
   const [message, setMessage] = useState(null);
   const [showWaitlist, setShowWaitlist] = useState(false);
@@ -19,6 +24,7 @@ export default function PricingPage() {
     if (params.get('success') === 'true') {
       setMessage({ type: 'success', text: 'Payment successful! Your account has been upgraded.' });
       notifySubscriptionUpdated();
+      notifyCreditsUpdated();
       window.history.replaceState({}, '', '/pricing');
     } else if (params.get('canceled') === 'true') {
       setMessage({ type: 'info', text: 'Payment was canceled. You can try again anytime.' });
@@ -55,12 +61,54 @@ export default function PricingPage() {
     else window.location.href = '/tailor';
   };
 
-  const tiers = [
-    { key: 'free', plan: PLANS.free, cta: 'Get Started Free', onCta: handleFreeStart, featured: false },
-    { key: 'basic', plan: PLANS.basic, cta: 'Get Basic', onCta: () => handlePayment('basic'), featured: false },
-    { key: 'pro', plan: PLANS.pro, cta: 'Get Pro', onCta: () => handlePayment('pro'), featured: true },
-    { key: 'lifetime', plan: PLANS.lifetime, cta: 'Get Lifetime Access', onCta: () => handlePayment('lifetime'), featured: false },
+  const baseTiers = [
+    { key: 'free', plan: PLANS.free, defaultCta: 'Get Started Free', onCta: handleFreeStart, featured: false },
+    { key: 'basic', plan: PLANS.basic, defaultCta: 'Get Basic', onCta: () => handlePayment('basic'), featured: false },
+    { key: 'pro', plan: PLANS.pro, defaultCta: 'Get Pro', onCta: () => handlePayment('pro'), featured: true },
+    { key: 'lifetime', plan: PLANS.lifetime, defaultCta: 'Get Lifetime Access', onCta: () => handlePayment('lifetime'), featured: false },
   ];
+
+  const tiers = useMemo(() => {
+    // Current plan comes from CreditStatusContext (single source of truth; see App.jsx CreditStatusProvider). Header and Pricing both read it—no per-page refetch. Only show Current plan/Switch/Upgrade once we have user and loading finished.
+    const hasUser = !!user?.id;
+    const resolvedPlanId =
+      !hasUser || creditStatusLoading ? undefined : (currentPlanId || 'free');
+    const currentLevel = PLAN_ORDER.indexOf(resolvedPlanId || 'free');
+    const isPayingUser = resolvedPlanId && resolvedPlanId !== 'free';
+
+    return baseTiers.map(({ key, plan, defaultCta, onCta, featured }) => {
+      const tierLevel = PLAN_ORDER.indexOf(key);
+      const isCurrentPlan = (resolvedPlanId || 'free') === key;
+      const isCheaper = isPayingUser && tierLevel < currentLevel;
+      const isUpgrade = isPayingUser && tierLevel > currentLevel;
+
+      let cta = defaultCta;
+      let buttonClass = key === 'free' ? 'pricing-button-free' : key === 'lifetime' ? 'pricing-button-lifetime' : 'pricing-button-primary';
+      let onCtaClick = onCta;
+      let isDisabled = key !== 'free' && loading === key;
+
+      if (isCurrentPlan) {
+        cta = 'Current plan';
+        buttonClass = 'pricing-button-current';
+        if (key !== 'free') {
+          onCtaClick = () => {};
+          isDisabled = true;
+        }
+      } else if (isCheaper) {
+        cta = 'Switch';
+        buttonClass = 'pricing-button-switch';
+        onCtaClick = () => handlePayment(key);
+        isDisabled = loading === key;
+      } else if (isUpgrade) {
+        cta = 'Upgrade';
+        buttonClass = 'pricing-button-upgrade';
+        onCtaClick = () => handlePayment(key);
+        isDisabled = loading === key;
+      }
+
+      return { key, plan, cta, onCta: onCtaClick, featured, buttonClass, isDisabled };
+    });
+  }, [currentPlanId, creditStatusLoading, loading, user?.id]);
 
   return (
     <div className="pricing-page">
@@ -78,7 +126,7 @@ export default function PricingPage() {
         </div>
 
         <div className="pricing-grid-four">
-          {tiers.map(({ key, plan, cta, onCta, featured }) => (
+          {tiers.map(({ key, plan, cta, onCta, featured, buttonClass, isDisabled }) => (
             <div
               key={key}
               className={`pricing-card ${featured ? 'pricing-card-featured' : ''} ${key === 'lifetime' ? 'pricing-card-lifetime' : ''}`}
@@ -137,11 +185,11 @@ export default function PricingPage() {
                   )}
                 </ul>
                 <button
-                  className={`pricing-button ${key === 'free' ? 'pricing-button-free' : key === 'lifetime' ? 'pricing-button-lifetime' : 'pricing-button-primary'}`}
+                  className={`pricing-button ${buttonClass}`}
                   onClick={onCta}
-                  disabled={key !== 'free' && loading === key}
+                  disabled={isDisabled}
                 >
-                  {key !== 'free' && loading === key ? 'Loading...' : cta}
+                  {loading === key ? 'Loading...' : cta}
                 </button>
               </div>
             </div>

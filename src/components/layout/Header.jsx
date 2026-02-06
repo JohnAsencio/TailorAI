@@ -2,12 +2,19 @@ import { Link, useLocation } from 'react-router-dom';
 import Navigation from './Navigation';
 import ProfileButton from './ProfileButton';
 import ProductsDropdown from './ProductsDropdown';
-import { useSubscription } from '../../hooks/useSubscription';
+import { useCreditStatusFromContext } from '../../contexts/CreditStatusContext';
 import './Header.css';
+
+function planDisplayName(planId) {
+  if (planId === 'lifetime') return 'Lifetime';
+  if (planId === 'pro') return 'Pro';
+  if (planId === 'basic') return 'Basic';
+  return 'Free';
+}
 
 export default function Header({ user }) {
   const location = useLocation();
-  const { hasSubscription, subscription } = useSubscription(user?.id ?? null);
+  const { planId, resumeCredits, unlimited, loading } = useCreditStatusFromContext();
 
   return (
     <header className="app-header animate-fade-in">
@@ -39,9 +46,9 @@ export default function Header({ user }) {
         <div className="app-header-right">
           {user && user.id ? (
             <>
-              {hasSubscription && (
-                <span className="header-plan-badge" title={subscription?.plan_name}>
-                  {subscription?.plan_id === 'lifetime' ? 'Lifetime' : subscription?.plan_id === 'pro' ? 'Pro' : subscription?.plan_id === 'basic' ? 'Basic' : subscription?.plan_name || 'Pro'}
+              {!loading && (
+                <span className="header-plan-badge" title={unlimited ? 'Unlimited credits' : `${resumeCredits} credits`}>
+                  {planDisplayName(planId)}{unlimited ? '' : ` · ${resumeCredits}`}
                 </span>
               )}
               <Navigation />
