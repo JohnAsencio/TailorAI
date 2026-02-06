@@ -115,8 +115,8 @@ export default async function handler(req, res) {
           'STRIPE_SECRET_KEY and the price must be from the same Stripe account (Dashboard → Developers → API keys).',
           'With sk_test_..., the price must be created in Test mode (Dashboard toggle ON, then Product catalog).',
           'In the product’s price list, the price must be active (not archived).',
-          'Copy the Price ID again: open the Credits product → click the price (e.g. $1.00 one-time) → copy the ID that starts with price_.',
-          'Run GET /api/verify-stripe-price to confirm the price exists with your current key.',
+          'Copy the Price ID: open the Credits product → click the price (e.g. $1.00 one-time) → copy the ID that starts with price_.',
+          'Confirm the price exists in the same Stripe account and mode as STRIPE_SECRET_KEY.',
         ],
       });
     }
