@@ -253,8 +253,9 @@ async function markWaitlistAsConverted(session) {
   }
 }
 
-// Optional helper: upsert into a simple app_users table for quick lookup.
-// If the table does not exist, we log a warning but do not fail the webhook.
+// Credit balance to set on purchase: basic=10, pro=50, lifetime=effectively unlimited (high number for display)
+const CREDITS_ON_PURCHASE = { basic: 10, pro: 50, lifetime: 999999 };
+
 async function upsertAppUserProfile({
   userId,
   email,
@@ -263,24 +264,47 @@ async function upsertAppUserProfile({
   planName,
   status,
 }) {
-  if (!email) return;
+  const normalizedEmail = email ? String(email).toLowerCase().trim() : '';
+  if (!normalizedEmail && !userId) return;
   try {
-    const { error } = await supabaseAdmin
-      .from('app_users')
-      .upsert(
-        {
-          email,
-          user_id: userId || null,
-          stripe_customer_id: customerId || null,
-          plan_id: planId || 'unknown',
-          plan_name: planName || 'unknown',
-          plan_status: status || 'active',
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'email' }
-      );
-    if (error) {
-      console.warn('app_users upsert warning (table missing?):', error.message);
+    const normalizedPlanId = (planId || 'unknown').toLowerCase();
+    const creditsToSet = CREDITS_ON_PURCHASE[normalizedPlanId];
+    const now = new Date().toISOString();
+    const planUpdate = {
+      plan_id: normalizedPlanId,
+      plan_name: planName || 'unknown',
+      plan_status: status || 'active',
+      updated_at: now,
+    };
+    if (creditsToSet != null) {
+      planUpdate.resume_credits = creditsToSet;
+    }
+
+    // 1) Update by user_id so the row the credits API reads (by user_id) always gets new credits/plan
+    if (userId) {
+      const { error: updateByUserError } = await supabaseAdmin
+        .from('app_users')
+        .update(planUpdate)
+        .eq('user_id', userId);
+      if (updateByUserError) {
+        console.warn('app_users update by user_id warning:', updateByUserError.message);
+      }
+    }
+
+    // 2) Upsert by email (normalized to match create-user-profile) so row exists and stays in sync
+    if (normalizedEmail) {
+      const row = {
+        email: normalizedEmail,
+        user_id: userId || null,
+        stripe_customer_id: customerId || null,
+        ...planUpdate,
+      };
+      const { error } = await supabaseAdmin
+        .from('app_users')
+        .upsert(row, { onConflict: 'email' });
+      if (error) {
+        console.warn('app_users upsert warning (table missing?):', error.message);
+      }
     }
   } catch (err) {
     console.warn('app_users upsert exception (ignored):', err.message);

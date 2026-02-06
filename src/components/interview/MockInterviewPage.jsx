@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { sendInterviewMessage } from '../../services/mockInterviewService';
 import { getSavedResumeById } from '../../services/savedResumeService';
+import { fetchCreditStatus } from '../../services/creditService';
 import { synthesizeSpeech, playAudio } from '../../services/ttsService';
 import InterviewSettingsModal from './InterviewSettingsModal';
 import InterviewerAvatar from './InterviewerAvatar';
@@ -69,6 +70,8 @@ export default function MockInterviewPage({ user }) {
   const messagesRef = useRef([]);
   const interviewEndsAtRef = useRef(null);
   const interviewTimerIntervalRef = useRef(null);
+  const [upgradeRequired, setUpgradeRequired] = useState(false);
+  const [planCheckDone, setPlanCheckDone] = useState(false);
 
   const normalizeSpokenTextForTurnDetection = (text) => {
     const s = String(text || '').toLowerCase();
@@ -176,9 +179,28 @@ export default function MockInterviewPage({ user }) {
     }
   }, [isSpeaking, isListening]);
   
+  // Block free users from mock interview
+  useEffect(() => {
+    if (!user?.id) {
+      setPlanCheckDone(true);
+      return;
+    }
+    let cancelled = false;
+    fetchCreditStatus(user.id).then((status) => {
+      if (!cancelled) {
+        setUpgradeRequired(status.planId === 'free');
+        setPlanCheckDone(true);
+      }
+    }).catch(() => {
+      if (!cancelled) setPlanCheckDone(true);
+    });
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
   // Check if resume ID was passed from navigation
   useEffect(() => {
     componentActiveRef.current = true;
+    if (!planCheckDone || upgradeRequired) return;
     const resumeIdFromState = location.state?.resumeId;
     if (resumeIdFromState && user?.id) {
       loadResume(resumeIdFromState);
@@ -1454,6 +1476,33 @@ export default function MockInterviewPage({ user }) {
     // Navigate back to interview home
     navigate('/mockinterview', { replace: true });
   };
+
+  if (!planCheckDone && user?.id) {
+    return (
+      <section className="mock-interview-page">
+        <div className="simple-section-card" style={{ textAlign: 'center', padding: '3rem' }}>
+          <p>Loading...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (planCheckDone && upgradeRequired) {
+    return (
+      <section className="mock-interview-page">
+        <div className="empty-mock-state mock-upgrade-required" style={{ margin: '2rem auto', maxWidth: '500px' }}>
+          <div className="empty-mock-icon">
+            <span className="material-icons">mic</span>
+          </div>
+          <h3 className="empty-mock-title">Mock interviews require a paid plan</h3>
+          <p className="empty-mock-text">
+            Buy credits or upgrade to Basic plan for mock interviews.
+          </p>
+          <a href="/pricing" className="mock-upgrade-link">View plans</a>
+        </div>
+      </section>
+    );
+  }
 
   if (showSettings) {
     return (

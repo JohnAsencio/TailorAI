@@ -85,13 +85,13 @@ export default async function handler(req, res) {
       email: email.toLowerCase().trim(),
       user_id: userId,
       plan_id: 'free',
-      plan_name: 'beta_tester',
+      plan_name: 'Free',
       plan_status: 'free',
     };
 
-    // Only set resume_credits for new users (beta testers get 3 free resume tailors)
+    // Only set resume_credits for new users (free tier gets 2 credits to try features)
     if (isNewUser) {
-      userData.resume_credits = 3;
+      userData.resume_credits = 2;
     }
     // For existing users, we don't include resume_credits so it preserves the existing value
 
@@ -133,13 +133,13 @@ export default async function handler(req, res) {
           email: email.toLowerCase().trim(),
           user_id: userId,
           plan_id: 'free',
-          plan_name: 'beta_tester',
+          plan_name: 'Free',
           plan_status: 'free',
         };
         
         // Only set resume_credits for new users
         if (isNewUser) {
-          retryUserData.resume_credits = 3;
+          retryUserData.resume_credits = 2;
         }
         
         const { data: retryData, error: retryError } = await supabaseAdmin

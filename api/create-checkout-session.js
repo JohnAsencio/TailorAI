@@ -1,10 +1,8 @@
 import Stripe from 'stripe';
 import { loadEnvFromLocal } from './utils/loadEnv.js';
 
-// Ensure environment variables are loaded for local development
 loadEnvFromLocal();
 
-// Initialize Stripe only if key is available
 let stripe = null;
 if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.trim() !== '') {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -12,77 +10,39 @@ if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.trim() !== ''
   });
 }
 
-// Import pricing configuration
-// Note: We can't use ES6 imports in serverless functions, so we'll inline the logic
-function isPreLaunchSpecialActive(planId) {
-  const now = new Date();
-  const specials = {
-    unlimited: {
-      expiresAt: new Date('2025-12-31T23:59:59Z'),
-    },
-    lifetime: {
-      expiresAt: new Date('2025-12-31T23:59:59Z'),
-    },
-  };
-  
-  const special = specials[planId];
-  if (!special) return false;
-  return now < special.expiresAt;
-}
-
-// Plan configurations
+// Plan config: Basic $2.99/mo, Pro $12.99/mo, Lifetime $22.99 one-time
+// Use STRIPE_PRICE_BASIC / STRIPE_PRICE_PRO if set; otherwise create dynamic pricing
 function getPlanConfig(planId) {
-  const isSpecial = isPreLaunchSpecialActive(planId);
-  
   const plans = {
-    unlimited: {
-      priceId: process.env.STRIPE_PRICE_UNLIMITED || '',
-      specialAmount: 299, // $2.99 in cents
-      regularAmount: 1599, // $15.99 in cents
-      specialName: 'Unlimited Plan (Pre-Launch Special)',
-      regularName: 'Unlimited Plan',
+    basic: {
+      priceId: process.env.STRIPE_PRICE_BASIC || '',
+      amount: 299, // $2.99 in cents
+      name: 'Basic Plan',
+      description: '10 credits/month (1 resume = 1 credit, 1 mock interview = 5 credits)',
+      mode: 'subscription',
     },
     pro: {
       priceId: process.env.STRIPE_PRICE_PRO || '',
       amount: 1299, // $12.99 in cents
       name: 'Pro Plan',
+      description: '50 credits/month — best for active applicants',
+      mode: 'subscription',
     },
     lifetime: {
-      specialAmount: 2299, // $22.99 in cents
-      regularAmount: 4999, // $49.99 in cents
-      specialName: 'Lifetime Plan (Pre-Launch Special)',
-      regularName: 'Lifetime Plan',
+      amount: 2299, // $22.99 in cents
+      name: 'Lifetime Plan',
+      description: 'Unlimited credits, one-time purchase',
+      mode: 'payment',
     },
   };
-  
-  const plan = plans[planId];
-  if (!plan) return null;
-  
-  // Return plan config with current pricing
-  if (planId === 'unlimited' || planId === 'lifetime') {
-    return {
-      ...plan,
-      amount: isSpecial ? plan.specialAmount : plan.regularAmount,
-      name: isSpecial ? plan.specialName : plan.regularName,
-      isSpecial,
-    };
-  }
-  
-  return plan;
+  return plans[planId] || null;
 }
 
 export default async function handler(req, res) {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  // Handle preflight
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -103,116 +63,23 @@ export default async function handler(req, res) {
 
     const plan = getPlanConfig(planId);
     if (!plan) {
-      return res.status(400).json({ error: 'Invalid plan ID' });
+      return res.status(400).json({ error: 'Invalid plan ID. Use basic, pro, or lifetime.' });
     }
 
-    // Debug logging (remove in production if needed)
-    console.log('Stripe key check:', {
-      hasKey: !!process.env.STRIPE_SECRET_KEY,
-      keyLength: process.env.STRIPE_SECRET_KEY?.length || 0,
-      keyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 7) || 'missing',
-    });
-
     if (!process.env.STRIPE_SECRET_KEY || !stripe) {
-      console.error('STRIPE_SECRET_KEY is not configured');
       return res.status(500).json({
         error: 'Server configuration error',
-        message: 'Stripe API key is not configured. Please set STRIPE_SECRET_KEY in your environment variables and redeploy.',
-        debug: {
-          hasKey: !!process.env.STRIPE_SECRET_KEY,
-          keyLength: process.env.STRIPE_SECRET_KEY?.length || 0,
-        },
+        message: 'Stripe API key is not configured. Set STRIPE_SECRET_KEY in your environment.',
       });
     }
 
-    // For subscription plans (unlimited, pro)
-    if (planId === 'unlimited' || planId === 'pro') {
-      // For unlimited plan, use dynamic pricing (supports pre-launch special)
-      if (planId === 'unlimited') {
-        const session = await stripe.checkout.sessions.create({
-          payment_method_types: ['card'],
-          mode: 'subscription',
-          line_items: [
-            {
-              price_data: {
-                currency: 'usd',
-                product_data: {
-                  name: plan.name,
-                  description: 'Unlimited tailored resumes, ATS checks, and all premium features',
-                },
-                recurring: {
-                  interval: 'month',
-                },
-                unit_amount: plan.amount,
-              },
-              quantity: 1,
-            },
-          ],
-          customer_email: email || undefined,
-          allow_promotion_codes: true,
-          success_url: `${req.headers.origin || process.env.VERCEL_URL || 'http://localhost:5173'}/pricing?success=true&session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: `${req.headers.origin || process.env.VERCEL_URL || 'http://localhost:5173'}/pricing?canceled=true`,
-          metadata: {
-            planId,
-            planName: plan.name,
-            userId,
-            email,
-            isPreLaunchSpecial: plan.isSpecial ? 'true' : 'false',
-            pricePaid: plan.amount.toString(),
-          },
-          subscription_data: {
-            metadata: {
-              planId,
-              planName: plan.name,
-              userId,
-              email,
-              isPreLaunchSpecial: plan.isSpecial ? 'true' : 'false',
-              pricePaid: plan.amount.toString(),
-            },
-          },
-        });
+    const baseUrl = req.headers.origin || process.env.VERCEL_URL || 'http://localhost:5173';
+    const successUrl = `${baseUrl}/pricing?success=true&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${baseUrl}/pricing?canceled=true`;
 
-        return res.status(200).json({
-          sessionId: session.id,
-          url: session.url,
-        });
-      }
+    const metadata = { planId, planName: plan.name, userId, email: email || '' };
 
-      // For Pro plan, use Stripe Price ID if configured
-      if (plan.priceId) {
-        const session = await stripe.checkout.sessions.create({
-          payment_method_types: ['card'],
-          mode: 'subscription',
-          line_items: [
-            {
-              price: plan.priceId,
-              quantity: 1,
-            },
-          ],
-          customer_email: email || undefined,
-          allow_promotion_codes: true,
-          success_url: `${req.headers.origin || process.env.VERCEL_URL || 'http://localhost:5173'}/pricing?success=true&session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: `${req.headers.origin || process.env.VERCEL_URL || 'http://localhost:5173'}/pricing?canceled=true`,
-          metadata: {
-            planId,
-            planName: plan.name,
-            userId,
-            email,
-          },
-        });
-
-        return res.status(200).json({
-          sessionId: session.id,
-          url: session.url,
-        });
-      } else {
-        return res.status(500).json({
-          error: 'Price ID not configured for this plan',
-        });
-      }
-    }
-
-    // For one-time payment (lifetime), create a payment intent
+    // Lifetime: one-time payment $22.99
     if (planId === 'lifetime') {
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
@@ -223,7 +90,7 @@ export default async function handler(req, res) {
               currency: 'usd',
               product_data: {
                 name: plan.name,
-                description: 'Lifetime access to Tailor AI with 500 credits included',
+                description: plan.description,
               },
               unit_amount: plan.amount,
             },
@@ -232,25 +99,52 @@ export default async function handler(req, res) {
         ],
         customer_email: email || undefined,
         allow_promotion_codes: true,
-        success_url: `${req.headers.origin || process.env.VERCEL_URL || 'http://localhost:5173'}/pricing?success=true&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${req.headers.origin || process.env.VERCEL_URL || 'http://localhost:5173'}/pricing?canceled=true`,
-        metadata: {
-          planId,
-          planName: plan.name,
-          userId,
-          email,
-          isPreLaunchSpecial: plan.isSpecial ? 'true' : 'false',
-          pricePaid: plan.amount.toString(),
-        },
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        metadata: { ...metadata, pricePaid: plan.amount.toString() },
       });
-
-      return res.status(200).json({
-        sessionId: session.id,
-        url: session.url,
-      });
+      return res.status(200).json({ sessionId: session.id, url: session.url });
     }
 
-    return res.status(400).json({ error: 'Invalid plan ID' });
+    // Basic or Pro: subscription
+    if (plan.priceId) {
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        mode: 'subscription',
+        line_items: [{ price: plan.priceId, quantity: 1 }],
+        customer_email: email || undefined,
+        allow_promotion_codes: true,
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        metadata,
+        subscription_data: { metadata },
+      });
+      return res.status(200).json({ sessionId: session.id, url: session.url });
+    }
+
+    // Dynamic pricing when Price ID not set
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'subscription',
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: { name: plan.name, description: plan.description },
+            recurring: { interval: 'month' },
+            unit_amount: plan.amount,
+          },
+          quantity: 1,
+        },
+      ],
+      customer_email: email || undefined,
+      allow_promotion_codes: true,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata,
+      subscription_data: { metadata },
+    });
+    return res.status(200).json({ sessionId: session.id, url: session.url });
   } catch (error) {
     console.error('Stripe checkout error:', error);
     return res.status(500).json({
@@ -259,4 +153,3 @@ export default async function handler(req, res) {
     });
   }
 }
-

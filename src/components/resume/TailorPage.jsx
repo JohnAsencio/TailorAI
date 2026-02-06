@@ -434,12 +434,11 @@ export default function TailorPage({ resumeState, user }) {
     if (result.success) {
       setSaveMessage('✓ Resume saved successfully!');
       setTimeout(() => setSaveMessage(''), 3000);
-      // Clear the fields after successful save
       setCompanyName('');
       setJobTitle('');
     } else {
-      setSaveMessage('Failed to save resume');
-      setTimeout(() => setSaveMessage(''), 3000);
+      setSaveMessage(result.error || 'Failed to save resume');
+      setTimeout(() => setSaveMessage(''), 5000);
     }
 
     setSaving(false);
@@ -818,7 +817,7 @@ export default function TailorPage({ resumeState, user }) {
             </div>
           )}
 
-          {/* Save Resume Button - Centered below resume and summary */}
+          {/* Save Resume Button - Free plan: show upgrade CTA; paid: save (with limit enforced by API) */}
           {output && user && (
             <div className="save-resume-section">
               {saveMessage && (
@@ -826,26 +825,33 @@ export default function TailorPage({ resumeState, user }) {
                   {saveMessage}
                 </div>
               )}
-              <button
-                onClick={handleSaveResume}
-                className={`save-resume-button ${saving ? 'loading' : ''}`}
-                disabled={saving || !output}
-              >
-                {saving ? (
-                  <span className="flex-center-gap">
-                    <svg className="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Saving...
-                  </span>
-                ) : (
-                  <>
-                    <span className="material-icons">save</span>
-                    Save Resume
-                  </>
-                )}
-              </button>
+              {!isBypass && creditStatus.planId === 'free' ? (
+                <div className="save-resume-upgrade-cta">
+                  <p className="save-resume-upgrade-text">Upgrade to Basic or higher to save resumes.</p>
+                  <a href="/pricing" className="save-resume-upgrade-link">View plans</a>
+                </div>
+              ) : (
+                <button
+                  onClick={handleSaveResume}
+                  className={`save-resume-button ${saving ? 'loading' : ''}`}
+                  disabled={saving || !output}
+                >
+                  {saving ? (
+                    <span className="flex-center-gap">
+                      <svg className="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Saving...
+                    </span>
+                  ) : (
+                    <>
+                      <span className="material-icons">save</span>
+                      Save Resume
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           )}
         </section>

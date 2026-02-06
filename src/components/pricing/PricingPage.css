@@ -2,14 +2,15 @@
 .pricing-page {
   width: 100%;
   max-width: 100%;
-  padding: 2rem 1rem;
+  padding: 2rem 0.5rem;
   box-sizing: border-box;
 }
 
 .pricing-container {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
   width: 100%;
+  padding: 0 0.75rem;
   box-sizing: border-box;
 }
 
@@ -36,53 +37,93 @@
   transition: color 0.3s ease;
 }
 
-/* Monthly Pricing Grid */
-.pricing-grid-monthly {
+/* Four-tier pricing grid – equal-width columns, same line */
+.pricing-grid-four {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
   margin-bottom: 3rem;
 }
 
-@media (max-width: 968px) {
-  .pricing-grid-monthly {
+@media (max-width: 1024px) {
+  .pricing-grid-four {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .pricing-grid-four {
     grid-template-columns: 1fr;
-    max-width: 500px;
+    max-width: 400px;
     margin-left: auto;
     margin-right: auto;
   }
 }
 
-/* Lifetime Section */
-.pricing-lifetime-section {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
-  margin-bottom: 4rem;
-  max-width: 1000px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-@media (max-width: 968px) {
-  .pricing-lifetime-section {
-    grid-template-columns: 1fr;
-    max-width: 500px;
-  }
-}
-
 .pricing-card-lifetime {
-  max-width: 100%;
-  width: 100%;
   box-sizing: border-box;
 }
 
-/* Pricing Cards */
-.pricing-card {
+.pricing-card-credits {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--header-title-color);
+  margin: 1.25rem 0 0.25rem;
+  transition: color 0.3s ease;
+}
+
+.pricing-card-desc {
+  font-size: 0.85rem;
+  color: var(--header-subtitle-color);
+  margin: 0 0 1rem;
+  line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+/* How credits work section */
+.pricing-credits-info {
+  max-width: 700px;
+  margin: 0 auto 3rem;
+  padding: 1.5rem 2rem;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 1rem;
-  padding: 2rem;
+  text-align: center;
+}
+
+.pricing-credits-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--header-title-color);
+  margin: 0 0 1rem;
+  transition: color 0.3s ease;
+}
+
+.pricing-credits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--header-subtitle-color);
+}
+
+.pricing-credits-list li {
+  margin-bottom: 0.5rem;
+}
+
+.pricing-credits-list strong {
+  color: var(--header-title-color);
+  font-weight: 600;
+}
+
+/* Pricing Cards – same width, don’t overflow grid cell */
+.pricing-card {
+  min-width: 0;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -114,6 +155,17 @@
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
   white-space: nowrap;
   z-index: 10;
+}
+
+.pricing-launch-label {
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--header-subtitle-color);
+  opacity: 0.7;
+  z-index: 5;
 }
 
 .pricing-card-header {

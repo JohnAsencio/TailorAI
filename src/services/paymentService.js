@@ -4,7 +4,7 @@
 
 /**
  * Create a Stripe checkout session for a subscription or one-time payment
- * @param {string} planId - The plan identifier ('unlimited', 'pro', 'lifetime')
+ * @param {string} planId - The plan identifier ('basic', 'pro', 'lifetime')
  * @param {string} userId - Supabase user id (required for authenticated checkout)
  * @param {string} email - User's email address
  * @returns {Promise<{success: boolean, sessionId?: string, url?: string, error?: string}>}

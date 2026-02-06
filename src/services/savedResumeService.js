@@ -27,9 +27,11 @@ export async function saveTailoredResume(userId, tailoredResumeText, jobDescript
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      const message = errorData.message || errorData.error || `HTTP error! status: ${response.status}`;
       return {
         success: false,
-        error: errorData.error || `HTTP error! status: ${response.status}`
+        error: message,
+        errorCode: errorData.error,
       };
     }
 

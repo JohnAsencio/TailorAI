@@ -60,11 +60,12 @@ export async function fetchCreditStatus(userId) {
 }
 
 /**
- * Consume a resume credit
+ * Consume credits (1 for resume, 5 for interview)
  * @param {string} userId - User's Supabase ID
+ * @param {'resume'|'interview'} creditType - resume = 1 credit, interview = 5 credits
  * @returns {Promise<{success: boolean, remainingCredits: number, error?: string}>}
  */
-export async function consumeResumeCredit(userId) {
+export async function consumeCredits(userId, creditType = 'resume') {
   if (!supabase || !userId) {
     return { success: false, remainingCredits: 0, error: 'Not authenticated' };
   }
@@ -72,29 +73,25 @@ export async function consumeResumeCredit(userId) {
   try {
     const response = await fetch('/api/credits', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'consume',
         userId,
-        creditType: 'resume',
+        creditType,
       }),
     });
 
     const data = await response.json();
-
     if (!response.ok) {
       return {
         success: false,
-        remainingCredits: 0,
+        remainingCredits: data.remainingCredits ?? 0,
         error: data.error || 'Failed to consume credit',
       };
     }
-
     return {
       success: true,
-      remainingCredits: data.remainingCredits || 0,
+      remainingCredits: data.remainingCredits ?? 0,
     };
   } catch (err) {
     console.error('Error consuming credit:', err);
@@ -104,5 +101,15 @@ export async function consumeResumeCredit(userId) {
       error: 'Network error. Please try again.',
     };
   }
+}
+
+/** Consume 1 credit for a tailored resume */
+export async function consumeResumeCredit(userId) {
+  return consumeCredits(userId, 'resume');
+}
+
+/** Consume 5 credits for a mock interview */
+export async function consumeInterviewCredit(userId) {
+  return consumeCredits(userId, 'interview');
 }
 

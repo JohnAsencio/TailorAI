@@ -41,7 +41,7 @@ export default function Header({ user }) {
             <>
               {hasSubscription && (
                 <span className="header-plan-badge" title={subscription?.plan_name}>
-                  {subscription?.plan_id === 'lifetime' ? 'Lifetime' : subscription?.plan_id === 'pro' ? 'Pro' : 'Unlimited'}
+                  {subscription?.plan_id === 'lifetime' ? 'Lifetime' : subscription?.plan_id === 'pro' ? 'Pro' : subscription?.plan_id === 'basic' ? 'Basic' : subscription?.plan_name || 'Pro'}
                 </span>
               )}
               <Navigation />

@@ -1,6 +1,8 @@
 /**
- * API endpoint for credits: get status or consume a credit.
+ * API endpoint for credits: get status or consume credits.
  * POST body: { action: 'get' | 'consume', userId, creditType? }
+ * creditType: 'resume' (1 credit) | 'interview' (5 credits)
+ * Plans: free (2 credits), basic (10), pro (50), lifetime (unlimited)
  */
 
 import { loadEnvFromLocal } from './utils/loadEnv.js';
@@ -18,10 +20,17 @@ const supabaseAdmin =
       })
     : null;
 
+const CREDIT_COST = { resume: 1, interview: 5 };
+const FREE_PLAN_CREDITS = 2;
+
 function setCors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+}
+
+function isUnlimited(planId, planStatus) {
+  return planId === 'lifetime' || planStatus === 'lifetime';
 }
 
 export default async function handler(req, res) {
@@ -59,11 +68,12 @@ export default async function handler(req, res) {
 
   try {
     if (action === 'consume') {
-      if (!creditType) {
+      if (!creditType || !['resume', 'interview'].includes(creditType)) {
         setCors(res);
-        return res.status(400).json({ error: 'creditType is required for consume' });
+        return res.status(400).json({ error: 'creditType must be "resume" (1 credit) or "interview" (5 credits)' });
       }
 
+      const cost = CREDIT_COST[creditType];
       const { data: userData, error: fetchError } = await supabaseAdmin
         .from('app_users')
         .select('plan_id, plan_status, resume_credits')
@@ -77,30 +87,30 @@ export default async function handler(req, res) {
 
       const planId = userData.plan_id || 'free';
       const planStatus = userData.plan_status || 'free';
-      const unlimited = ['unlimited', 'pro'].includes(planId) || planStatus === 'lifetime';
 
-      if (unlimited) {
+      if (isUnlimited(planId, planStatus)) {
         setCors(res);
         return res.status(200).json({
           success: true,
-          remainingCredits: userData.resume_credits || 0,
+          remainingCredits: userData.resume_credits ?? 0,
           unlimited: true,
         });
       }
 
       const currentCredits = userData.resume_credits ?? 0;
-      if (currentCredits <= 0) {
+      if (currentCredits < cost) {
         setCors(res);
         return res.status(403).json({
-          error: 'Insufficient credits',
-          remainingCredits: 0,
+          error: `Insufficient credits (need ${cost} for ${creditType})`,
+          remainingCredits: currentCredits,
         });
       }
 
+      const newCredits = currentCredits - cost;
       const { data: updatedData, error: updateError } = await supabaseAdmin
         .from('app_users')
         .update({
-          resume_credits: currentCredits - 1,
+          resume_credits: newCredits,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', userId)
@@ -116,11 +126,11 @@ export default async function handler(req, res) {
       setCors(res);
       return res.status(200).json({
         success: true,
-        remainingCredits: updatedData.resume_credits || 0,
+        remainingCredits: updatedData.resume_credits ?? 0,
       });
     }
 
-    // action === 'get' (default)
+    // action === 'get'
     const { data, error } = await supabaseAdmin
       .from('app_users')
       .select('plan_id, plan_status, resume_credits')
@@ -128,13 +138,12 @@ export default async function handler(req, res) {
       .single();
 
     if (error) {
-      console.error('Error fetching credits:', error);
-      if (error.code === 'PGRST301' || error.message?.includes('No rows')) {
+      if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
         setCors(res);
         return res.status(200).json({
           planId: 'free',
           planStatus: 'free',
-          resumeCredits: 0,
+          resumeCredits: FREE_PLAN_CREDITS,
           unlimited: false,
         });
       }
@@ -147,8 +156,12 @@ export default async function handler(req, res) {
 
     const planId = data?.plan_id || 'free';
     const planStatus = data?.plan_status || 'free';
-    const resumeCredits = data?.resume_credits ?? 0;
-    const unlimited = ['unlimited', 'pro'].includes(planId) || planStatus === 'lifetime';
+    const unlimited = isUnlimited(planId, planStatus);
+    let resumeCredits = data?.resume_credits;
+    if (resumeCredits == null && planId === 'free') {
+      resumeCredits = FREE_PLAN_CREDITS;
+    }
+    resumeCredits = resumeCredits ?? 0;
 
     setCors(res);
     return res.status(200).json({

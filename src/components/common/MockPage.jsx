@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getSavedResumes } from '../../services/savedResumeService';
+import { fetchCreditStatus } from '../../services/creditService';
 import { getCachedResume } from '../../utils/resumeCache';
 import LoadingSpinner from './LoadingSpinner';
 import './MockPage.css';
@@ -10,23 +11,32 @@ export default function MockPage({ user }) {
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [planId, setPlanId] = useState('free');
 
   useEffect(() => {
-    loadResumes();
+    loadPlanAndResumes();
   }, [user]);
 
-  const loadResumes = async () => {
+  const loadPlanAndResumes = async () => {
     if (!user?.id) {
       setLoading(false);
       return;
     }
-    
+
     setLoading(true);
     setError('');
-    
+
     try {
+      const status = await fetchCreditStatus(user.id);
+      setPlanId(status.planId || 'free');
+
+      if (status.planId === 'free') {
+        setResumes([]);
+        setLoading(false);
+        return;
+      }
+
       const result = await getSavedResumes(user.id);
-      
       if (result.success) {
         setResumes(result.data || []);
       } else {
@@ -34,8 +44,8 @@ export default function MockPage({ user }) {
         setResumes([]);
       }
     } catch (err) {
-      console.error('Error loading resumes:', err);
-      setError('Failed to load resumes');
+      console.error('Error loading:', err);
+      setError('Failed to load');
       setResumes([]);
     } finally {
       setLoading(false);
@@ -93,14 +103,25 @@ export default function MockPage({ user }) {
           </div>
         )}
 
-        {resumes.length === 0 ? (
+        {planId === 'free' ? (
+          <div className="empty-mock-state mock-upgrade-required">
+            <div className="empty-mock-icon">
+              <span className="material-icons">mic</span>
+            </div>
+            <h3 className="empty-mock-title">Mock interviews require a paid plan</h3>
+            <p className="empty-mock-text">
+              Buy credits or upgrade to Basic plan for mock interviews.
+            </p>
+            <a href="/pricing" className="mock-upgrade-link">View plans</a>
+          </div>
+        ) : resumes.length === 0 ? (
           <div className="empty-mock-state">
             <div className="empty-mock-icon">
               <span className="material-icons">mic</span>
             </div>
             <h3 className="empty-mock-title">No saved resumes yet</h3>
             <p className="empty-mock-text">
-              Tailor a resume first to start practicing mock interviews. 
+              Tailor a resume first to start practicing mock interviews.
               Once you save a tailored resume, it will appear here.
             </p>
           </div>
