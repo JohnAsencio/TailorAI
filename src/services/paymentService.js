@@ -11,7 +11,7 @@
  */
 export async function createCheckoutSession(planId, userId, email) {
   try {
-    const response = await fetch('/api/create-checkout-session', {
+    const response = await fetch('/api/checkout', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -75,7 +75,7 @@ export async function createCheckoutSession(planId, userId, email) {
  */
 export async function createCreditsCheckoutSession(creditsQuantity, userId, email) {
   try {
-    const response = await fetch('/api/create-credits-checkout-session', {
+    const response = await fetch('/api/checkout', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
