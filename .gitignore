@@ -28,5 +28,6 @@ dist-ssr
 .env
 .env*.local
 .env.local  # Explicitly ignore local env file with secrets
+STRIPE_SETUP.md
 
 .vercel
