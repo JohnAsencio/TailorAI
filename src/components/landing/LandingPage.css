@@ -1,9 +1,9 @@
-/* Landing Page Styles */
+/* Landing Page Styles - Sleek layout inspired by modern SaaS */
 .landing-page {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 1rem 2rem;
+  padding: 2rem 2.5rem 4rem;
   box-sizing: border-box;
   overflow-x: hidden;
 }
@@ -12,10 +12,10 @@
 .landing-hero {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4rem;
+  gap: 5rem;
   align-items: center;
-  padding: 1.5rem 0;
-  min-height: auto;
+  padding: 3rem 0 5rem;
+  min-height: 60vh;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -24,7 +24,7 @@
 .hero-content {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.75rem;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -55,11 +55,13 @@
 }
 
 .hero-title {
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  font-weight: 800;
-  line-height: 1.1;
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  font-size: clamp(2.5rem, 5vw, 3.75rem);
+  font-weight: 600;
+  line-height: 1.15;
   color: var(--header-title-color);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .gradient-text {
@@ -291,13 +293,14 @@
 
 /* AI Mock Interviews Section */
 .landing-mock-interviews {
-  padding: 4rem 0;
-  margin: 3rem 0 1rem 0;
+  padding: 5rem 0;
+  margin: 4rem 0 2rem;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  background-color: rgba(74, 111, 165, 0.04);
-  border-radius: 2rem;
+  background-color: rgba(74, 111, 165, 0.03);
+  border-radius: 1rem;
+  border: 1px solid rgba(74, 111, 165, 0.06);
 }
 
 .mock-interviews-container {
@@ -336,11 +339,13 @@
 }
 
 .mock-interviews-title {
-  font-size: clamp(2rem, 4vw, 3.5rem);
-  font-weight: 800;
-  line-height: 1.1;
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 600;
+  line-height: 1.2;
   color: var(--header-title-color);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .mock-interviews-description {
@@ -419,27 +424,40 @@
   margin-bottom: 3rem;
 }
 
+/* Bento-style feature grid */
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto auto;
+  gap: 1.25rem;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 .feature-card {
   background: var(--card-bg);
-  padding: 2rem;
-  border-radius: 1rem;
+  padding: 1.75rem;
+  border-radius: 0.75rem;
   border: 1px solid var(--card-border);
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
+}
+
+/* Bento: first card spans 2 cols, last card spans full width */
+.feature-card:nth-child(1) {
+  grid-column: span 2;
+  padding: 2rem;
+}
+
+.feature-card:nth-child(6) {
+  grid-column: span 3;
 }
 
 .feature-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  border-color: var(--header-title-color);
+  border-color: rgba(74, 111, 165, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
 .feature-icon {
@@ -461,7 +479,6 @@
   margin: 0;
 }
 
-/* Pre-Purchase Section */
 /* Exclusive Offers Section */
 .landing-exclusive-offers {
   padding: 5rem 2rem;
@@ -469,9 +486,9 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  background-color: rgba(74, 111, 165, 0.04);
-  border-radius: 2rem;
-  border: 1px solid rgba(74, 111, 165, 0.15);
+  background-color: rgba(74, 111, 165, 0.03);
+  border-radius: 1rem;
+  border: 1px solid rgba(74, 111, 165, 0.08);
 }
 
 .exclusive-offers-container {
@@ -487,11 +504,12 @@
 }
 
 .exclusive-offers-title {
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 800;
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  font-weight: 600;
   color: var(--header-title-color);
   margin-bottom: 1rem;
-  transition: color 0.3s ease;
+  letter-spacing: -0.02em;
 }
 
 .exclusive-offers-subtitle {
@@ -512,18 +530,17 @@
 
 .exclusive-offer-card {
   background: var(--card-bg);
-  border: 2px solid var(--card-border);
-  border-radius: 1.5rem;
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
   padding: 2rem;
   position: relative;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .exclusive-offer-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
-  border-color: var(--header-title-color);
+  border-color: rgba(74, 111, 165, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .offer-badge {
@@ -676,21 +693,23 @@
 }
 
 .cta-container {
-  max-width: 800px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 4rem 2rem;
-  background-color: rgba(74, 111, 165, 0.05);
-  border-radius: 2rem;
-  border: 1px solid rgba(74, 111, 165, 0.15);
+  padding: 4rem 3rem;
+  background-color: rgba(74, 111, 165, 0.04);
+  border-radius: 1rem;
+  border: 1px solid rgba(74, 111, 165, 0.1);
   width: 100%;
   box-sizing: border-box;
 }
 
 .cta-title {
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 700;
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-weight: 600;
   color: var(--header-title-color);
   margin-bottom: 1rem;
+  letter-spacing: -0.02em;
 }
 
 .cta-subtitle {
@@ -738,6 +757,17 @@
 
   .features-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .feature-card:nth-child(1),
+  .feature-card:nth-child(6) {
+    grid-column: span 1;
+  }
+
+  .feature-card:nth-child(1),
+  .feature-card:nth-child(6) {
+    grid-column: span 1;
   }
 
   .exclusive-offers-grid {
