@@ -98,7 +98,7 @@ export default function LandingPage() {
       </section>
 
       {/* AI Mock Interviews Highlight Section */}
-      <section className="landing-mock-interviews">
+      <section className="landing-mock-interviews" id="how-it-works">
         <div className="mock-interviews-container">
           <div className="mock-interviews-content">
             <div className="mock-interviews-badge">

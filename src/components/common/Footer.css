@@ -88,8 +88,7 @@
 .footer-contact-button:hover {
   background: var(--header-title-color);
   color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.2);
+  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.15);
 }
 
 .footer-contact-icon {

@@ -46,7 +46,9 @@ OPENAI_API_KEY=your-openai-api-key
 RESEND_API_KEY=your-resend-api-key
 STRIPE_SECRET_KEY=your-stripe-secret-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+SUPABASE_URL=your-supabase-url
 STRIPE_WEBHOOK_SECRET=your-stripe-webhook-secret
+STRIPE_PRICE_PRO=price_xxx  # Optional: Stripe Price ID for Pro plan (otherwise Pro uses waitlist)
 GOOGLE_TTS_API_KEY=your-google-cloud-tts-api-key  # Optional: for high-quality TTS voices
 ```
 
@@ -81,12 +83,12 @@ This project is configured for Vercel deployment:
 
 1. Push your code to GitHub
 2. Connect your repository to Vercel
-3. Set environment variables in Vercel Dashboard:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-   - `OPENAI_API_KEY`
-   - `GOOGLE_TTS_API_KEY` (optional, for high-quality TTS)
-4. Deploy!
+3. Set environment variables in Vercel Dashboard (see list above). For Stripe payments you need at least `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY`.
+4. **Stripe webhook (for payments):** In [Stripe Dashboard → Developers → Webhooks](https://dashboard.stripe.com/webhooks), add an endpoint:
+   - **URL:** `https://your-production-domain.com/api/stripe-webhook`
+   - **Events:** `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+   - Copy the signing secret into `STRIPE_WEBHOOK_SECRET`.
+5. Deploy!
 
 ## 🛠️ Tech Stack
 

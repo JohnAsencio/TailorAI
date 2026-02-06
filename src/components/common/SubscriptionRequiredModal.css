@@ -95,8 +95,8 @@
 }
 
 .subscription-modal-button-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.5);
+  filter: brightness(0.96);
+  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.2);
 }
 
 .subscription-modal-button-secondary {

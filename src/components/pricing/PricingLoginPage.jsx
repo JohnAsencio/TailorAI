@@ -26,15 +26,18 @@ export default function PricingLoginPage() {
     }
   }, [location]);
 
-  // If user is already logged in and has a plan, redirect to checkout
+  // If user is already logged in: with plan → checkout; without plan → tailor
   useEffect(() => {
-    if (user && planId && !redirecting) {
-      // User is logged in, proceed to checkout immediately
+    if (!user || redirecting) return;
+    if (planId) {
       setRedirecting(true);
       setRedirectMessage('Redirecting to secure checkout...');
       handleCheckoutRedirect();
+    } else {
+      // Logged in with no plan — go to tailor resume page
+      navigate('/tailor', { replace: true });
     }
-  }, [user, planId]);
+  }, [user, planId, redirecting, navigate]);
 
   const handleCheckoutRedirect = async () => {
     if (!user || !planId) return;

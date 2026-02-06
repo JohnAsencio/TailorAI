@@ -140,10 +140,9 @@ body.dark .google-button:hover {
 }
 
 .auth-input:focus {
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-  box-shadow: 0 0 0 2px var(--job-desc-textarea-focus-ring);
-  border-color: transparent;
+  outline: none;
+  border-color: var(--job-desc-textarea-focus-ring);
+  box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.12);
 }
 
 .auth-buttons {

@@ -19,8 +19,9 @@
 }
 
 .pricing-title {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 800;
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 600;
   color: var(--header-title-color);
   margin-bottom: 1rem;
   transition: color 0.3s ease;
@@ -90,8 +91,7 @@
 }
 
 .pricing-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   border-color: var(--header-title-color);
 }
 
@@ -294,8 +294,7 @@
 .pricing-button-free:hover {
   background: var(--header-title-color);
   color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.3);
+  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.2);
 }
 
 .pricing-button-primary {
@@ -305,8 +304,8 @@
 }
 
 .pricing-button-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 111, 165, 0.25);
+  filter: brightness(0.96);
+  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.2);
 }
 
 .pricing-button-lifetime {
@@ -316,8 +315,8 @@
 }
 
 .pricing-button-lifetime:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.5);
+  filter: brightness(0.96);
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);
 }
 
 .pricing-button:disabled {
@@ -593,8 +592,8 @@
 }
 
 .beta-tester-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 111, 165, 0.25);
+  filter: brightness(0.96);
+  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.2);
 }
 
 @media (max-width: 640px) {

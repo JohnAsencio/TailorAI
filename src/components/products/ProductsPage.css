@@ -294,8 +294,7 @@
 }
 
 .product-feature-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   border-color: var(--header-title-color);
 }
 
@@ -404,8 +403,8 @@
 }
 
 .product-cta-button.primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 111, 165, 0.25);
+  filter: brightness(0.96);
+  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.2);
 }
 
 .product-cta-button.primary:disabled {
@@ -422,8 +421,7 @@
 .product-cta-button.secondary:hover {
   background: var(--header-title-color);
   color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.3);
+  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.15);
 }
 
 /* Product Benefits Section */

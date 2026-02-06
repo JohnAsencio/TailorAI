@@ -63,47 +63,35 @@ export function useAuth() {
       setUser(session?.user ?? null);
       setAuthLoading(false);
 
-      // When a user signs in (including Google OAuth), ensure they have a profile
-      // This will send welcome email if they're a new user
-      if (event === 'SIGNED_IN' && session?.user) {
+      // When a user signs in (including Google OAuth) or session is restored from URL (INITIAL_SESSION), ensure they have a profile
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
         try {
-          // Verify the user actually exists in auth before creating profile
-          // This prevents creating profiles for deleted users
+          // Optionally verify user exists before creating profile (don't clear session on failure—OAuth callback can race)
           const { data: authUser, error: authError } = await supabase.auth.getUser();
-          
           if (authError || !authUser?.user) {
-            console.warn('User session invalid, not creating profile');
-            setUser(null);
-            clearAuthStorage();
-            // Force sign out if user doesn't exist
-            try {
-              await supabase.auth.signOut({ scope: 'global' });
-            } catch (signOutErr) {
-              // Even if signOut fails, clear storage
-              clearAuthStorage();
-            }
-            return;
-          }
-
-          // Check if user profile exists, if not create it (which sends welcome email)
-          console.log('📞 Calling create-user-profile API for:', session.user.email);
-          const profileResponse = await fetch('/api/create-user-profile', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: session.user.id,
-              email: session.user.email,
-            }),
-          });
-
-          if (!profileResponse.ok) {
-            const errorText = await profileResponse.text();
-            console.warn('⚠️ Failed to ensure user profile exists:', profileResponse.status, errorText);
+            console.warn('User session validation skipped (may be OAuth callback race); keeping session from event');
+            // Do not clear user—we have a valid session from the event; clearing caused login to appear broken
           } else {
-            const profileData = await profileResponse.json();
-            console.log('✅ User profile created/updated:', profileData);
+            // Check if user profile exists, if not create it (which sends welcome email)
+            console.log('📞 Calling create-user-profile API for:', session.user.email);
+            const profileResponse = await fetch('/api/create-user-profile', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: session.user.id,
+                email: session.user.email,
+              }),
+            });
+
+            if (!profileResponse.ok) {
+              const errorText = await profileResponse.text();
+              console.warn('⚠️ Failed to ensure user profile exists:', profileResponse.status, errorText);
+            } else {
+              const profileData = await profileResponse.json();
+              console.log('✅ User profile created/updated:', profileData);
+            }
           }
         } catch (err) {
           console.error('Error ensuring user profile:', err);
@@ -111,25 +99,22 @@ export function useAuth() {
         }
       }
 
-      // On any auth state change, validate the session
-      if (session?.user) {
-        // Check if user still exists by trying to get user info
+      // Don't validate right after sign-in or when session is restored from URL (OAuth callback)
+      // INITIAL_SESSION fires when page loads with tokens in URL; validating here could clear the user
+      if (session?.user && event !== 'SIGNED_IN' && event !== 'INITIAL_SESSION') {
         try {
           const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
           if (userError || !currentUser) {
-            // User was deleted, force sign out
             console.warn('User no longer exists, signing out');
             setUser(null);
             clearAuthStorage();
             try {
               await supabase.auth.signOut({ scope: 'global' });
             } catch (signOutErr) {
-              // Even if signOut fails, clear storage
               clearAuthStorage();
             }
           }
         } catch (err) {
-          // If getUser fails, user might be deleted
           if (err?.message?.includes('JWT') || err?.status === 401) {
             setUser(null);
             clearAuthStorage();

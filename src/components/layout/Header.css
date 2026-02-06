@@ -7,12 +7,14 @@
   backdrop-filter: blur(8px);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   border-radius: 1rem;
-  padding: 2rem 1.5rem;
+  /* Slightly more right padding so profile isn't tight to border */
+  padding: 0.75rem 1.6rem 0.75rem 0.75rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
+  /* stretch so header content isn't centered as a block */
+  align-items: stretch;
   width: 100%;
+  box-sizing: border-box;
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
@@ -21,7 +23,7 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-width: 80rem;
+  max-width: 100%;
   gap: 1rem;
 }
 
@@ -49,22 +51,40 @@
   color: inherit;
 }
 
+.app-header-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.app-header-logo {
+  /* Keep header short: logo is visually scaled without affecting layout */
+  width: 56px;
+  padding-right: 50px;
+  height: 56px;
+  object-fit: contain;
+  flex: 0 0 auto;
+  transform: scale(1.85);
+  transform-origin: left center;
+  will-change: transform;
+  display: block;
+}
+
 .app-header-title {
-  font-size: 2.25rem;
-  line-height: 2.5rem;
-  font-weight: 800;
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  font-size: 1.75rem;
+  line-height: 1;
+  font-weight: 600;
   color: var(--header-title-color);
   text-align: center;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  letter-spacing: -0.025em;
-  transition: color 0.3s ease;
+  letter-spacing: -0.01em;
+  transition: color 0.35s ease;
   margin: 0;
 }
 
 @media (min-width: 768px) {
   .app-header-title {
-    font-size: 2.5rem;
-    line-height: 1;
+    font-size: 2rem;
   }
 }
 
@@ -87,7 +107,7 @@
 /* Mobile Styles */
 @media (max-width: 640px) {
   .app-header {
-    padding: 1rem 1rem;
+    padding: 0.6rem 1rem;
     width: 100%;
     box-sizing: border-box;
   }
@@ -103,8 +123,14 @@
   }
 
   .app-header-title {
-    font-size: 1.75rem;
-    line-height: 1.2;
+    font-size: 1.5rem;
+  }
+
+  .app-header-logo {
+    width: 44px;
+    height: 44px;
+    transform: scale(1.85);
+    transform-origin: left center;
   }
 
   .landing-nav {
@@ -193,5 +219,15 @@
   .landing-nav-link {
     font-size: 0.85rem;
   }
+}
+
+.header-plan-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  background: var(--header-bg);
+  color: var(--header-title-color);
+  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
 }
 

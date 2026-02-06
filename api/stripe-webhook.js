@@ -74,7 +74,9 @@ export default async function handler(req, res) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
-        await upsertSubscriptionFromSession(session, 'active');
+        const planId = session.metadata?.planId || 'unknown';
+        const status = planId === 'lifetime' ? 'lifetime' : 'active';
+        await upsertSubscriptionFromSession(session, status);
         // Mark waitlist entry as converted if user was on waitlist
         await markWaitlistAsConverted(session);
         break;

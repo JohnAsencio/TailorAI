@@ -1,8 +1,8 @@
 /* Simple section card for placeholder pages */
 .simple-section-card {
   background-color: var(--card-bg);
-  border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   border: 1px solid var(--card-border);
   padding: 2rem;
   max-width: 50rem;
@@ -51,7 +51,9 @@
 }
 
 .mock-page-title {
-  font-size: 2.5rem;
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  font-size: 2.25rem;
+  font-weight: 600;
   margin: 0;
   color: var(--header-title-color);
   transition: color 0.3s ease;
@@ -98,8 +100,7 @@
 }
 
 .mock-resume-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .mock-resume-card-header {
@@ -158,8 +159,7 @@
 }
 
 .start-interview-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  filter: brightness(0.96);
 }
 
 .empty-mock-state {

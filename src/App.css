@@ -2,16 +2,16 @@
 
 /* Define CSS Variables for Colors - Academic / iPad note-taking style */
 :root {
-  /* Light mode - clean white, muted blue accent */
-  --bg-primary: #f8f9fa;
-  --bg-secondary: #f1f3f5;
-  --header-bg: rgba(255, 255, 255, 0.95);
-  --header-border: #e5e7eb;
+  /* Light mode - paper-like warmth, muted blue accent */
+  --bg-primary: #faf9f7;
+  --bg-secondary: #f5f4f1;
+  --header-bg: rgba(255, 255, 255, 0.97);
+  --header-border: #e8e6e3;
   --header-title-color: #4a6fa5;
   --header-subtitle-color: #6b7b8c;
 
   --card-bg: #ffffff;
-  --card-border: #e5e7eb;
+  --card-border: #e8e6e3;
 
   --upload-area-border: #d1d5db;
   --upload-area-drag-bg: #f3f4f6;
@@ -101,9 +101,10 @@ body.dark {
   background-color: var(--bg-primary);
   display: flex;
   flex-direction: column;
-  padding: 2rem;
+  /* Bring header closer to top without changing layout */
+  padding: 1rem 2rem 2rem;
   align-items: center;
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   transition: background 0.5s ease-in-out; /* Smooth transition for background */
   width: 100%;
   max-width: 100%;
@@ -113,13 +114,13 @@ body.dark {
 
 @media (max-width: 640px) {
   .app-container {
-    padding: 1rem;
+    padding: 0.75rem 1rem 1rem;
   }
 }
 
 @media (max-width: 480px) {
   .app-container {
-    padding: 0.75rem;
+    padding: 0.6rem 0.75rem 0.75rem;
   }
 }
 
@@ -150,10 +151,9 @@ body.dark {
 }
 
 .theme-toggle-button:hover {
-  background-color: var(--card-bg); /* Slightly different background on hover */
+  background-color: var(--card-bg);
   color: var(--theme-toggle-button-hover-color);
-  transform: translateY(-2px); /* Subtle lift effect */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* More pronounced shadow on hover */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 .theme-toggle-button:focus,
@@ -163,156 +163,7 @@ body.dark {
 }
 
 
-/* Header */
-.app-header {
-  position: relative;
-  top: 0;
-  z-index: 10;
-  background-color: var(--header-bg);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  border-radius: 1rem;
-  padding: 2rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  transition: background-color 0.3s ease, border-color 0.3s ease; /* Smooth header transitions */
-}
-
-.app-header-inner {
-  width: 100%;
-  max-width: 80rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-}
-
-.app-header-title-group {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.app-nav-tabs {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.nav-tab {
-  padding: 0.4rem 0.85rem;
-  border-radius: 9999px;
-  border: 1px solid transparent;
-  background-color: transparent;
-  color: var(--header-subtitle-color);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-}
-
-.nav-tab:hover {
-  background-color: rgba(74, 111, 165, 0.08);
-  border-color: rgba(74, 111, 165, 0.3);
-}
-
-.nav-tab.active {
-  background-color: var(--accent);
-  color: #ffffff;
-  border-color: transparent;
-  box-shadow: 0 1px 3px rgba(74, 111, 165, 0.2);
-}
-
-.app-header-profile {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.profile-icon-button {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid var(--header-border);
-  background-color: var(--card-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--header-title-color);
-  transition: all 0.2s ease;
-  padding: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.profile-icon-button:hover {
-  background-color: rgba(74, 111, 165, 0.1);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
-
-.profile-icon-button .material-icons {
-  font-size: 1.5rem;
-}
-
-/* Specific H1 style for the app title - overrides global h1 */
-.app-header-title {
-  font-size: 2.25rem;
-  line-height: 2.5rem;
-  font-weight: 800;
-  color: var(--header-title-color);
-  text-align: center;
-}
-
-.header-signin-button {
-  padding: 0.625rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--header-title-color);
-  background: transparent;
-  border: 2px solid var(--header-title-color);
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-block;
-}
-
-.header-signin-button:hover {
-  background: var(--header-title-color);
-  color: white;
-  transform: translateY(-2px);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  letter-spacing: -0.025em;
-  transition: color 0.3s ease; /* Smooth color transition */
-}
-@media (min-width: 768px) {
-  .app-header-title {
-    font-size: 2.5rem;
-    line-height: 1;
-  }
-}
-
-.app-header-subtitle {
-  color: var(--header-subtitle-color);
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  font-weight: 500;
-  margin-top: 0.4rem;
-  transition: color 0.3s ease; /* Smooth color transition */
-}
-@media (min-width: 768px) {
-  .app-header-subtitle {
-    font-size: 1rem;
-    line-height: 1.5rem;
-  }
-}
-
+/* Header styles live in `src/components/layout/Header.css` */
 /* Main Content Area */
 .main-content-area {
   flex: 1;
@@ -352,15 +203,15 @@ body.dark {
 /* Section Card (Left and Right Panels) */
 .section-card {
   background-color: var(--card-bg);
-  border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   border: 1px solid var(--card-border);
-  padding: 2rem;
+  padding: 2.25rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;
   min-height: 500px;
-  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transitions */
+  transition: background-color 0.35s ease, border-color 0.35s ease;
 }
 /* Specific gap for right panel */
 .section-card.right-panel {
@@ -413,10 +264,10 @@ body.dark {
   cursor: pointer;
 }
 .upload-button:hover {
-  transform: scale(1.05);
+  filter: brightness(0.96);
 }
 .upload-button:active {
-  transform: scale(0.95);
+  filter: brightness(0.92);
 }
 
 /* Uploaded File Name Display */
@@ -468,20 +319,20 @@ body.dark {
   width: 92%;
   border-radius: 0.5rem;
   border: 1px solid var(--job-desc-textarea-border);
-  padding: 1rem;
+  padding: 1rem 1.125rem;
   min-height: 120px;
   font-size: 1rem;
-  color: var(--job-desc-textarea-color); /* Use CSS variable */
-  background-color: var(--card-bg); /* Ensure background changes too */
+  line-height: 1.6;
+  color: var(--job-desc-textarea-color);
+  background-color: var(--card-bg);
   resize: vertical;
-  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
-  transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease; /* Smooth transitions */
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: color 0.35s ease, background-color 0.35s ease, border-color 0.35s ease;
 }
 .job-desc-textarea:focus {
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-  box-shadow: 0 0 0 2px var(--job-desc-textarea-focus-ring);
-  border-color: transparent;
+  outline: none;
+  border-color: var(--job-desc-textarea-focus-ring);
+  box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.12);
 }
 .job-desc-textarea::placeholder {
   color: var(--job-desc-textarea-placeholder);
@@ -626,10 +477,9 @@ body.dark {
 }
 
 .additional-context-textarea:focus {
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-  box-shadow: 0 0 0 2px var(--job-desc-textarea-focus-ring);
-  border-color: transparent;
+  outline: none;
+  border-color: var(--job-desc-textarea-focus-ring);
+  box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.12);
 }
 
 .additional-context-textarea::placeholder {
@@ -685,10 +535,9 @@ body.dark {
 }
 
 .save-info-input:focus {
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-  box-shadow: 0 0 0 2px var(--job-desc-textarea-focus-ring);
-  border-color: transparent;
+  outline: none;
+  border-color: var(--job-desc-textarea-focus-ring);
+  box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.12);
 }
 
 .save-info-input::placeholder {
@@ -774,10 +623,10 @@ body.dark {
 }
 .tailor-button:hover {
   background-color: var(--accent-hover);
-  transform: scale(1.05);
+  filter: brightness(0.98);
 }
 .tailor-button:active {
-  transform: scale(0.95);
+  filter: brightness(0.95);
 }
 .tailor-button.loading {
   opacity: 0.6;
@@ -869,7 +718,7 @@ body.dark {
 
 .ats-check-button.ats-check-original:hover:not(:disabled) {
   background-color: var(--accent-hover);
-  transform: scale(1.05);
+  filter: brightness(0.98);
 }
 
 .ats-check-button.ats-check-tailored {
@@ -878,11 +727,11 @@ body.dark {
 
 .ats-check-button.ats-check-tailored:hover:not(:disabled) {
   background-color: #047857;
-  transform: scale(1.05);
+  filter: brightness(0.98);
 }
 
 .ats-check-button:active:not(:disabled) {
-  transform: scale(0.95);
+  filter: brightness(0.95);
 }
 
 .ats-check-button.loading {
@@ -937,7 +786,7 @@ body.dark {
   height: auto !important;
   border: 1px solid var(--pdf-page-border); /* Use CSS variable */
   border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   transition: border-color 0.3s ease; /* Smooth transition */
 }
 
@@ -953,8 +802,8 @@ body.dark {
   align-items: center;
   margin-top: 1rem;
   padding: 0.5rem 1rem;
-  background-color: var(--pdf-navigation-bg); /* Use CSS variable */
-  border-radius: 9999px;
+  background-color: var(--pdf-navigation-bg);
+  border-radius: 0.5rem;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   transition: background-color 0.3s ease; /* Smooth transition */
 }
@@ -1062,7 +911,7 @@ body.dark {
 
 .download-pdf-button:hover {
   background-color: var(--accent-hover);
-  transform: scale(1.05);
+  filter: brightness(0.98);
 }
 
 .download-pdf-button:disabled {
@@ -1075,10 +924,11 @@ body.dark {
 }
 
 .right-panel-title {
-  color: var(--header-title-color); /* Use CSS variable for consistency */
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  color: var(--header-title-color);
   display: block;
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 1rem;
   width: 100%;
   text-align: left;
@@ -1438,8 +1288,9 @@ body.dark .ats-keyword-tag.missing {
 }
 
 .simple-section-title {
+  font-family: 'DM Sans', -apple-system, sans-serif;
   font-size: 1.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--header-title-color);
   margin-bottom: 0.75rem;
 }

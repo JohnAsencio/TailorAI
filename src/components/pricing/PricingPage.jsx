@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { redirectToCheckout } from '../../services/paymentService';
-import { joinWaitlist } from '../../services/waitlistService';
-import { getPricingInfo, isPreLaunchSpecialActive } from '../../config/pricing';
+import { createCheckoutSession } from '../../services/paymentService';
+import { notifySubscriptionUpdated } from '../../hooks/useSubscription';
+import { isPreLaunchSpecialActive } from '../../config/pricing';
 import WaitlistForm from '../landing/WaitlistForm';
 import Footer from '../common/Footer';
 import './PricingPage.css';
@@ -19,7 +19,7 @@ export default function PricingPage() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('success') === 'true') {
       setMessage({ type: 'success', text: 'Payment successful! Your account has been upgraded.' });
-      // Clean up URL
+      notifySubscriptionUpdated();
       window.history.replaceState({}, '', '/pricing');
     } else if (params.get('canceled') === 'true') {
       setMessage({ type: 'info', text: 'Payment was canceled. You can try again anytime.' });
@@ -42,9 +42,13 @@ export default function PricingPage() {
     setMessage(null);
 
     try {
-      const email = user.email || '';
-      const userId = user.id;
-      await redirectToCheckout(planId, userId, email);
+      const result = await createCheckoutSession(planId, user.id, user.email || '');
+      if (result.success && result.url) {
+        window.location.href = result.url;
+      } else {
+        setMessage({ type: 'error', text: result.error || 'Failed to start checkout. Please try again.' });
+        setLoading(null);
+      }
     } catch (error) {
       console.error('Payment error:', error);
       setMessage({ type: 'error', text: 'Failed to start checkout. Please try again.' });
@@ -121,20 +125,9 @@ export default function PricingPage() {
             <div className="pricing-card-header">
               <h2 className="pricing-card-title">Unlimited</h2>
               <div className="pricing-card-price">
-                {(() => {
-                  const pricing = getPricingInfo('unlimited');
-                  const currentPrice = (pricing.currentPrice / 100).toFixed(2);
-                  const originalPrice = pricing.originalPrice ? (pricing.originalPrice / 100).toFixed(2) : null;
-                  return (
-                    <>
-                      <span className="price-amount">${currentPrice}</span>
-                      <span className="price-period">/month</span>
-                      {originalPrice && (
-                        <span className="price-original">${originalPrice}</span>
-                      )}
-                    </>
-                  );
-                })()}
+                <span className="price-amount">$2.99</span>
+                <span className="price-period">/month</span>
+                <span className="price-original">$15.99</span>
               </div>
             </div>
             <div className="pricing-card-body">
@@ -248,20 +241,9 @@ export default function PricingPage() {
             <div className="pricing-card-header">
               <h2 className="pricing-card-title">Lifetime</h2>
               <div className="pricing-card-price">
-                {(() => {
-                  const pricing = getPricingInfo('lifetime');
-                  const currentPrice = (pricing.currentPrice / 100).toFixed(0);
-                  const originalPrice = pricing.originalPrice ? (pricing.originalPrice / 100).toFixed(0) : null;
-                  return (
-                    <>
-                      <span className="price-amount">${currentPrice}</span>
-                      <span className="price-period">one-time</span>
-                      {originalPrice && (
-                        <span className="price-original">${originalPrice}</span>
-                      )}
-                    </>
-                  );
-                })()}
+                <span className="price-amount">$22.99</span>
+                <span className="price-period">one-time</span>
+                <span className="price-original">$49.99</span>
               </div>
             </div>
             <div className="pricing-card-body">
@@ -310,7 +292,7 @@ export default function PricingPage() {
             <div className="pricing-card-header">
               <h2 className="pricing-card-title">Lifetime</h2>
               <div className="pricing-card-price">
-                <span className="price-amount">$39.99</span>
+                <span className="price-amount">$49.99</span>
                 <span className="price-period">one-time</span>
               </div>
             </div>
