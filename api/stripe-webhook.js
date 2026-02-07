@@ -1,3 +1,9 @@
+/**
+ * Stripe webhook handler. Must use raw request body for signature verification.
+ * Uses export default (req, res) like other api/ routes so Vercel invokes it.
+ * Raw body: read from stream first; fallback to req.body if it's a string.
+ */
+
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { loadEnvFromLocal } from '../lib/loadEnv.js';
@@ -8,10 +14,34 @@ const STRIPE_API_VERSION = '2024-12-18.acacia';
 
 const CREDITS_ON_PURCHASE = { basic: 10, pro: 50, lifetime: 999999 };
 
-export async function POST(request) {
-  let rawBody;
+function setCors(res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, stripe-signature');
+}
+
+/** Read raw body from request stream (before any parser consumes it) */
+function getRawBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', (chunk) => chunks.push(chunk));
+    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    req.on('error', reject);
+  });
+}
+
+export default async function handler(req, res) {
+  setCors(res);
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   try {
-    // Ensure local env is loaded even if cwd differs
     loadEnvFromLocal();
 
     const stripeSecretKey = (process.env.STRIPE_SECRET_KEY || '').trim();
@@ -22,39 +52,44 @@ export async function POST(request) {
 
     if (!stripeSecretKey) {
       console.error('[stripe-webhook] Missing STRIPE_SECRET_KEY');
-      return new Response('Webhook Error: STRIPE_SECRET_KEY is not set', { status: 500 });
+      return res.status(500).json({ error: 'STRIPE_SECRET_KEY is not set' });
     }
     if (!endpointSecret) {
       console.error('[stripe-webhook] Missing STRIPE_WEBHOOK_SECRET');
-      return new Response('Webhook Error: STRIPE_WEBHOOK_SECRET is not set', { status: 500 });
+      return res.status(500).json({ error: 'STRIPE_WEBHOOK_SECRET is not set' });
     }
     if (!supabaseUrl) {
       console.error('[stripe-webhook] Missing SUPABASE_URL (or VITE_SUPABASE_URL)');
-      return new Response('Webhook Error: SUPABASE_URL is not set', { status: 500 });
+      return res.status(500).json({ error: 'Supabase URL is not set' });
     }
     if (!supabaseServiceRoleKey) {
       console.error('[stripe-webhook] Missing SUPABASE_SERVICE_ROLE_KEY');
-      return new Response('Webhook Error: SUPABASE_SERVICE_ROLE_KEY is not set', { status: 500 });
+      return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY is not set' });
     }
 
-    // Lazily initialize clients AFTER env validation
     const stripe = new Stripe(stripeSecretKey, { apiVersion: STRIPE_API_VERSION });
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Attempt to get raw text
-    rawBody = await request.text();
-    const signature = request.headers.get('stripe-signature');
+    // Raw body: stream first (exact bytes Stripe sent); fallback to req.body if string
+    let rawBody = await getRawBody(req);
+    if (!rawBody && typeof req.body === 'string') {
+      rawBody = req.body;
+    }
+    const signature = req.headers['stripe-signature'];
 
     if (!rawBody) {
-      console.error('stripe-webhook: empty body');
-      return new Response('Empty body', { status: 400 });
+      console.error('stripe-webhook: empty body (stream and req.body both empty)');
+      return res.status(400).json({ error: 'Empty body' });
+    }
+    if (!signature) {
+      console.error('stripe-webhook: missing stripe-signature header');
+      return res.status(400).json({ error: 'Missing stripe-signature' });
     }
 
     const event = stripe.webhooks.constructEvent(rawBody, signature, endpointSecret);
 
-    // Handle Checkout Completion
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
       const email = (session.customer_details?.email || session.metadata?.email || '').toLowerCase().trim();
@@ -63,9 +98,8 @@ export async function POST(request) {
       const userId = session.metadata?.userId || null;
 
       if (isCreditPurchase && creditsQuantity > 0) {
-
         let currentCredits = 0;
-        let updateBy = null; // 'user_id' | 'email'
+        let updateBy = null;
 
         if (userId) {
           const { data: byUser } = await supabaseAdmin
@@ -115,13 +149,12 @@ export async function POST(request) {
           console.warn('stripe-webhook: credit purchase, no app_users row for userId or email');
         }
       } else {
-        // Plan purchase (subscription or one-time plan): set plan and ADD plan credits to current balance
         const planId = session.metadata?.planId || 'free';
         const creditsFromPlan = CREDITS_ON_PURCHASE[planId] ?? 0;
         const userId = session.metadata?.userId || null;
 
         let currentCredits = 0;
-        let updateBy = null; // 'user_id' | 'email'
+        let updateBy = null;
         if (userId) {
           const { data: byUser } = await supabaseAdmin
             .from('app_users')
@@ -172,15 +205,14 @@ export async function POST(request) {
       }
     }
 
-    return new Response(JSON.stringify({ received: true }), { status: 200 });
-
+    return res.status(200).json({ received: true });
   } catch (err) {
     console.error('stripe-webhook failed', err.message);
-    return new Response(`Webhook Error: ${err.message}`, { status: 400 });
+    return res.status(400).json({ error: err.message || 'Webhook Error' });
   }
 }
 
-// Critical for Next.js/Vercel to prevent body parsing
+// Disable body parsing so we can read the raw stream for Stripe signature verification
 export const config = {
   api: {
     bodyParser: false,
