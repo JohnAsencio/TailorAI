@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuthFromContext } from '../../contexts/AuthContext';
 import { useCreditStatusFromContext } from '../../contexts/CreditStatusContext';
 import { notifyCreditsUpdated } from '../../hooks/useCreditStatus';
-import { createCheckoutSession } from '../../services/paymentService';
+import { createCheckoutSession, createCreditsCheckoutSession } from '../../services/paymentService';
 import { notifySubscriptionUpdated } from '../../hooks/useSubscription';
 import { PLANS, formatPrice, CREDIT_COSTS } from '../../config/pricing';
 import WaitlistForm from '../landing/WaitlistForm';
@@ -18,6 +18,8 @@ export default function PricingPage() {
   const [message, setMessage] = useState(null);
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [showBetaTester, setShowBetaTester] = useState(false);
+  const [creditsQuantity, setCreditsQuantity] = useState(10);
+  const CREDITS_OPTIONS = [5, 10, 25, 50];
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -59,6 +61,28 @@ export default function PricingPage() {
   const handleFreeStart = () => {
     if (!user) window.location.href = '/signin';
     else window.location.href = '/tailor';
+  };
+
+  const handleBuyCredits = async () => {
+    if (!user) {
+      window.location.href = '/pricing/login?plan=credits';
+      return;
+    }
+    setLoading('credits');
+    setMessage(null);
+    try {
+      const result = await createCreditsCheckoutSession(creditsQuantity, user.id, user.email || '');
+      if (result.success && result.url) {
+        window.location.href = result.url;
+      } else {
+        setMessage({ type: 'error', text: result.error || 'Failed to start checkout. Please try again.' });
+        setLoading(null);
+      }
+    } catch (error) {
+      console.error('Credits checkout error:', error);
+      setMessage({ type: 'error', text: 'Failed to start checkout. Please try again.' });
+      setLoading(null);
+    }
   };
 
   const baseTiers = [
@@ -196,12 +220,38 @@ export default function PricingPage() {
           ))}
         </div>
 
+        <div className="pricing-addon-credits">
+          <h2 className="pricing-addon-title">Purchase individual credits</h2>
+          <p className="pricing-addon-desc">
+            Need more credits without changing your plan? Buy credits at <strong>${CREDIT_COSTS.pricePerCreditDollars} per credit</strong>. 1 credit = 1 tailored resume, 5 credits = 1 mock interview.
+          </p>
+          <div className="pricing-addon-options">
+            {CREDITS_OPTIONS.map((n) => (
+              <button
+                key={n}
+                type="button"
+                className={`pricing-addon-option ${creditsQuantity === n ? 'pricing-addon-option-selected' : ''}`}
+                onClick={() => setCreditsQuantity(n)}
+              >
+                {n} credits
+              </button>
+            ))}
+          </div>
+          <button
+            className="pricing-button pricing-button-primary pricing-addon-buy"
+            onClick={handleBuyCredits}
+            disabled={loading === 'credits'}
+          >
+            {loading === 'credits' ? 'Loading...' : `Buy ${creditsQuantity} credits — $${(creditsQuantity * CREDIT_COSTS.pricePerCreditDollars).toFixed(2)}`}
+          </button>
+        </div>
+
         <div className="pricing-credits-info">
           <h2 className="pricing-credits-title">How credits work</h2>
           <ul className="pricing-credits-list">
             <li><strong>1 credit</strong> = 1 tailored resume</li>
             <li><strong>1 mock interview</strong> = 5 credits</li>
-            <li>Need more? Extra credits are <strong>${CREDIT_COSTS.pricePerCreditDollars} per credit</strong> (purchase from your account).</li>
+            <li>Need more? Buy individual credits above or from your account.</li>
           </ul>
         </div>
 

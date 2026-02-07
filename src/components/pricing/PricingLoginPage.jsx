@@ -26,22 +26,25 @@ export default function PricingLoginPage() {
     }
   }, [location]);
 
-  // If user is already logged in: with plan → checkout; without plan → tailor
+  // If user is already logged in: plan=credits → pricing; other plan → checkout; no plan → tailor
   useEffect(() => {
     if (!user || redirecting) return;
+    if (planId === 'credits') {
+      navigate('/pricing', { replace: true });
+      return;
+    }
     if (planId) {
       setRedirecting(true);
       setRedirectMessage('Redirecting to secure checkout...');
       handleCheckoutRedirect();
     } else {
-      // Logged in with no plan — go to tailor resume page
       navigate('/tailor', { replace: true });
     }
   }, [user, planId, redirecting, navigate]);
 
   const handleCheckoutRedirect = async () => {
-    if (!user || !planId) return;
-    
+    if (!user || !planId || planId === 'credits') return;
+
     try {
       setRedirecting(true);
       setRedirectMessage('Redirecting to secure checkout...');
@@ -85,7 +88,9 @@ export default function PricingLoginPage() {
             setRedirectMessage('Account created! Redirecting to secure checkout...');
             // Small delay to ensure user state is updated, then proceed to checkout
             setTimeout(() => {
-              if (planId) {
+              if (planId === 'credits') {
+                navigate('/pricing');
+              } else if (planId) {
                 handleCheckoutRedirect();
               } else {
                 navigate('/pricing');
@@ -167,12 +172,14 @@ export default function PricingLoginPage() {
   // Handle Google auth callback
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    if (params.get('google_auth') === 'true' && user && planId && !redirecting) {
-      // User returned from Google auth, proceed to checkout immediately
-      setRedirecting(true);
-      setRedirectMessage('Signed in! Redirecting to secure checkout...');
-      handleCheckoutRedirect();
+    if (params.get('google_auth') !== 'true' || !user || !planId || redirecting) return;
+    if (planId === 'credits') {
+      navigate('/pricing', { replace: true });
+      return;
     }
+    setRedirecting(true);
+    setRedirectMessage('Signed in! Redirecting to secure checkout...');
+    handleCheckoutRedirect();
   }, [location, user, planId]);
 
   // Show redirecting state instead of form
@@ -211,9 +218,11 @@ export default function PricingLoginPage() {
             {isSignUp ? 'Create Account' : 'Sign In'} to Continue
           </h1>
           <p className="pricing-login-subtitle">
-            {planId 
-              ? `Sign in or create an account to purchase the ${planId} plan`
-              : 'Sign in or create an account to purchase a plan'}
+            {planId === 'credits'
+              ? 'Sign in or create an account to purchase credits'
+              : planId
+                ? `Sign in or create an account to purchase the ${planId} plan`
+                : 'Sign in or create an account to purchase a plan'}
           </p>
 
           {error && <div className="pricing-login-error">{error}</div>}

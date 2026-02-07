@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { sendInterviewMessage } from '../../services/mockInterviewService';
 import { getSavedResumeById } from '../../services/savedResumeService';
-import { fetchCreditStatus } from '../../services/creditService';
+import { consumeInterviewCredit } from '../../services/creditService';
+import { notifyCreditsUpdated } from '../../hooks/useCreditStatus';
+import { useCreditStatusFromContext } from '../../contexts/CreditStatusContext';
 import { synthesizeSpeech, playAudio } from '../../services/ttsService';
 import InterviewSettingsModal from './InterviewSettingsModal';
 import InterviewerAvatar from './InterviewerAvatar';
@@ -13,6 +15,8 @@ import './MockInterviewPage.css';
 export default function MockInterviewPage({ user }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { planId, loading: creditStatusLoading } = useCreditStatusFromContext();
+  const upgradeRequired = planId === 'free';
   
   // Interview state
   const [messages, setMessages] = useState([]);
@@ -70,8 +74,6 @@ export default function MockInterviewPage({ user }) {
   const messagesRef = useRef([]);
   const interviewEndsAtRef = useRef(null);
   const interviewTimerIntervalRef = useRef(null);
-  const [upgradeRequired, setUpgradeRequired] = useState(false);
-  const [planCheckDone, setPlanCheckDone] = useState(false);
 
   const normalizeSpokenTextForTurnDetection = (text) => {
     const s = String(text || '').toLowerCase();
@@ -179,29 +181,18 @@ export default function MockInterviewPage({ user }) {
     }
   }, [isSpeaking, isListening]);
   
-  // Block free users from mock interview
-  useEffect(() => {
-    if (!user?.id) {
-      setPlanCheckDone(true);
-      return;
-    }
-    let cancelled = false;
-    fetchCreditStatus(user.id).then((status) => {
-      if (!cancelled) {
-        setUpgradeRequired(status.planId === 'free');
-        setPlanCheckDone(true);
-      }
-    }).catch(() => {
-      if (!cancelled) setPlanCheckDone(true);
-    });
-    return () => { cancelled = true; };
-  }, [user?.id]);
-
-  // Check if resume ID was passed from navigation
+  // When we have resume id from navigation, use passed data if any and fetch when paid
   useEffect(() => {
     componentActiveRef.current = true;
-    if (!planCheckDone || upgradeRequired) return;
     const resumeIdFromState = location.state?.resumeId;
+    const resumeDataFromState = location.state?.resumeData;
+
+    if (resumeDataFromState && resumeIdFromState) {
+      setResumeData(resumeDataFromState);
+      setResumeId(resumeIdFromState);
+    }
+
+    if (creditStatusLoading || upgradeRequired) return;
     if (resumeIdFromState && user?.id) {
       loadResume(resumeIdFromState);
     }
@@ -237,7 +228,7 @@ export default function MockInterviewPage({ user }) {
         try { recognitionRef.current.stop(); } catch {}
       }
     };
-  }, [location, user]);
+  }, [location, user, creditStatusLoading, upgradeRequired]);
 
   const stopInterviewerAudioAnalysis = () => {
     if (ttsAnimationFrameRef.current) {
@@ -610,15 +601,27 @@ export default function MockInterviewPage({ user }) {
       setError('Please select a resume first');
       return;
     }
-    
+    if (!user?.id) return;
+
+    setError('');
+    const consumeResult = await consumeInterviewCredit(user.id);
+    if (!consumeResult.success) {
+      setError(
+        consumeResult.error?.toLowerCase().includes('insufficient')
+          ? 'You need 5 credits for a mock interview. Upgrade your plan or purchase more credits.'
+          : consumeResult.error || 'Could not start interview.'
+      );
+      return;
+    }
+    notifyCreditsUpdated();
+
     setShowSettings(false);
     setIsInterviewActive(true);
     setMessages([]);
     setInterviewStage('beginning');
     const totalSeconds = Math.max(1, Math.round(duration * 60));
     startInterviewTimer(Date.now() + totalSeconds * 1000);
-    
-    // Start with AI greeting
+
     setIsLoading(true);
     try {
       const result = await sendInterviewMessage(
@@ -1477,7 +1480,7 @@ export default function MockInterviewPage({ user }) {
     navigate('/mockinterview', { replace: true });
   };
 
-  if (!planCheckDone && user?.id) {
+  if (creditStatusLoading && user?.id) {
     return (
       <section className="mock-interview-page">
         <div className="simple-section-card" style={{ textAlign: 'center', padding: '3rem' }}>
@@ -1487,7 +1490,7 @@ export default function MockInterviewPage({ user }) {
     );
   }
 
-  if (planCheckDone && upgradeRequired) {
+  if (upgradeRequired) {
     return (
       <section className="mock-interview-page">
         <div className="empty-mock-state mock-upgrade-required" style={{ margin: '2rem auto', maxWidth: '500px' }}>
@@ -1506,20 +1509,29 @@ export default function MockInterviewPage({ user }) {
 
   if (showSettings) {
     return (
-      <InterviewSettingsModal
-        duration={duration}
-        setDuration={setDuration}
-        interviewerPersona={interviewerPersona}
-        setInterviewerPersona={setInterviewerPersona}
-        resumeData={resumeData}
-        setResumeData={setResumeData}
-        resumeId={resumeId}
-        setResumeId={setResumeId}
-        user={user}
-        onStart={startInterview}
-        onCancel={() => navigate('/mockinterview')}
-        onLoadResume={loadResume}
-      />
+      <section className="mock-interview-page">
+        {error && (
+          <div className="error-alert animate-fade-in" style={{ margin: '1rem auto', maxWidth: '500px' }}>
+            <span className="material-icons">error_outline</span>
+            <span>{error}</span>
+            <a href="/pricing" className="mock-upgrade-link" style={{ marginLeft: '0.5rem' }}>View plans</a>
+          </div>
+        )}
+        <InterviewSettingsModal
+          duration={duration}
+          setDuration={setDuration}
+          interviewerPersona={interviewerPersona}
+          setInterviewerPersona={setInterviewerPersona}
+          resumeData={resumeData}
+          setResumeData={setResumeData}
+          resumeId={resumeId}
+          setResumeId={setResumeId}
+          user={user}
+          onStart={startInterview}
+          onCancel={() => navigate('/mockinterview')}
+          onLoadResume={loadResume}
+        />
+      </section>
     );
   }
 
