@@ -3,7 +3,7 @@
  * Sends email notification to admin via Resend
  */
 
-import { loadEnvFromLocal } from './utils/loadEnv.js';
+import { loadEnvFromLocal } from '../lib/loadEnv.js';
 
 // Load env vars for local dev
 loadEnvFromLocal();

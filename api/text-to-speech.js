@@ -4,7 +4,7 @@
  * Falls back to browser TTS if API key is not configured
  */
 
-import { loadEnvFromLocal } from './utils/loadEnv.js';
+import { loadEnvFromLocal } from '../lib/loadEnv.js';
 
 // Load env vars for local dev
 loadEnvFromLocal();

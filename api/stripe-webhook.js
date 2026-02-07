@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
-import { loadEnvFromLocal } from './utils/loadEnv.js';
+import { loadEnvFromLocal } from '../lib/loadEnv.js';
 
 loadEnvFromLocal();
 

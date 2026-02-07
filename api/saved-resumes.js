@@ -4,7 +4,7 @@
  * GET ?userId=...&resumeId=... → get a single resume by ID
  */
 
-import { loadEnvFromLocal } from './utils/loadEnv.js';
+import { loadEnvFromLocal } from '../lib/loadEnv.js';
 import { createClient } from '@supabase/supabase-js';
 
 loadEnvFromLocal();

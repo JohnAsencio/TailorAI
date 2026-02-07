@@ -1,5 +1,5 @@
 import { OpenAI } from "openai";
-import { loadEnvFromLocal } from './utils/loadEnv.js';
+import { loadEnvFromLocal } from '../lib/loadEnv.js';
 
 // Load environment variables from .env.local if not already loaded
 loadEnvFromLocal();

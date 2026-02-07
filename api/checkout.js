@@ -4,7 +4,7 @@
  */
 
 import Stripe from 'stripe';
-import { loadEnvFromLocal } from './utils/loadEnv.js';
+import { loadEnvFromLocal } from '../lib/loadEnv.js';
 
 loadEnvFromLocal();
 

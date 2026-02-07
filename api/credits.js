@@ -5,7 +5,7 @@
  * Plans: free (2 credits), basic (10), pro (50), lifetime (unlimited)
  */
 
-import { loadEnvFromLocal } from './utils/loadEnv.js';
+import { loadEnvFromLocal } from '../lib/loadEnv.js';
 import { createClient } from '@supabase/supabase-js';
 
 loadEnvFromLocal();

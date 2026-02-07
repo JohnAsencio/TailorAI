@@ -2,9 +2,9 @@
  * Create or update app_users on sign-in. New users get free tier; existing users keep plan/credits (only Stripe webhook may change them).
  */
 
-import { loadEnvFromLocal } from './utils/loadEnv.js';
+import { loadEnvFromLocal } from '../lib/loadEnv.js';
 import { createClient } from '@supabase/supabase-js';
-import { sendWelcomeEmail } from './utils/sendWelcomeEmail.js';
+import { sendWelcomeEmail } from '../lib/sendWelcomeEmail.js';
 
 // Load env vars for local dev
 loadEnvFromLocal();

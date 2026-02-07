@@ -3,7 +3,7 @@
  * Enforces plan save limits: free=0, basic=3, pro=15, lifetime=unlimited.
  */
 
-import { loadEnvFromLocal } from './utils/loadEnv.js';
+import { loadEnvFromLocal } from '../lib/loadEnv.js';
 import { createClient } from '@supabase/supabase-js';
 
 loadEnvFromLocal();

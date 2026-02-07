@@ -3,7 +3,7 @@
  * Handles conversational AI for interview practice
  */
 
-import { loadEnvFromLocal } from './utils/loadEnv.js';
+import { loadEnvFromLocal } from '../lib/loadEnv.js';
 import { OpenAI } from 'openai';
 
 // Load env vars for local dev
