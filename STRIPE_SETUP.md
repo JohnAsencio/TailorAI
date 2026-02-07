@@ -113,6 +113,17 @@ To test the webhook on your machine:
 4. The CLI will print a **webhook signing secret** (e.g. `whsec_...`). Use that in `.env.local` for **STRIPE_WEBHOOK_SECRET** while testing locally.
 5. Run your app with `vercel dev`, then trigger a test payment; the CLI will show incoming events.
 
+### 4c. Debugging: see what Stripe sends and what your app returns
+
+1. **Stripe Dashboard → Developers → Webhooks** → click your endpoint (test or live).
+2. Open **Recent deliveries**. Each row is a webhook Stripe sent. Click one to see:
+   - **Request**: body and headers Stripe sent.
+   - **Response**: status code and body your app returned.
+3. If status is **400** and the response says "signature" or "No signatures found":
+   - The raw body your app received doesn’t match what Stripe signed. Ensure `api/stripe-webhook.js` uses the **raw** body (no JSON parse before verification).
+   - Or **STRIPE_WEBHOOK_SECRET** doesn’t match this endpoint: use the **Signing secret** from this same endpoint (test endpoint → test secret, live endpoint → live secret).
+4. If status is **200** but credits/plan don’t update: check your app’s logs (e.g. Vercel function logs) for DB errors; the handler might be failing after returning 200 (e.g. Supabase update error).
+
 ### Why stripe listen might not receive any events
 
 - **Events only fire when something happens in Stripe.** If credits checkout fails with "No such price" before you reach Stripe Checkout, no payment is created, so Stripe never sends `checkout.session.completed`. Fix the price ID first (see "Credits checkout" and `/api/verify-stripe-price`), then complete a successful payment — you should see events in the CLI.
