@@ -1,99 +1,59 @@
-# 🤖 Tailor AI (Web Application)
+# Tailor AI
 
-A smart, browser-based AI software powered by the OpenAI API designed to automatically customize a master resume and output a ready-to-use PDF document.
+**AI-powered resume tailoring and mock interviews.** Upload your resume and a job description—Tailor AI optimizes your resume for ATS and human reviewers, then helps you practice with role-specific mock interviews.
 
-Tailor AI provides an intuitive interface where users paste or upload their master resume and a target job description (JD). It uses advanced language model capabilities to identify crucial keywords, required skills, and core responsibilities from the JD, generating a refined, tailored version of the resume that significantly boosts relevance for Applicant Tracking Systems (ATS) and human reviewers.
+Built for **job seekers** who want to stand out and **recruiters** who want to see how candidates can tailor their experience to a role.
 
-## ✨ Core Features
+---
 
-* **Web Interface**: Easy-to-use React-based interface for pasting or uploading resume and job description text.
-* **Intelligent Keyword Extraction**: Identifies and prioritizes specific technical, soft, and industry-related keywords from the job description.
-* **ATS Compatibility Scoring**: Provides a real-time match score between the content of the resume and the demands of the JD.
-* **Content Rewriting**: Suggests refined, results-oriented bullet points and phrases based on the JD's language.
-* **PDF Output**: Generates the final, optimized resume as a professional, submission-ready PDF file.
-* **AI Mock Interviews**: Practice with AI-powered mock interviews tailored to specific job roles.
-* **Save & Organize**: Save multiple tailored resumes for different job applications.
+## How It Works
 
-## 🚀 Getting Started
+1. **Paste or upload** your resume and the target job description.
+2. **Tailor AI** uses advanced language models to align your resume with the job: keywords, skills, and phrasing that match what ATS and recruiters look for.
+3. **Review** your tailored resume with an ATS compatibility score and a side-by-side view of changes.
+4. **Download** a submission-ready PDF or **save** it to your account for different roles.
+5. **Practice** with AI mock interviews tied to saved resumes so you’re ready for the real thing.
 
-### Prerequisites
+Access is **credit-based**: one credit per tailored resume, five credits per mock interview. Free tier includes 2 credits to try; paid plans and one-time credit packs are available.
 
-- Node.js 18+ and npm
-- A Vercel account (for deployment)
-- OpenAI API Key
-- Supabase account (for authentication)
+---
 
-### Installation
+## Features
 
-1. Clone the repository:
-```bash
-git clone https://github.com/johnasencio/tailorai.git
-cd tailorai
-```
+- **Resume tailoring** — AI rewrites your resume to match any job description while keeping your voice and facts accurate.
+- **ATS optimization** — Real-time compatibility scoring and keyword coverage so your resume gets past applicant tracking systems.
+- **PDF export** — Professional, submission-ready PDFs.
+- **Save & organize** — Save multiple tailored resumes by role (plan-based save limits).
+- **Mock interviews** — AI-driven practice interviews based on your resume and the job; voice and text input supported.
+- **Plans & credits** — Free tier (2 credits), Basic (10 credits/month), Pro (50 credits/month), Lifetime (unlimited). Buy extra credits anytime.
 
-2. Install dependencies:
-```bash
-npm install
-```
+---
 
-3. Set up environment variables:
+## Tech Stack
 
-Create a `.env.local` file in the root directory:
-```env
-VITE_SUPABASE_URL=your-supabase-url
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-OPENAI_API_KEY=your-openai-api-key
-RESEND_API_KEY=your-resend-api-key
-STRIPE_SECRET_KEY=your-stripe-secret-key
-SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
-STRIPE_WEBHOOK_SECRET=your-stripe-webhook-secret
-```
+- **Frontend:** React, Vite, React Router  
+- **Backend:** Vercel serverless functions (Node.js)  
+- **Auth & database:** Supabase (PostgreSQL)  
+- **AI:** OpenAI API (tailoring + mock interview)  
+- **Payments:** Stripe (subscriptions, one-time credit packs, Customer Portal)  
+- **PDF:** @react-pdf/renderer  
+- **Email:** Resend (welcome + support flows)  
+- **Deployment:** Vercel  
 
-Or pull from Vercel:
-```bash
-npx vercel env pull .env.local
-```
+---
 
-### Local Development
+## Support
 
-**Option 1: Full stack (recommended for testing API routes)**
-```bash
-npx vercel dev
-```
-Opens on `http://localhost:3000` - includes both frontend and API routes.
+**Email:** [johnaasencio@gmail.com](mailto:johnaasencio@gmail.com) — for product questions, feedback, or support.
 
-**Option 2: Frontend only**
-```bash
-npm run dev
-```
-Opens on `http://localhost:5173` - frontend only, API routes won't work locally.
+---
 
-### Deployment
+## For Developers
 
-This project is configured for Vercel deployment:
+To run the app locally you need Node.js 18+, and to configure environment variables (Supabase, OpenAI, Stripe, Resend, etc.). Use `npm run dev` for frontend-only or `npx vercel dev` for frontend + API. See the codebase and any env/docs in the repo for deployment and Stripe webhook setup.
 
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Set environment variables in Vercel Dashboard:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-   - `OPENAI_API_KEY`
-4. Deploy!
+---
 
-## 🛠️ Tech Stack
+## License
 
-- **Frontend**: React + Vite
-- **Backend**: Vercel Serverless Functions
-- **Authentication**: Supabase Auth
-- **Database**: Supabase
-- **AI**: OpenAI API
-- **PDF Generation**: @react-pdf/renderer
-- **Deployment**: Vercel
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 📞 Contact
-
-John Asencio - johnaasencio@gmail.com
+This project is licensed under the MIT License.

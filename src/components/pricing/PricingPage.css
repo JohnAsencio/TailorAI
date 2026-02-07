@@ -2,14 +2,15 @@
 .pricing-page {
   width: 100%;
   max-width: 100%;
-  padding: 2rem 1rem;
+  padding: 2rem 0.5rem;
   box-sizing: border-box;
 }
 
 .pricing-container {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
   width: 100%;
+  padding: 0 0.75rem;
   box-sizing: border-box;
 }
 
@@ -19,8 +20,9 @@
 }
 
 .pricing-title {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 800;
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 600;
   color: var(--header-title-color);
   margin-bottom: 1rem;
   transition: color 0.3s ease;
@@ -35,53 +37,160 @@
   transition: color 0.3s ease;
 }
 
-/* Monthly Pricing Grid */
-.pricing-grid-monthly {
+/* Four-tier pricing grid – equal-width columns, same line */
+.pricing-grid-four {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
   margin-bottom: 3rem;
 }
 
-@media (max-width: 968px) {
-  .pricing-grid-monthly {
+@media (max-width: 1024px) {
+  .pricing-grid-four {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .pricing-grid-four {
     grid-template-columns: 1fr;
-    max-width: 500px;
+    max-width: 400px;
     margin-left: auto;
     margin-right: auto;
   }
 }
 
-/* Lifetime Section */
-.pricing-lifetime-section {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
-  margin-bottom: 4rem;
-  max-width: 1000px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-@media (max-width: 968px) {
-  .pricing-lifetime-section {
-    grid-template-columns: 1fr;
-    max-width: 500px;
-  }
-}
-
 .pricing-card-lifetime {
-  max-width: 100%;
-  width: 100%;
   box-sizing: border-box;
 }
 
-/* Pricing Cards */
-.pricing-card {
+.pricing-card-credits {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--header-title-color);
+  margin: 1.25rem 0 0.25rem;
+  transition: color 0.3s ease;
+}
+
+.pricing-card-desc {
+  font-size: 0.85rem;
+  color: var(--header-subtitle-color);
+  margin: 0 0 1rem;
+  line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+/* Purchase individual credits add-on */
+.pricing-addon-credits {
+  max-width: 560px;
+  margin: 0 auto 3rem;
+  padding: 1.5rem 2rem;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 1rem;
-  padding: 2rem;
+  text-align: center;
+}
+
+.pricing-addon-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--header-title-color);
+  margin: 0 0 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.pricing-addon-desc {
+  font-size: 0.95rem;
+  color: var(--header-subtitle-color);
+  margin: 0 0 1.25rem;
+  line-height: 1.5;
+}
+
+.pricing-addon-desc strong {
+  color: var(--header-title-color);
+}
+
+.pricing-addon-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.pricing-addon-option {
+  padding: 0.6rem 1.25rem;
+  border-radius: 0.5rem;
+  border: 2px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--header-title-color);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.pricing-addon-option:hover {
+  border-color: #10b981;
+  color: #059669;
+}
+
+.pricing-addon-option-selected {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.pricing-addon-buy {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+/* How credits work section */
+.pricing-credits-info {
+  max-width: 700px;
+  margin: 0 auto 3rem;
+  padding: 1.5rem 2rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  text-align: center;
+}
+
+.pricing-credits-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--header-title-color);
+  margin: 0 0 1rem;
+  transition: color 0.3s ease;
+}
+
+.pricing-credits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--header-subtitle-color);
+}
+
+.pricing-credits-list li {
+  margin-bottom: 0.5rem;
+}
+
+.pricing-credits-list strong {
+  color: var(--header-title-color);
+  font-weight: 600;
+}
+
+/* Pricing Cards – same width, don’t overflow grid cell */
+.pricing-card {
+  min-width: 0;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -90,14 +199,13 @@
 }
 
 .pricing-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   border-color: var(--header-title-color);
 }
 
 .pricing-card-featured {
   border: 2px solid var(--header-title-color);
-  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.15);
 }
 
 .pricing-badge {
@@ -105,7 +213,7 @@
   top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background-color: var(--accent);
   color: white;
   padding: 0.4rem 1.25rem;
   border-radius: 2rem;
@@ -114,6 +222,17 @@
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
   white-space: nowrap;
   z-index: 10;
+}
+
+.pricing-launch-label {
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--header-subtitle-color);
+  opacity: 0.7;
+  z-index: 5;
 }
 
 .pricing-card-header {
@@ -161,7 +280,7 @@
 }
 
 .pricing-badge-special {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background-color: #059669;
   color: white;
   padding: 0.4rem 1.25rem;
   border-radius: 2rem;
@@ -271,7 +390,7 @@
   transition: color 0.3s ease;
 }
 
-/* Pricing Buttons */
+/* Pricing Buttons - orange (current), site blue (Switch), green (Get Basic/Pro/Lifetime/Upgrade) */
 .pricing-button {
   width: 100%;
   padding: 1rem 2rem;
@@ -294,30 +413,81 @@
 .pricing-button-free:hover {
   background: var(--header-title-color);
   color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.3);
+  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.2);
 }
 
+/* Get Basic & Get Pro: green (same as Lifetime/Upgrade) */
 .pricing-button-primary {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background-color: #27ae60;
   color: white;
-  box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.4);
+  border: none;
+  box-shadow: 0 4px 14px 0 rgba(39, 174, 96, 0.4);
 }
 
 .pricing-button-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.5);
+  background-color: #2ecc71;
+  color: white;
+  filter: none;
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.4);
 }
 
+/* Lifetime column: green only */
 .pricing-button-lifetime {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background-color: #27ae60;
   color: white;
-  box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4);
+  border: none;
+  box-shadow: 0 4px 14px 0 rgba(39, 174, 96, 0.4);
 }
 
 .pricing-button-lifetime:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.5);
+  background-color: #2ecc71;
+  color: white;
+  filter: none;
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.4);
+}
+
+/* Current plan: vibrant orange from pricing screenshot */
+.pricing-button-current {
+  background-color: #e99e2f;
+  color: #fff;
+  border: none;
+  box-shadow: 0 2px 6px rgba(233, 158, 47, 0.4);
+}
+
+.pricing-button-current:hover {
+  background-color: #f0ad4e;
+  color: #fff;
+  filter: none;
+  cursor: default;
+  box-shadow: 0 2px 8px rgba(240, 173, 78, 0.45);
+}
+
+/* Switch: same blue as header title / site accent */
+.pricing-button-switch {
+  background-color: var(--header-title-color);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 6px rgba(74, 111, 165, 0.3);
+}
+
+.pricing-button-switch:hover {
+  filter: brightness(0.96);
+  color: white;
+  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.35);
+}
+
+/* Upgrade: vibrant green from pricing screenshot */
+.pricing-button-upgrade {
+  background-color: #27ae60;
+  color: white;
+  box-shadow: 0 4px 14px 0 rgba(39, 174, 96, 0.4);
+}
+
+.pricing-button-upgrade:hover {
+  background-color: #2ecc71;
+  color: white;
+  filter: none;
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.4);
 }
 
 .pricing-button:disabled {
@@ -360,7 +530,7 @@
   margin-top: 4rem;
   margin-bottom: 2rem;
   padding: 3rem 2rem;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+  background-color: rgba(74, 111, 165, 0.05);
   border-radius: 1.5rem;
   border: 1px solid var(--card-border);
   text-align: center;
@@ -404,10 +574,7 @@
 .value-stat-number {
   font-size: 2.5rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--header-title-color);
   line-height: 1.2;
   min-height: 3rem;
   display: flex;
@@ -583,7 +750,7 @@
 }
 
 .beta-tester-button {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background-color: var(--accent);
   color: white;
   border: none;
   border-radius: 0.75rem;
@@ -592,12 +759,12 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.4);
+  box-shadow: 0 2px 6px rgba(74, 111, 165, 0.2);
 }
 
 .beta-tester-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.5);
+  filter: brightness(0.96);
+  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.2);
 }
 
 @media (max-width: 640px) {

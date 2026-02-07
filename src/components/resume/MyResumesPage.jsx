@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getSavedResumes, getSavedResumeById, deleteSavedResume } from '../../services/savedResumeService';
+import { getCachedResume, cacheResume, clearCachedResume } from '../../utils/resumeCache';
 import PdfViewer from './PdfViewer';
 import MyResumePdfDocument from './MyResumePdfDocument';
 import { pdf } from '@react-pdf/renderer';
@@ -12,6 +13,7 @@ export default function MyResumesPage({ user }) {
   const [resumes, setResumes] = useState([]);
   const [selectedResume, setSelectedResume] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadingResume, setLoadingResume] = useState(false);
   const [error, setError] = useState('');
   const [pdfUrl, setPdfUrl] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
@@ -34,18 +36,31 @@ export default function MyResumesPage({ user }) {
   }, [selectedResume]);
 
   const loadResumes = async () => {
-    if (!user) return;
+    if (!user?.id) {
+      setLoading(false);
+      setResumes([]);
+      return;
+    }
     
     setLoading(true);
     setError('');
-    const result = await getSavedResumes(user.id);
     
-    if (result.success) {
-      setResumes(result.data || []);
-    } else {
-      setError(result.error || 'Failed to load resumes');
+    try {
+      const result = await getSavedResumes(user.id);
+      
+      if (result.success) {
+        setResumes(result.data || []);
+      } else {
+        setError(result.error || 'Failed to load resumes');
+        setResumes([]);
+      }
+    } catch (err) {
+      console.error('Error loading resumes:', err);
+      setError('Failed to load resumes');
+      setResumes([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const generatePdf = async (resumeText) => {
@@ -59,12 +74,55 @@ export default function MyResumesPage({ user }) {
     }
   };
 
-  const handleResumeClick = async (resumeId) => {
-    const result = await getSavedResumeById(resumeId, user.id);
-    if (result.success) {
-      setSelectedResume(result.data);
-    } else {
-      setError(result.error || 'Failed to load resume');
+  const handleResumeClick = async (resumeId, e) => {
+    // Prevent click if clicking on delete button or its children
+    if (e && (e.target.closest('.resume-delete-button') || e.target.classList.contains('resume-delete-button'))) {
+      return;
+    }
+    
+    if (!user?.id) {
+      setError('Please sign in to view resumes');
+      return;
+    }
+    
+    // Check cache first
+    const cached = getCachedResume(resumeId);
+    if (cached) {
+      // Clear previous selection and PDF
+      setSelectedResume(null);
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+        setPdfUrl(null);
+      }
+      setSelectedResume(cached);
+      return;
+    }
+    
+    // Set loading state for resume detail
+    setLoadingResume(true);
+    setError('');
+    
+    try {
+      // Clear previous selection and PDF
+      setSelectedResume(null);
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+        setPdfUrl(null);
+      }
+      
+      const result = await getSavedResumeById(resumeId, user.id);
+      if (result.success) {
+        // Cache the resume data
+        cacheResume(resumeId, result.data);
+        setSelectedResume(result.data);
+      } else {
+        setError(result.error || 'Failed to load resume');
+      }
+    } catch (err) {
+      console.error('Error loading resume:', err);
+      setError('Failed to load resume. Please try again.');
+    } finally {
+      setLoadingResume(false);
     }
   };
 
@@ -78,6 +136,8 @@ export default function MyResumesPage({ user }) {
     const result = await deleteSavedResume(resumeId, user.id);
     
     if (result.success) {
+      // Clear cache for deleted resume
+      clearCachedResume(resumeId);
       setResumes(resumes.filter(r => r.id !== resumeId));
       if (selectedResume && selectedResume.id === resumeId) {
         setSelectedResume(null);
@@ -94,9 +154,13 @@ export default function MyResumesPage({ user }) {
 
   const handleMockInterview = () => {
     if (selectedResume) {
-      // Navigate to mock interview page
-      // You could pass resume data through state or context if needed
-      navigate('/mockinterview');
+      // Pass resume data in state to avoid reloading
+      navigate('/mockinterview/start', { 
+        state: { 
+          resumeId: selectedResume.id,
+          resumeData: selectedResume // Pass the data directly
+        } 
+      });
     }
   };
 
@@ -120,6 +184,14 @@ export default function MyResumesPage({ user }) {
   }
 
   // Detail view
+  if (loadingResume) {
+    return (
+      <section className="my-resumes-page">
+        <LoadingSpinner message="Loading resume..." />
+      </section>
+    );
+  }
+
   if (selectedResume) {
     return (
       <section className="my-resumes-page">
@@ -206,6 +278,7 @@ export default function MyResumesPage({ user }) {
             </div>
             <h3 className="empty-resumes-title">No saved resumes yet</h3>
             <p className="empty-resumes-text">
+              Saved resumes and mock interviews will appear here. 
               When you tailor a resume, it will be saved here automatically. 
               You can then view it or start a mock interview for that role.
             </p>
@@ -216,7 +289,7 @@ export default function MyResumesPage({ user }) {
               <div
                 key={resume.id}
                 className="resume-card"
-                onClick={() => handleResumeClick(resume.id)}
+                onClick={(e) => handleResumeClick(resume.id, e)}
               >
                 <div className="resume-card-header">
                   <h3 className="resume-card-title">

@@ -31,6 +31,9 @@ export { default as MyResumePdfDocument } from './resume/MyResumePdfDocument';
 export { default as TailorPage } from './resume/TailorPage';
 export { default as MyResumesPage } from './resume/MyResumesPage';
 
+// Interview components
+export { default as MockInterviewPage } from './interview/MockInterviewPage';
+
 // Landing components
 export { default as LandingPage } from './landing/LandingPage';
 

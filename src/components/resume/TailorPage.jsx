@@ -5,6 +5,7 @@ import { checkATSCompatibility } from "../../services/atsService";
 import { saveTailoredResume } from "../../services/savedResumeService";
 import { ensureTailoredScoreHigher } from "../../utils/atsAlgorithm";
 import { fetchCreditStatus, consumeResumeCredit } from "../../services/creditService";
+import { notifyCreditsUpdated } from "../../hooks/useCreditStatus";
 import HighlightedResumeDisplay from "./ResumeDisplay";
 import PdfViewer from "./PdfViewer";
 import MyResumePdfDocument from "./MyResumePdfDocument";
@@ -138,6 +139,16 @@ export default function TailorPage({ resumeState, user }) {
     };
   }, [user]);
 
+  // Refetch credits when subscription/credits updated (e.g. after purchase on another tab or return from Stripe)
+  useEffect(() => {
+    const handler = () => {
+      if (user?.id) {
+        fetchCreditStatus(user.id).then(setCreditStatus);
+      }
+    };
+    window.addEventListener('credits-updated', handler);
+    return () => window.removeEventListener('credits-updated', handler);
+  }, [user?.id]);
 
   // Function to clear error messages after a delay
   const clearMessages = () => {
@@ -372,15 +383,12 @@ export default function TailorPage({ resumeState, user }) {
       if (!isBypass && user?.id && !creditStatus.unlimited) {
         const consumeResult = await consumeResumeCredit(user.id);
         if (consumeResult.success) {
-          const beforeCredits = creditStatus.resumeCredits;
           const afterCredits = consumeResult.remainingCredits;
-          
-          // Update credit status
           setCreditStatus(prev => ({
             ...prev,
             resumeCredits: afterCredits,
           }));
-
+          notifyCreditsUpdated();
         } else {
           console.error('Failed to consume credit:', consumeResult.error);
           // Don't block the user, but log the error
@@ -434,12 +442,11 @@ export default function TailorPage({ resumeState, user }) {
     if (result.success) {
       setSaveMessage('✓ Resume saved successfully!');
       setTimeout(() => setSaveMessage(''), 3000);
-      // Clear the fields after successful save
       setCompanyName('');
       setJobTitle('');
     } else {
-      setSaveMessage('Failed to save resume');
-      setTimeout(() => setSaveMessage(''), 3000);
+      setSaveMessage(result.error || 'Failed to save resume');
+      setTimeout(() => setSaveMessage(''), 5000);
     }
 
     setSaving(false);
@@ -462,7 +469,7 @@ export default function TailorPage({ resumeState, user }) {
             display: 'inline-flex',
             alignItems: 'center',
             padding: '0.5rem 1rem',
-            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+            background: '#d97706',
             borderRadius: '1.5rem',
             fontSize: '0.75rem',
             fontWeight: 700,
@@ -481,8 +488,8 @@ export default function TailorPage({ resumeState, user }) {
             gap: '0.5rem',
             padding: '0.75rem 1.5rem',
             background: !creditsLoading && !isBypass && !creditStatus.unlimited && creditStatus.resumeCredits <= 0 
-              ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' 
-              : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              ? '#dc2626' 
+              : '#059669',
             borderRadius: '2rem',
             fontSize: '0.95rem',
             fontWeight: 600,
@@ -512,12 +519,12 @@ export default function TailorPage({ resumeState, user }) {
                 display: 'inline-flex',
                 alignItems: 'center',
                 padding: '0.5rem 1rem',
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                background: 'var(--accent, #4a6fa5)',
                 borderRadius: '1.5rem',
                 fontSize: '0.75rem',
                 fontWeight: 700,
                 color: 'white',
-                boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)',
+                boxShadow: '0 2px 6px rgba(74, 111, 165, 0.25)',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 textTransform: 'uppercase',
@@ -525,11 +532,11 @@ export default function TailorPage({ resumeState, user }) {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'scale(1.05)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.4)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(74, 111, 165, 0.3)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(139, 92, 246, 0.3)';
+                e.currentTarget.style.boxShadow = '0 2px 6px rgba(74, 111, 165, 0.25)';
               }}
             >
               Request More
@@ -545,9 +552,9 @@ export default function TailorPage({ resumeState, user }) {
               style={{
                 marginBottom: '0.75rem',
                 padding: '0.5rem 0.75rem',
-                background: '#eef2ff',
-                color: '#4338ca',
-                border: '1px solid #c7d2fe',
+                background: 'rgba(74, 111, 165, 0.08)',
+                color: 'var(--header-title-color)',
+                border: '1px solid rgba(74, 111, 165, 0.2)',
                 borderRadius: '8px',
                 fontWeight: 600,
               }}
@@ -717,8 +724,8 @@ export default function TailorPage({ resumeState, user }) {
                   gap: '0.5rem',
                   padding: '0.5rem 1rem',
                   background: !isBypass && !creditStatus.unlimited && creditStatus.resumeCredits <= 0
-                    ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
-                    : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    ? '#dc2626'
+                    : '#059669',
                   borderRadius: '1.5rem',
                   fontSize: '0.875rem',
                   fontWeight: 600,
@@ -760,7 +767,7 @@ export default function TailorPage({ resumeState, user }) {
               alignItems: 'center', 
               minHeight: '400px' 
             }}>
-              <svg className="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ height: '1.25rem', width: '1.25rem', color: '#4f46e5', animation: 'spin 1s linear infinite' }}>
+              <svg className="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ height: '1.25rem', width: '1.25rem', color: 'var(--accent, #4a6fa5)', animation: 'spin 1s linear infinite' }}>
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
@@ -818,7 +825,7 @@ export default function TailorPage({ resumeState, user }) {
             </div>
           )}
 
-          {/* Save Resume Button - Centered below resume and summary */}
+          {/* Save Resume Button - Free plan: show upgrade CTA; paid: save (with limit enforced by API) */}
           {output && user && (
             <div className="save-resume-section">
               {saveMessage && (
@@ -826,26 +833,33 @@ export default function TailorPage({ resumeState, user }) {
                   {saveMessage}
                 </div>
               )}
-              <button
-                onClick={handleSaveResume}
-                className={`save-resume-button ${saving ? 'loading' : ''}`}
-                disabled={saving || !output}
-              >
-                {saving ? (
-                  <span className="flex-center-gap">
-                    <svg className="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Saving...
-                  </span>
-                ) : (
-                  <>
-                    <span className="material-icons">save</span>
-                    Save Resume
-                  </>
-                )}
-              </button>
+              {!isBypass && creditStatus.planId === 'free' ? (
+                <div className="save-resume-upgrade-cta">
+                  <p className="save-resume-upgrade-text">Upgrade to Basic or higher to save resumes.</p>
+                  <a href="/pricing" className="save-resume-upgrade-link">View plans</a>
+                </div>
+              ) : (
+                <button
+                  onClick={handleSaveResume}
+                  className={`save-resume-button ${saving ? 'loading' : ''}`}
+                  disabled={saving || !output}
+                >
+                  {saving ? (
+                    <span className="flex-center-gap">
+                      <svg className="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Saving...
+                    </span>
+                  ) : (
+                    <>
+                      <span className="material-icons">save</span>
+                      Save Resume
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           )}
         </section>

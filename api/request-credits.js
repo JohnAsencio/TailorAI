@@ -3,7 +3,7 @@
  * Sends email notification to admin via Resend
  */
 
-import { loadEnvFromLocal } from './utils/loadEnv.js';
+import { loadEnvFromLocal } from '../lib/loadEnv.js';
 
 // Load env vars for local dev
 loadEnvFromLocal();
@@ -33,14 +33,6 @@ export default async function handler(req, res) {
         error: 'userId and email are required',
       });
     }
-
-    // Log the request
-    console.log('📧 Credit Request:', {
-      userId,
-      email,
-      userName: userName || 'Unknown',
-      timestamp: new Date().toISOString(),
-    });
 
     // Send email notification via Resend
     if (RESEND_API_KEY) {
@@ -81,14 +73,10 @@ export default async function handler(req, res) {
           // Don't fail the request if email fails - still log it
         } else {
           const emailData = await emailResponse.json();
-          console.log('✅ Credit request email sent:', emailData.id);
         }
       } catch (emailError) {
-        console.error('Error sending email:', emailError);
-        // Don't fail the request if email fails - still log it
+        console.error('request-credits: send email failed', emailError?.message);
       }
-    } else {
-      console.warn('⚠️ RESEND_API_KEY not configured - email not sent');
     }
 
     res.setHeader('Access-Control-Allow-Origin', '*');

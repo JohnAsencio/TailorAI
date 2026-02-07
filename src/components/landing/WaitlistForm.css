@@ -29,7 +29,7 @@
 
 .waitlist-input:focus {
   border-color: var(--job-desc-textarea-focus-ring);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.12);
 }
 
 .waitlist-input:disabled {
@@ -45,7 +45,7 @@
   padding: 1rem 2rem;
   font-size: 1rem;
   font-weight: 600;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background-color: var(--accent);
   color: white;
   border: none;
   border-radius: 0.75rem;
@@ -59,8 +59,8 @@
 }
 
 .waitlist-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  filter: brightness(0.96);
+  box-shadow: 0 2px 8px rgba(74, 111, 165, 0.2);
 }
 
 .waitlist-button:disabled {

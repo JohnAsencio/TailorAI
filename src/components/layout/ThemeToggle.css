@@ -27,8 +27,7 @@
 .theme-toggle-button:hover {
   background-color: var(--card-bg);
   color: var(--theme-toggle-button-hover-color);
-  transform: translateY(-2px);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 .theme-toggle-button:focus,

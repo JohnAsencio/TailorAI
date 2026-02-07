@@ -8,16 +8,15 @@
     "dev:vercel": "vercel dev",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "trim-favicon": "node scripts/trim-favicon.js"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.3.0",
     "@supabase/supabase-js": "^2.85.0",
     "@vercel/analytics": "^1.6.1",
     "diff": "^8.0.2",
-    "html2pdf.js": "^0.10.3",
     "mammoth": "^1.9.1",
-    "node-fetch": "^3.3.2",
     "openai": "^5.10.1",
     "pdfjs-dist": "^5.3.31",
     "react": "^19.1.0",
@@ -38,6 +37,7 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
     "postcss": "^8.5.6",
+    "jimp": "^1.6.0",
     "tailwindcss": "^3.4.17",
     "vite": "^5.4.19"
   }

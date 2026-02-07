@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useTheme } from "./hooks/useTheme";
-import { useAuth } from "./hooks/useAuth";
+import { useAuthFromContext } from "./contexts/AuthContext";
 import { useResume } from "./hooks/useResume";
+import { CreditStatusProvider } from "./contexts/CreditStatusContext";
 import { initializePdfWorker } from "./utils/pdfUtils";
-import { Header, LoginPage, ProfilePage, TailorPage, MockPage, LandingPage, MyResumesPage, PrivacyPolicy, PricingPage, PricingLoginPage, ProductsPage, ResumeTailorPage, MockInterviewsPage } from "./components";
+import { Header, LoginPage, ProfilePage, TailorPage, MockPage, LandingPage, MyResumesPage, PrivacyPolicy, PricingPage, PricingLoginPage, ProductsPage, ResumeTailorPage, MockInterviewsPage, MockInterviewPage } from "./components";
 import { Analytics } from "@vercel/analytics/react"
 import './App.css';
 
@@ -25,15 +26,16 @@ function App() {
     handleSignUp,
     handleSignOut,
     handleGoogleSignIn,
-  } = useAuth();
+  } = useAuthFromContext();
 
   // Resume state that persists across tab switches
   const resumeState = useResume();
 
   return (
     <BrowserRouter>
-      <div className="app-container animate-fade-in">
-        <Header user={user} />
+      <CreditStatusProvider>
+        <div className="app-container animate-fade-in">
+          <Header user={user} />
 
         <main className="main-content-area animate-fade-in">
           <Routes>
@@ -116,7 +118,17 @@ function App() {
                 authLoading ? null : (!user || !user.id) ? (
                   <Navigate to="/signin" replace />
                 ) : (
-                  <MockPage />
+                  <MockPage user={user} />
+                )
+              }
+            />
+            <Route
+              path="/mockinterview/start"
+              element={
+                authLoading ? null : (!user || !user.id) ? (
+                  <Navigate to="/signin" replace />
+                ) : (
+                  <MockInterviewPage user={user} />
                 )
               }
             />
@@ -135,7 +147,8 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
-      </div>
+        </div>
+      </CreditStatusProvider>
       {import.meta.env.PROD && <Analytics />}
     </BrowserRouter>
   );

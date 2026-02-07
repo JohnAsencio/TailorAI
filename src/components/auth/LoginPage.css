@@ -109,7 +109,7 @@ body.dark .google-button {
 }
 
 body.dark .google-button:hover {
-  background-color: rgba(129, 140, 248, 0.1);
+  background-color: rgba(74, 111, 165, 0.1);
 }
 
 .auth-form {
@@ -140,10 +140,9 @@ body.dark .google-button:hover {
 }
 
 .auth-input:focus {
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-  box-shadow: 0 0 0 2px var(--job-desc-textarea-focus-ring);
-  border-color: transparent;
+  outline: none;
+  border-color: var(--job-desc-textarea-focus-ring);
+  box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.12);
 }
 
 .auth-buttons {
@@ -166,7 +165,7 @@ body.dark .google-button:hover {
 }
 
 .auth-button.primary {
-  background: linear-gradient(to right, #6366f1, #4f46e5);
+  background-color: var(--accent);
   color: #ffffff;
 }
 

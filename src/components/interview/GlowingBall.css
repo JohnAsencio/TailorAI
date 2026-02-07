@@ -1,0 +1,113 @@
+.glowing-ball-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.glowing-ball {
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background-color: var(--header-title-color);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 60px rgba(74, 111, 165, 0.4);
+  transition: all 0.3s ease;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.glowing-ball.speaking {
+  animation: pulse 1s ease-in-out infinite, float 3s ease-in-out infinite;
+  box-shadow: 0 0 60px rgba(74, 111, 165, 0.5);
+}
+
+.glowing-ball.listening {
+  animation: pulse 1.5s ease-in-out infinite, float 3s ease-in-out infinite;
+  box-shadow: 0 0 50px rgba(74, 111, 165, 0.45);
+  background-color: var(--header-title-color);
+}
+
+.glowing-ball.paused {
+  animation: float 3s ease-in-out infinite;
+  background-color: #6b7280;
+  box-shadow: 0 0 30px rgba(107, 114, 128, 0.5);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.95;
+  }
+}
+
+.ball-inner {
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.ball-pulse {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  animation: expand 2s ease-out infinite;
+}
+
+@keyframes expand {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.ball-ripple {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  animation: ripple 1.5s ease-out infinite;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.ball-status {
+  font-size: 1.1rem;
+  color: var(--summary-item-color);
+  font-weight: 500;
+  text-align: center;
+}
+

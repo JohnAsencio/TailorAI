@@ -1,0 +1,211 @@
+.mock-interview-page {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.interview-header {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  transition: border-color 0.3s ease;
+  flex-wrap: wrap;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--header-subtitle-color);
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: rgba(74, 111, 165, 0.08);
+  border-color: var(--header-title-color);
+  color: var(--header-title-color);
+}
+
+.interview-header-center {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.interview-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--header-title-color);
+  transition: color 0.3s ease;
+}
+
+.interview-beta-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #d97706;
+  border-radius: 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.interview-timer {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--header-subtitle-color);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.interview-timer .material-icons {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+.interview-timer.ending {
+  border-color: var(--error-border);
+  color: var(--error-text);
+  background: var(--error-bg);
+}
+
+.interview-main {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 2rem;
+  padding: 2rem 0;
+  min-height: 500px;
+}
+
+.interview-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.interview-sidebar {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 600px;
+}
+
+.interview-controls {
+  padding: 1.5rem 0;
+  padding-right: 70px; /* Space for waveform on the side */
+  border-top: 1px solid var(--card-border);
+  background: transparent;
+  margin-top: 1.5rem;
+  transition: border-color 0.3s ease;
+  position: relative;
+  overflow: visible;
+}
+
+.error-alert {
+  margin: 0 0 1.5rem 0;
+  padding: 1rem;
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  border-radius: 0.5rem;
+  color: var(--error-text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.mock-interview-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  z-index: 9999;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+.mock-interview-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--card-border);
+  border-top: 4px solid var(--header-subtitle-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 968px) {
+  .interview-main {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+  }
+  
+  .interview-sidebar {
+    max-height: 300px;
+  }
+
+  .interview-center {
+    min-height: 300px;
+  }
+}
+
+@media (max-width: 640px) {
+  .interview-header {
+    padding: 1rem 0;
+    margin-bottom: 1rem;
+  }
+
+  .interview-title {
+    font-size: 1.5rem;
+  }
+
+  .interview-main {
+    padding: 1rem 0;
+    min-height: 400px;
+  }
+
+  .interview-controls {
+    padding: 1rem 0;
+    margin-top: 1rem;
+  }
+}
+
