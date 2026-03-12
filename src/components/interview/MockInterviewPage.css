@@ -209,3 +209,124 @@
   }
 }
 
+/* Tavus video interview embed (in-page) */
+.mock-interview-page--embed {
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.tavus-embed-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.tavus-embed-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--card-border);
+  background: var(--card-bg);
+}
+
+.tavus-embed-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--header-title-color);
+}
+
+.tavus-embed-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--header-subtitle-color);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  font-size: 0.9rem;
+}
+
+.tavus-embed-timer--ending {
+  border-color: #d97706;
+  color: #b45309;
+  background: rgba(217, 119, 6, 0.08);
+}
+
+.tavus-embed-timer .material-icons {
+  font-size: 1.1rem;
+}
+
+.tavus-embed-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+.tavus-embed-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  color: var(--header-subtitle-color);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tavus-embed-link:hover {
+  background: rgba(74, 111, 165, 0.08);
+  color: var(--header-title-color);
+}
+
+.tavus-embed-link .material-icons {
+  font-size: 1.1rem;
+}
+
+.tavus-embed-end {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.tavus-embed-end:hover {
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.4);
+}
+
+.tavus-embed-end .material-icons {
+  font-size: 1.1rem;
+}
+
+.tavus-embed-iframe {
+  flex: 1;
+  width: 100%;
+  min-height: 70vh;
+  border: none;
+  display: block;
+}
+

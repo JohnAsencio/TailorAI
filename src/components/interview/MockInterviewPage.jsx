@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { sendInterviewMessage } from '../../services/mockInterviewService';
+import { createTavusConversation } from '../../services/tavusService';
 import { getSavedResumeById } from '../../services/savedResumeService';
 import { consumeInterviewCredit } from '../../services/creditService';
 import { notifyCreditsUpdated } from '../../hooks/useCreditStatus';
@@ -34,7 +35,17 @@ export default function MockInterviewPage({ user }) {
   // Resume data
   const [resumeData, setResumeData] = useState(null);
   const [resumeId, setResumeId] = useState(null);
-  
+
+  // Tavus video interview (realistic mode)
+  const [videoInterviewLoading, setVideoInterviewLoading] = useState(false);
+  const [videoInterviewError, setVideoInterviewError] = useState('');
+  const [videoInterviewOpened, setVideoInterviewOpened] = useState(false);
+  const [tavusEmbedUrl, setTavusEmbedUrl] = useState(null);
+  const [tavusTimeRemainingSeconds, setTavusTimeRemainingSeconds] = useState(null);
+  const tavusInterviewEndsAtRef = useRef(null);
+  const tavusTimerIntervalRef = useRef(null);
+  const videoInterviewInProgressRef = useRef(false);
+
   // Speech recognition
   const [isListening, setIsListening] = useState(false);
   const [inputMode, setInputMode] = useState('voice'); // 'voice' or 'text'
@@ -161,6 +172,25 @@ export default function MockInterviewPage({ user }) {
       setInterviewStage('ending');
     }
   }, [timeRemainingSeconds, interviewStage]);
+
+  // Video interview (Tavus) countdown timer
+  useEffect(() => {
+    if (!tavusEmbedUrl || !tavusInterviewEndsAtRef.current) return;
+    const tick = () => {
+      const endsAt = tavusInterviewEndsAtRef.current;
+      if (!endsAt) return;
+      const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+      setTavusTimeRemainingSeconds(remaining);
+    };
+    tick();
+    tavusTimerIntervalRef.current = setInterval(tick, 1000);
+    return () => {
+      if (tavusTimerIntervalRef.current) {
+        clearInterval(tavusTimerIntervalRef.current);
+        tavusTimerIntervalRef.current = null;
+      }
+    };
+  }, [tavusEmbedUrl]);
 
   useEffect(() => {
     isSpeakingRef.current = isSpeaking;
@@ -593,6 +623,55 @@ export default function MockInterviewPage({ user }) {
       setResumeId(id);
     } else {
       setError('Failed to load resume');
+    }
+  };
+
+  const startVideoInterview = async () => {
+    if (!resumeData || !user?.id) {
+      setVideoInterviewError(resumeData ? 'Please sign in.' : 'Please select a resume first.');
+      return;
+    }
+    // Prevent double submission: guard with ref so it takes effect before next render
+    if (videoInterviewInProgressRef.current) return;
+    videoInterviewInProgressRef.current = true;
+    setVideoInterviewError('');
+    setVideoInterviewOpened(false);
+    setVideoInterviewLoading(true);
+
+    try {
+      const consumeResult = await consumeInterviewCredit(user.id);
+      if (!consumeResult.success) {
+        setVideoInterviewError(
+          consumeResult.error?.toLowerCase().includes('insufficient')
+            ? 'You need 5 credits for a mock interview. Upgrade your plan or purchase more credits.'
+            : consumeResult.error || 'Could not start video interview.'
+        );
+        return;
+      }
+      notifyCreditsUpdated();
+
+      const result = await createTavusConversation({
+        resumeText: resumeData?.tailored_resume_text || resumeData?.original_resume_text || '',
+        jobDescription: resumeData?.job_description || '',
+        jobTitle: resumeData?.job_title || '',
+        durationMinutes: duration,
+      });
+      if (result.success && result.conversationUrl) {
+        const totalSeconds = Math.max(1, Math.round(duration * 60));
+        tavusInterviewEndsAtRef.current = Date.now() + totalSeconds * 1000;
+        setTavusTimeRemainingSeconds(totalSeconds);
+        setTavusEmbedUrl(result.conversationUrl);
+        setShowSettings(false);
+        setVideoInterviewOpened(true);
+      } else {
+        setVideoInterviewError(result.error || 'Could not start video interview. Try the in-app interview.');
+      }
+    } catch (err) {
+      console.error('Tavus video interview error:', err);
+      setVideoInterviewError('Could not start video interview. Try the in-app interview.');
+    } finally {
+      setVideoInterviewLoading(false);
+      videoInterviewInProgressRef.current = false;
     }
   };
 
@@ -1507,6 +1586,68 @@ export default function MockInterviewPage({ user }) {
     );
   }
 
+  if (tavusEmbedUrl) {
+    return (
+      <section className="mock-interview-page mock-interview-page--embed">
+        <div className="tavus-embed-container">
+          <div className="tavus-embed-header">
+            <h2 className="tavus-embed-title">
+              {resumeData?.job_title ? `Video interview: ${resumeData.job_title}` : 'Video interview'}
+            </h2>
+            {tavusTimeRemainingSeconds !== null && (
+              <div
+                className={[
+                  'tavus-embed-timer',
+                  tavusTimeRemainingSeconds <= 120 ? 'tavus-embed-timer--ending' : '',
+                ].filter(Boolean).join(' ')}
+                aria-label="Interview time remaining"
+              >
+                <span className="material-icons" aria-hidden="true">schedule</span>
+                <span className="tavus-embed-timer-text">{formatCountdown(tavusTimeRemainingSeconds)}</span>
+              </div>
+            )}
+            <div className="tavus-embed-actions">
+              <a
+                href={tavusEmbedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="tavus-embed-link"
+              >
+                <span className="material-icons">open_in_new</span>
+                Open in new tab
+              </a>
+              <button
+                type="button"
+                className="tavus-embed-end"
+                onClick={() => {
+                  if (tavusTimerIntervalRef.current) {
+                    clearInterval(tavusTimerIntervalRef.current);
+                    tavusTimerIntervalRef.current = null;
+                  }
+                  tavusInterviewEndsAtRef.current = null;
+                  setTavusTimeRemainingSeconds(null);
+                  setTavusEmbedUrl(null);
+                  setShowSettings(true);
+                  setVideoInterviewOpened(false);
+                }}
+              >
+                <span className="material-icons">close</span>
+                End interview
+              </button>
+            </div>
+          </div>
+          <iframe
+            src={tavusEmbedUrl}
+            title="Video interview"
+            className="tavus-embed-iframe"
+            allow="camera; microphone; fullscreen; display-capture"
+            allowFullScreen
+          />
+        </div>
+      </section>
+    );
+  }
+
   if (showSettings) {
     return (
       <section className="mock-interview-page">
@@ -1530,6 +1671,10 @@ export default function MockInterviewPage({ user }) {
           onStart={startInterview}
           onCancel={() => navigate('/mockinterview')}
           onLoadResume={loadResume}
+          onStartVideoInterview={startVideoInterview}
+          videoInterviewLoading={videoInterviewLoading}
+          videoInterviewError={videoInterviewError}
+          videoInterviewOpened={videoInterviewOpened}
         />
       </section>
     );

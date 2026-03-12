@@ -15,6 +15,10 @@ export default function InterviewSettingsModal({
   onStart,
   onCancel,
   onLoadResume,
+  onStartVideoInterview,
+  videoInterviewLoading,
+  videoInterviewError,
+  videoInterviewOpened,
 }) {
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -151,16 +155,44 @@ export default function InterviewSettingsModal({
         </div>
 
 
+        {videoInterviewError && (
+          <div className="settings-video-error" role="alert">
+            <span className="material-icons">error_outline</span>
+            <span>{videoInterviewError}</span>
+          </div>
+        )}
+        {videoInterviewOpened && (
+          <p className="settings-video-opened">
+            Your video interview opened in a new tab. When you&apos;re done, close it and return here.
+          </p>
+        )}
         <div className="settings-actions">
           <button className="settings-button secondary" onClick={onCancel}>
             Cancel
           </button>
+          {onStartVideoInterview && (
+            <button
+              type="button"
+              className="settings-button video"
+              onClick={onStartVideoInterview}
+              disabled={!canStart || videoInterviewLoading}
+            >
+              {videoInterviewLoading ? (
+                <>Starting…</>
+              ) : (
+                <>
+                  <span className="material-icons">videocam</span>
+                  Video interview
+                </>
+              )}
+            </button>
+          )}
           <button
             className="settings-button primary"
             onClick={onStart}
             disabled={!canStart}
           >
-            Start Interview
+            Start in-app interview
           </button>
         </div>
       </div>
