@@ -8,8 +8,8 @@ export default function MockInterviewsPage() {
     <div className="products-page">
       <div className="products-container">
         <div className="products-header">
-          <div className="product-badge product-badge-coming-soon">
-            <span>Coming Soon</span>
+          <div className="product-badge">
+            <span>Available Now</span>
           </div>
           <h1 className="products-title">AI Mock Interviews</h1>
           <p className="products-subtitle">
@@ -24,7 +24,7 @@ export default function MockInterviewsPage() {
               <div className="product-simulator-section">
                 <h3 className="product-simulator-title">Try the Interview Simulator</h3>
                 <p className="product-simulator-description">
-                  Experience what our AI mock interview system will be like. The simulator adapts to your responses and provides realistic interview scenarios.
+                  Get a preview below, then sign in to start a full mock interview — a live voice conversation in-app, or a realistic video interview — built from your resume and a job description.
                 </p>
                 <div className="product-simulator-demo">
                   <MockInterviewChat />
@@ -127,9 +127,9 @@ export default function MockInterviewsPage() {
               </div>
 
               <div className="product-cta">
-                <button className="product-cta-button primary" disabled>
-                  Coming Soon
-                </button>
+                <Link to="/mockinterview" className="product-cta-button primary">
+                  Start a Mock Interview
+                </Link>
                 <Link to="/pricing" className="product-cta-button secondary">
                   View Pricing
                 </Link>

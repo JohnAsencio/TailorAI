@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import MockInterviewChat from './MockInterviewChat';
 import SubscriptionRequiredModal from '../common/SubscriptionRequiredModal';
 import Footer from '../common/Footer';
+import { PLANS, formatPrice } from '../../config/pricing';
 import './LandingPage.css';
 
 export default function LandingPage() {
@@ -102,14 +103,15 @@ export default function LandingPage() {
         <div className="mock-interviews-container">
           <div className="mock-interviews-content">
             <div className="mock-interviews-badge">
-              <span>Coming Soon</span>
+              <span>Available Now</span>
             </div>
             <h2 className="mock-interviews-title">
               Practice with <span className="gradient-text">AI Mock Interviews</span>
             </h2>
             <p className="mock-interviews-description">
-              After tailoring your resume, prepare for your interviews with AI-powered mock interviews. Practice with questions 
-              specifically designed for the roles you're applying to, get instant feedback, and build confidence before the real thing.
+              After tailoring your resume, prepare for your interviews with AI-powered mock interviews — a live voice conversation
+              or a realistic face-to-face video interview. Practice with questions specifically designed for the roles you're
+              applying to, and build confidence before the real thing.
             </p>
             <div className="mock-interviews-features">
               <div className="mock-feature-item">
@@ -120,14 +122,14 @@ export default function LandingPage() {
               </div>
               <div className="mock-feature-item">
                 <div className="mock-feature-text">
-                  <h4>Interactive Conversations</h4>
-                  <p>Engage in realistic back-and-forth dialogue with AI</p>
+                  <h4>Voice & Video Modes</h4>
+                  <p>Talk it out in-app, or step into a realistic video interview</p>
                 </div>
               </div>
               <div className="mock-feature-item">
                 <div className="mock-feature-text">
-                  <h4>Instant Feedback</h4>
-                  <p>Get detailed feedback on your answers and delivery</p>
+                  <h4>Natural Conversation</h4>
+                  <p>Engage in realistic back-and-forth dialogue with AI</p>
                 </div>
               </div>
             </div>
@@ -204,14 +206,14 @@ export default function LandingPage() {
               <div className="offer-badge">Beta Special</div>
               <h3 className="offer-title">Lifetime Plan Discount</h3>
               <p className="offer-price">
-                <span className="offer-price-original">$49.99</span>
-                <span className="offer-price-current">$22.99</span>
+                <span className="offer-price-original">{formatPrice(PLANS.lifetime.regularPriceCents)}</span>
+                <span className="offer-price-current">{formatPrice(PLANS.lifetime.priceCents)}</span>
               </p>
               <p className="offer-description">
-                Secure lifetime access at a special pre-order price. Save $27 off the regular price.
+                Secure lifetime access at a special pre-order price.
               </p>
               <ul className="offer-features">
-                <li>✓ 500 credits included</li>
+                <li>✓ Unlimited credits</li>
                 <li>✓ Unlimited mock interviews</li>
                 <li>✓ All premium features</li>
                 <li>✓ Never pay monthly fees</li>
@@ -239,18 +241,18 @@ export default function LandingPage() {
               <div className="offer-badge">Beta Pricing</div>
               <h3 className="offer-title">Monthly Plan Discount</h3>
               <p className="offer-price">
-                <span className="offer-price-original">$15.99</span>
+                <span className="offer-price-original">{formatPrice(PLANS.basic.regularPriceCents)}</span>
                 <span style={{ whiteSpace: 'nowrap' }}>
-                  <span className="offer-price-current">$2.99</span>
+                  <span className="offer-price-current">{formatPrice(PLANS.basic.priceCents)}</span>
                   <span className="offer-price-period">/month</span>
                 </span>
               </p>
               <p className="offer-description">
-                Lock in the beta price for Unlimited plan.
+                Lock in the beta price for the Basic plan.
               </p>
               <ul className="offer-features">
-                <li>✓ Unlimited resumes</li>
-                <li>✓ Unlimited ATS checks</li>
+                <li>✓ {PLANS.basic.creditsLabel}/month</li>
+                <li>✓ Save up to {PLANS.basic.saveLimit} tailored resumes</li>
                 <li>✓ All premium features</li>
                 <li>✓ Cancel anytime</li>
               </ul>

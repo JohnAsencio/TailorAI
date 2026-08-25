@@ -61,8 +61,8 @@ export default function ProductsPage() {
           {/* Mock Interviews Card */}
           <Link to="/products/mock-interviews" className="product-card-link">
             <div className="product-card">
-              <div className="product-card-badge product-badge-coming-soon">
-                <span>Coming Soon</span>
+              <div className="product-card-badge">
+                <span>Available Now</span>
               </div>
               <h2 className="product-card-title">AI Mock Interviews</h2>
               <p className="product-card-description">
