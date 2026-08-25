@@ -6,6 +6,7 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { loadEnvFromLocal } from '../lib/loadEnv.js';
+import { getAuthedUserId } from '../lib/auth.js';
 
 loadEnvFromLocal();
 
@@ -27,7 +28,7 @@ const supabaseAdmin =
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -38,10 +39,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { userId } = req.body || {};
-
+    const userId = await getAuthedUserId(req);
     if (!userId) {
-      return res.status(400).json({ error: 'Missing userId. Please sign in.' });
+      return res.status(401).json({ error: 'Unauthorized. Please sign in again.' });
     }
 
     if (!stripe) {

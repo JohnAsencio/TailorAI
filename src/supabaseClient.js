@@ -16,8 +16,8 @@ const hasValidConfig = supabaseUrl && supabaseAnonKey &&
   supabaseUrl.trim() !== '' && supabaseAnonKey.trim() !== '' &&
   supabaseUrl !== 'undefined' && supabaseAnonKey !== 'undefined';
 
-// Debug logging (will help identify configuration issues)
-if (typeof window !== 'undefined') {
+// Debug logging (will help identify configuration issues) — dev only, never in production
+if (import.meta.env.DEV && typeof window !== 'undefined') {
   if (!hasValidConfig) {
     console.error('⚠️ Supabase configuration missing or invalid:', {
       hasViteUrl: !!import.meta.env.VITE_SUPABASE_URL,

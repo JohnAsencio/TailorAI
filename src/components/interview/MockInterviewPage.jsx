@@ -16,8 +16,8 @@ import './MockInterviewPage.css';
 export default function MockInterviewPage({ user }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { planId, loading: creditStatusLoading } = useCreditStatusFromContext();
-  const upgradeRequired = planId === 'free';
+  const { planId, resumeCredits, unlimited, loading: creditStatusLoading, refetch: refetchCredits } = useCreditStatusFromContext();
+  const upgradeRequired = !unlimited && planId === 'free' && (resumeCredits ?? 0) < 5;
   
   // Interview state
   const [messages, setMessages] = useState([]);
@@ -44,6 +44,7 @@ export default function MockInterviewPage({ user }) {
   const [tavusTimeRemainingSeconds, setTavusTimeRemainingSeconds] = useState(null);
   const tavusInterviewEndsAtRef = useRef(null);
   const tavusTimerIntervalRef = useRef(null);
+  const tavusCreditsDeductedRef = useRef(false);
   const videoInterviewInProgressRef = useRef(false);
 
   // Speech recognition
@@ -172,6 +173,16 @@ export default function MockInterviewPage({ user }) {
       setInterviewStage('ending');
     }
   }, [timeRemainingSeconds, interviewStage]);
+
+  // Deduct credits only when the video interview has actually started (embed shown, timer running)
+  useEffect(() => {
+    if (!tavusEmbedUrl || !user?.id || tavusCreditsDeductedRef.current) return;
+    tavusCreditsDeductedRef.current = true;
+    consumeInterviewCredit(user.id).then((r) => {
+      if (r.success) notifyCreditsUpdated();
+      else console.warn('Video interview: could not deduct credits:', r.error);
+    });
+  }, [tavusEmbedUrl, user?.id]);
 
   // Video interview (Tavus) countdown timer
   useEffect(() => {
@@ -639,18 +650,9 @@ export default function MockInterviewPage({ user }) {
     setVideoInterviewLoading(true);
 
     try {
-      const consumeResult = await consumeInterviewCredit(user.id);
-      if (!consumeResult.success) {
-        setVideoInterviewError(
-          consumeResult.error?.toLowerCase().includes('insufficient')
-            ? 'You need 5 credits for a mock interview. Upgrade your plan or purchase more credits.'
-            : consumeResult.error || 'Could not start video interview.'
-        );
-        return;
-      }
-      notifyCreditsUpdated();
-
+      await refetchCredits();
       const result = await createTavusConversation({
+        userId: user.id,
         resumeText: resumeData?.tailored_resume_text || resumeData?.original_resume_text || '',
         jobDescription: resumeData?.job_description || '',
         jobTitle: resumeData?.job_title || '',
@@ -659,12 +661,19 @@ export default function MockInterviewPage({ user }) {
       if (result.success && result.conversationUrl) {
         const totalSeconds = Math.max(1, Math.round(duration * 60));
         tavusInterviewEndsAtRef.current = Date.now() + totalSeconds * 1000;
+        tavusCreditsDeductedRef.current = false;
         setTavusTimeRemainingSeconds(totalSeconds);
         setTavusEmbedUrl(result.conversationUrl);
         setShowSettings(false);
         setVideoInterviewOpened(true);
       } else {
-        setVideoInterviewError(result.error || 'Could not start video interview. Try the in-app interview.');
+        const remaining = result.remainingCredits ?? 0;
+        const msg = result.error || 'Could not start video interview.';
+        setVideoInterviewError(
+          msg.toLowerCase().includes('insufficient')
+            ? `You have ${remaining} credits. Mock interviews require 5 credits. Upgrade your plan or purchase more.`
+            : msg
+        );
       }
     } catch (err) {
       console.error('Tavus video interview error:', err);
@@ -683,16 +692,14 @@ export default function MockInterviewPage({ user }) {
     if (!user?.id) return;
 
     setError('');
-    const consumeResult = await consumeInterviewCredit(user.id);
-    if (!consumeResult.success) {
-      setError(
-        consumeResult.error?.toLowerCase().includes('insufficient')
-          ? 'You need 5 credits for a mock interview. Upgrade your plan or purchase more credits.'
-          : consumeResult.error || 'Could not start interview.'
-      );
+
+    // Check credits before spending an AI call, but don't deduct yet — only charge
+    // once the opening greeting actually comes back successfully, so a failed start
+    // (API error, no AI credits, etc.) never costs the user anything.
+    if (!unlimited && (resumeCredits ?? 0) < 5) {
+      setError('You need 5 credits for a mock interview. Upgrade your plan or purchase more credits.');
       return;
     }
-    notifyCreditsUpdated();
 
     setShowSettings(false);
     setIsInterviewActive(true);
@@ -723,10 +730,23 @@ export default function MockInterviewPage({ user }) {
         setMessages([greeting]);
         messagesRef.current = [greeting];
         speakText(greeting.content);
+
+        // Charge only now that the interview has actually started successfully.
+        const consumeResult = await consumeInterviewCredit(user.id);
+        if (consumeResult.success) {
+          notifyCreditsUpdated();
+        } else {
+          console.warn('Could not deduct interview credit after successful start:', consumeResult.error);
+        }
+      } else {
+        setError(result.error || 'Failed to start interview. Please try again.');
+        setIsInterviewActive(false);
+        console.error('❌ Failed to start interview:', result.error);
       }
     } catch (err) {
       console.error('Error starting interview:', err);
-      setError('Failed to start interview');
+      setError('Failed to start interview. Please try again.');
+      setIsInterviewActive(false);
     } finally {
       setIsLoading(false);
     }
@@ -1184,13 +1204,11 @@ export default function MockInterviewPage({ user }) {
 
   const speakTextBrowser = (text) => {
     if (!synthRef.current) return;
-    
+
     // Cancel any ongoing speech
     synthRef.current.cancel();
     setIsSpeaking(false);
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    
+
     // Get available voices - try multiple times as Chrome loads voices asynchronously
     let voices = synthRef.current.getVoices();
     

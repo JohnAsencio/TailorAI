@@ -2,6 +2,8 @@
  * Service for mock interview functionality
  */
 
+import { authFetch } from '../utils/authFetch';
+
 export async function sendInterviewMessage(
   messages,
   resumeText,
@@ -13,7 +15,7 @@ export async function sendInterviewMessage(
   durationMinutes = null
 ) {
   try {
-    const response = await fetch('/api/mock-interview', {
+    const response = await authFetch('/api/mock-interview', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

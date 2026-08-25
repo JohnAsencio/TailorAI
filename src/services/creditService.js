@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import { authFetch } from '../utils/authFetch';
 
 /**
  * Fetch user's credit status and plan info
@@ -17,7 +18,7 @@ export async function fetchCreditStatus(userId) {
 
   try {
     // Use API endpoint instead of direct Supabase query to bypass RLS issues
-    const response = await fetch('/api/credits', {
+    const response = await authFetch('/api/credits', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -71,7 +72,7 @@ export async function consumeCredits(userId, creditType = 'resume') {
   }
 
   try {
-    const response = await fetch('/api/credits', {
+    const response = await authFetch('/api/credits', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

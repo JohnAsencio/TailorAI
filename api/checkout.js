@@ -5,6 +5,7 @@
 
 import Stripe from 'stripe';
 import { loadEnvFromLocal } from '../lib/loadEnv.js';
+import { getAuthedUserId } from '../lib/auth.js';
 
 loadEnvFromLocal();
 
@@ -50,7 +51,7 @@ function getPlanConfig(planId) {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -65,8 +66,13 @@ export default async function handler(req, res) {
     });
   }
 
+  const userId = await getAuthedUserId(req);
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized. Please sign in again.' });
+  }
+
   const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
-  const { planId, userId, email, creditsQuantity } = body;
+  const { planId, email, creditsQuantity } = body;
 
   const baseUrl = req.headers?.origin || process.env.VERCEL_URL || 'http://localhost:5173';
 
@@ -76,9 +82,6 @@ export default async function handler(req, res) {
       return res.status(400).json({
         error: `creditsQuantity must be between ${MIN_CREDITS} and ${MAX_CREDITS}.`,
       });
-    }
-    if (!userId) {
-      return res.status(400).json({ error: 'Missing userId. Please sign in before checkout.' });
     }
     if (!email) {
       return res.status(400).json({ error: 'Missing email.' });
@@ -148,9 +151,6 @@ export default async function handler(req, res) {
 
   if (!planId) {
     return res.status(400).json({ error: 'Missing planId or creditsQuantity.' });
-  }
-  if (!userId) {
-    return res.status(400).json({ error: 'Missing userId. Please sign in before checkout.' });
   }
   const plan = getPlanConfig(planId);
   if (!plan) {

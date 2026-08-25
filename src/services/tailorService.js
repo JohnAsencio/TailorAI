@@ -89,10 +89,10 @@ After the resume, add a section titled "Summary of Changes:" and list 2-4 bullet
 ---SUMMARY OF CHANGES---
 `;
 
-  const result = await generateContent(prompt);
-  
+  const { content, remainingCredits, unlimited } = await generateContent(prompt);
+
   // Extract resume and summary - handle multiple possible separators
-  let tailoredResume = result;
+  let tailoredResume = content;
   let summary = '';
   
   // Try different separator patterns
@@ -105,16 +105,16 @@ After the resume, add a section titled "Summary of Changes:" and list 2-4 bullet
   ];
   
   for (const separator of separators) {
-    if (result.includes(separator)) {
-      const parts = result.split(separator);
+    if (content.includes(separator)) {
+      const parts = content.split(separator);
       tailoredResume = parts[0].trim();
       summary = parts.slice(1).join(separator).trim();
       break;
     }
   }
-  
+
   // If no separator found, try to detect and remove summary text manually
-  if (!summary && tailoredResume === result) {
+  if (!summary && tailoredResume === content) {
     // Look for common summary patterns and remove them
     const summaryPatterns = [
       /Summary of Changes:[\s\S]*$/i,
@@ -146,7 +146,9 @@ After the resume, add a section titled "Summary of Changes:" and list 2-4 bullet
   
   return {
     tailoredResume: cleanedResume,
-    summary: cleanedSummary
+    summary: cleanedSummary,
+    remainingCredits,
+    unlimited,
   };
 }
 

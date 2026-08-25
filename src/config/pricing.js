@@ -75,6 +75,18 @@ export function getPlan(planId) {
 }
 
 /**
+ * Get the monthly credit allotment for a plan (null = unlimited, e.g. lifetime).
+ * Single source of truth for "how many credits does this plan grant" — API
+ * routes should import this instead of hardcoding their own copy.
+ * @param {string} planId
+ * @returns {number|null}
+ */
+export function getPlanCredits(planId) {
+  const plan = PLANS[planId];
+  return plan ? plan.credits : null;
+}
+
+/**
  * Get price for display (e.g. "$2.99")
  */
 export function formatPrice(cents) {

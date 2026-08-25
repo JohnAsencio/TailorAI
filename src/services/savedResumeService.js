@@ -1,4 +1,4 @@
-import { supabase } from '../supabaseClient';
+import { authFetch } from '../utils/authFetch';
 
 /**
  * Save a tailored resume to the database
@@ -11,7 +11,7 @@ import { supabase } from '../supabaseClient';
  */
 export async function saveTailoredResume(userId, tailoredResumeText, jobDescription, jobTitle = null, originalResumeText = null) {
   try {
-    const response = await fetch('/api/save-resume', {
+    const response = await authFetch('/api/save-resume', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -47,13 +47,13 @@ export async function saveTailoredResume(userId, tailoredResumeText, jobDescript
 }
 
 /**
- * Get all saved resumes for a user
- * @param {string} userId - User ID
+ * Get all saved resumes for the signed-in user (identity comes from the auth token;
+ * callers may still pass a userId argument, it's simply ignored)
  * @returns {Promise<{success: boolean, data?: array, error?: string}>}
  */
-export async function getSavedResumes(userId) {
+export async function getSavedResumes() {
   try {
-    const response = await fetch(`/api/saved-resumes?userId=${encodeURIComponent(userId)}`, {
+    const response = await authFetch('/api/saved-resumes', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -80,14 +80,14 @@ export async function getSavedResumes(userId) {
 }
 
 /**
- * Get a single saved resume by ID
+ * Get a single saved resume by ID (must belong to the signed-in user;
+ * callers may still pass a userId argument, it's simply ignored)
  * @param {string} resumeId - Resume ID
- * @param {string} userId - User ID (for security)
  * @returns {Promise<{success: boolean, data?: object, error?: string}>}
  */
-export async function getSavedResumeById(resumeId, userId) {
+export async function getSavedResumeById(resumeId) {
   try {
-    const response = await fetch(`/api/saved-resumes?userId=${encodeURIComponent(userId)}&resumeId=${encodeURIComponent(resumeId)}`, {
+    const response = await authFetch(`/api/saved-resumes?resumeId=${encodeURIComponent(resumeId)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -114,37 +114,26 @@ export async function getSavedResumeById(resumeId, userId) {
 }
 
 /**
- * Delete a saved resume
+ * Delete a saved resume (must belong to the signed-in user;
+ * callers may still pass a userId argument, it's simply ignored)
  * @param {string} resumeId - Resume ID
- * @param {string} userId - User ID (for security)
  * @returns {Promise<{success: boolean, error?: string}>}
  */
-export async function deleteSavedResume(resumeId, userId) {
-  if (!supabase) {
-    return {
-      success: false,
-      error: 'Database not configured'
-    };
-  }
-
+export async function deleteSavedResume(resumeId) {
   try {
-    const { error } = await supabase
-      .from('saved_resumes')
-      .delete()
-      .eq('id', resumeId)
-      .eq('user_id', userId);
+    const response = await authFetch(`/api/saved-resumes?resumeId=${encodeURIComponent(resumeId)}`, {
+      method: 'DELETE',
+    });
 
-    if (error) {
-      console.error('Error deleting resume:', error);
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
       return {
         success: false,
-        error: error.message || 'Failed to delete resume'
+        error: data.error || `HTTP error! status: ${response.status}`
       };
     }
 
-    return {
-      success: true
-    };
+    return { success: true };
   } catch (error) {
     console.error('Error deleting resume:', error);
     return {
@@ -155,44 +144,34 @@ export async function deleteSavedResume(resumeId, userId) {
 }
 
 /**
- * Update a saved resume
+ * Update a saved resume (must belong to the signed-in user)
  * @param {string} resumeId - Resume ID
- * @param {string} userId - User ID (for security)
- * @param {object} updates - Fields to update
+ * @param {string} _userId - Unused; kept for call-site compatibility
+ * @param {object} updates - Fields to update (tailoredResumeText, jobDescription, jobTitle, originalResumeText)
  * @returns {Promise<{success: boolean, data?: object, error?: string}>}
  */
-export async function updateSavedResume(resumeId, userId, updates) {
-  if (!supabase) {
-    return {
-      success: false,
-      error: 'Database not configured'
-    };
-  }
-
+export async function updateSavedResume(resumeId, _userId, updates) {
   try {
-    const { data, error } = await supabase
-      .from('saved_resumes')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', resumeId)
-      .eq('user_id', userId)
-      .select()
-      .single();
+    const response = await authFetch(`/api/saved-resumes?resumeId=${encodeURIComponent(resumeId)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tailored_resume_text: updates.tailoredResumeText ?? updates.tailored_resume_text,
+        job_description: updates.jobDescription ?? updates.job_description,
+        job_title: updates.jobTitle ?? updates.job_title,
+        original_resume_text: updates.originalResumeText ?? updates.original_resume_text,
+      }),
+    });
 
-    if (error) {
-      console.error('Error updating resume:', error);
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
       return {
         success: false,
-        error: error.message || 'Failed to update resume'
+        error: data.error || `HTTP error! status: ${response.status}`
       };
     }
 
-    return {
-      success: true,
-      data
-    };
+    return { success: true, data: data.data };
   } catch (error) {
     console.error('Error updating resume:', error);
     return {

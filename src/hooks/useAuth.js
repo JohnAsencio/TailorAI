@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
+import { authFetch } from "../utils/authFetch";
 
 export function useAuth() {
   const [user, setUser] = useState(null);
@@ -73,7 +74,7 @@ export function useAuth() {
             // Do not clear user—we have a valid session from the event; clearing caused login to appear broken
           } else {
             // Check if user profile exists, if not create it (which sends welcome email)
-            const profileResponse = await fetch('/api/create-user-profile', {
+            const profileResponse = await authFetch('/api/create-user-profile', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -196,7 +197,7 @@ export function useAuth() {
         // Create user profile with free tier credits
         if (data?.user) {
           try {
-            const profileResponse = await fetch('/api/create-user-profile', {
+            const profileResponse = await authFetch('/api/create-user-profile', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

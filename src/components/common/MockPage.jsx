@@ -12,6 +12,8 @@ export default function MockPage({ user }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [planId, setPlanId] = useState('free');
+  const [resumeCredits, setResumeCredits] = useState(0);
+  const [unlimited, setUnlimited] = useState(false);
 
   useEffect(() => {
     loadPlanAndResumes();
@@ -29,8 +31,11 @@ export default function MockPage({ user }) {
     try {
       const status = await fetchCreditStatus(user.id);
       setPlanId(status.planId || 'free');
+      setResumeCredits(status.resumeCredits ?? 0);
+      setUnlimited(status.unlimited ?? false);
 
-      if (status.planId === 'free') {
+      const canAccessInterviews = status.unlimited || status.planId !== 'free' || (status.resumeCredits ?? 0) >= 5;
+      if (!canAccessInterviews) {
         setResumes([]);
         setLoading(false);
         return;
@@ -103,7 +108,7 @@ export default function MockPage({ user }) {
           </div>
         )}
 
-        {planId === 'free' ? (
+        {(!unlimited && planId === 'free' && resumeCredits < 5) ? (
           <div className="empty-mock-state mock-upgrade-required">
             <div className="empty-mock-icon">
               <span className="material-icons">mic</span>

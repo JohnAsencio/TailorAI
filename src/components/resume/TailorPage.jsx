@@ -4,7 +4,7 @@ import { tailorResume } from "../../services/tailorService";
 import { checkATSCompatibility } from "../../services/atsService";
 import { saveTailoredResume } from "../../services/savedResumeService";
 import { ensureTailoredScoreHigher } from "../../utils/atsAlgorithm";
-import { fetchCreditStatus, consumeResumeCredit } from "../../services/creditService";
+import { fetchCreditStatus } from "../../services/creditService";
 import { notifyCreditsUpdated } from "../../hooks/useCreditStatus";
 import HighlightedResumeDisplay from "./ResumeDisplay";
 import PdfViewer from "./PdfViewer";
@@ -13,6 +13,7 @@ import ATSChecker from "../ats/ATSChecker";
 import ATSComparison from "../ats/ATSComparison";
 import LoadingSpinner from "../common/LoadingSpinner";
 import { useState, useEffect } from 'react';
+import { authFetch } from "../../utils/authFetch";
 import '../../App.css';
 
 export default function TailorPage({ resumeState, user }) {
@@ -311,7 +312,7 @@ export default function TailorPage({ resumeState, user }) {
     
     setRequestingCredits(true);
     try {
-      const response = await fetch('/api/request-credits', {
+      const response = await authFetch('/api/request-credits', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -368,8 +369,8 @@ export default function TailorPage({ resumeState, user }) {
     setAtsResultsTailored(null);
 
     try {
-      const { tailoredResume, summary } = await tailorResume(resumeText, jobDesc, allowExpansion, additionalContext);
-      
+      const { tailoredResume, summary, remainingCredits, unlimited } = await tailorResume(resumeText, jobDesc, allowExpansion, additionalContext);
+
       setOutput(tailoredResume);
       setChangeSummary(summary);
       setDisplayResumeMode('tailored_highlighted');
@@ -379,24 +380,23 @@ export default function TailorPage({ resumeState, user }) {
       const tailoredBlobUrl = URL.createObjectURL(blob);
       setTailoredPdfUrl(tailoredBlobUrl);
 
-      // Consume credit after successful tailoring (unless bypass or unlimited)
-      if (!isBypass && user?.id && !creditStatus.unlimited) {
-        const consumeResult = await consumeResumeCredit(user.id);
-        if (consumeResult.success) {
-          const afterCredits = consumeResult.remainingCredits;
-          setCreditStatus(prev => ({
-            ...prev,
-            resumeCredits: afterCredits,
-          }));
-          notifyCreditsUpdated();
-        } else {
-          console.error('Failed to consume credit:', consumeResult.error);
-          // Don't block the user, but log the error
-        }
+      // The credit was already deducted server-side (atomically with generation)
+      // inside /api/tailor-resume. Just reflect the new balance it returned.
+      if (!isBypass && user?.id && remainingCredits != null) {
+        setCreditStatus(prev => ({
+          ...prev,
+          resumeCredits: remainingCredits,
+          unlimited: unlimited ?? prev.unlimited,
+        }));
+        notifyCreditsUpdated();
       }
     } catch (error) {
       console.error("Error generating content:", error);
-      setErrorMessage("Something went wrong. Please try again.");
+      setErrorMessage(
+        error.message?.toLowerCase().includes('insufficient credits')
+          ? error.message
+          : "Something went wrong. Please try again."
+      );
       clearMessages();
     } finally {
       setLoading(false);

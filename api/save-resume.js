@@ -5,6 +5,7 @@
 
 import { loadEnvFromLocal } from '../lib/loadEnv.js';
 import { createClient } from '@supabase/supabase-js';
+import { getAuthedUserId } from '../lib/auth.js';
 
 loadEnvFromLocal();
 
@@ -42,13 +43,19 @@ export default async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const { userId, tailoredResumeText, jobDescription, jobTitle, originalResumeText } = body;
+    const { tailoredResumeText, jobDescription, jobTitle, originalResumeText } = body;
 
-    if (!userId || !tailoredResumeText || !jobDescription) {
+    const userId = await getAuthedUserId(req);
+    if (!userId) {
+      setCors(res);
+      return res.status(401).json({ success: false, error: 'Unauthorized. Please sign in again.' });
+    }
+
+    if (!tailoredResumeText || !jobDescription) {
       setCors(res);
       return res.status(400).json({
         success: false,
-        error: 'userId, tailoredResumeText, and jobDescription are required',
+        error: 'tailoredResumeText and jobDescription are required',
       });
     }
 

@@ -3,10 +3,12 @@
  * Uses external TTS API for high-quality voices, falls back to browser TTS if unavailable
  */
 
+import { authFetch } from '../utils/authFetch';
+
 export async function synthesizeSpeech(text, voiceName = null) {
   try {
     // Try external TTS API first
-    const response = await fetch('/api/text-to-speech', {
+    const response = await authFetch('/api/text-to-speech', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

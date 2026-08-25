@@ -1,10 +1,12 @@
+import { authFetch } from './utils/authFetch';
+
 /**
  * Generate content using OpenAI via serverless API endpoint
  * This ensures the API key stays secure on the server
  */
 export async function generateContent(prompt) {
   try {
-    const response = await fetch('/api/tailor-resume', {
+    const response = await authFetch('/api/tailor-resume', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -36,7 +38,7 @@ export async function generateContent(prompt) {
     }
 
     const data = JSON.parse(text);
-    return data.content;
+    return data;
   } catch (error) {
     console.error('Error calling API:', error);
     throw error;

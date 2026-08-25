@@ -5,6 +5,7 @@
  */
 
 import { loadEnvFromLocal } from '../lib/loadEnv.js';
+import { getAuthedUserId } from '../lib/auth.js';
 
 // Load env vars for local dev
 loadEnvFromLocal();
@@ -27,6 +28,12 @@ export default async function handler(req, res) {
   }
 
   try {
+    const authedUserId = await getAuthedUserId(req);
+    if (!authedUserId) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return res.status(401).json({ error: 'Unauthorized. Please sign in again.' });
+    }
+
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const { text, voiceName, languageCode = 'en-US' } = body;
 
@@ -44,10 +51,12 @@ export default async function handler(req, res) {
 
     // Use Google Cloud Text-to-Speech API
     // Voice options: https://cloud.google.com/text-to-speech/docs/voices
-    // Note: Standard voices (e.g., 'en-US-Standard-F') are free up to 4M chars/month
-    //       Neural2 voices (e.g., 'en-US-Neural2-F') are free up to 1M chars/month, then $16/1M chars
-    // Use Standard voices to maximize free tier usage
-    const voiceConfig = voiceName || 'en-US-Standard-F'; // Free Standard voice by default (change to Neural2 for premium quality)
+    // Note: Standard voices (e.g., 'en-US-Standard-F') are the older concatenative
+    // voices and sound noticeably robotic - a bad fit for an interviewer people are
+    // meant to find realistic. Neural2 voices sound far more natural for a small
+    // added cost (1M chars/month free, then $16/1M chars - well within reach at
+    // current interview volume). Default to Neural2; still overridable via voiceName.
+    const voiceConfig = voiceName || 'en-US-Neural2-F';
     
     const response = await fetch(
       `https://texttospeech.googleapis.com/v1/text:synthesize?key=${GOOGLE_TTS_API_KEY}`,

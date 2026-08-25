@@ -7,6 +7,8 @@
 
 import { loadEnvFromLocal } from '../lib/loadEnv.js';
 import { createClient } from '@supabase/supabase-js';
+import { getAuthedUserId } from '../lib/auth.js';
+import { CREDIT_COSTS, getPlanCredits } from '../src/config/pricing.js';
 
 loadEnvFromLocal();
 
@@ -20,7 +22,7 @@ const supabaseAdmin =
       })
     : null;
 
-const CREDIT_COST = { resume: 1, interview: 5 };
+const CREDIT_COST = { resume: CREDIT_COSTS.oneResume, interview: CREDIT_COSTS.oneMockInterview };
 const FREE_PLAN_CREDITS = 2;
 
 function setCors(res) {
@@ -59,11 +61,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid JSON body' });
     }
   }
-  const { action = 'get', userId, creditType } = body || {};
+  const { action = 'get', creditType } = body || {};
 
+  const userId = await getAuthedUserId(req);
   if (!userId) {
     setCors(res);
-    return res.status(400).json({ error: 'userId is required' });
+    return res.status(401).json({ error: 'Unauthorized. Please sign in again.' });
   }
 
   try {
@@ -97,7 +100,19 @@ export default async function handler(req, res) {
         });
       }
 
-      const currentCredits = userData.resume_credits ?? 0;
+      let currentCredits = userData.resume_credits ?? 0;
+      const planDefault = getPlanCredits(planId);
+      if (planDefault != null && (currentCredits == null || currentCredits === 0)) {
+        currentCredits = planDefault;
+        await supabaseAdmin
+          .from('app_users')
+          .update({
+            resume_credits: planDefault,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', userId);
+      }
+
       if (currentCredits < cost) {
         setCors(res);
         return res.status(403).json({
@@ -160,6 +175,10 @@ export default async function handler(req, res) {
     let resumeCredits = data?.resume_credits;
     if (resumeCredits == null && planId === 'free') {
       resumeCredits = FREE_PLAN_CREDITS;
+    }
+    const planDefault = getPlanCredits(planId);
+    if ((resumeCredits == null || resumeCredits === 0) && planDefault != null) {
+      resumeCredits = planDefault;
     }
     resumeCredits = resumeCredits ?? 0;
 

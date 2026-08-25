@@ -4,6 +4,7 @@
  */
 
 import { loadEnvFromLocal } from '../lib/loadEnv.js';
+import { getAuthedUserId } from '../lib/auth.js';
 
 // Load env vars for local dev
 loadEnvFromLocal();
@@ -26,11 +27,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { userId, email, userName } = req.body;
+    const { email, userName } = req.body;
 
-    if (!userId || !email) {
+    const userId = await getAuthedUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized. Please sign in again.' });
+    }
+
+    if (!email) {
       return res.status(400).json({
-        error: 'userId and email are required',
+        error: 'email is required',
       });
     }
 

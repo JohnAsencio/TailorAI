@@ -5,6 +5,7 @@
 import { loadEnvFromLocal } from '../lib/loadEnv.js';
 import { createClient } from '@supabase/supabase-js';
 import { sendWelcomeEmail } from '../lib/sendWelcomeEmail.js';
+import { getAuthedUserId } from '../lib/auth.js';
 
 // Load env vars for local dev
 loadEnvFromLocal();
@@ -41,12 +42,17 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { userId, email } = req.body;
+    const { email } = req.body;
 
-    if (!userId || !email) {
-      console.error('create-user-profile: missing userId or email');
+    const userId = await getAuthedUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized. Please sign in again.' });
+    }
+
+    if (!email) {
+      console.error('create-user-profile: missing email');
       return res.status(400).json({
-        error: 'userId and email are required',
+        error: 'email is required',
       });
     }
 

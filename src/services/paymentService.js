@@ -2,6 +2,8 @@
  * Payment service for handling Stripe checkout sessions
  */
 
+import { authFetch } from '../utils/authFetch';
+
 /**
  * Create a Stripe checkout session for a subscription or one-time payment
  * @param {string} planId - The plan identifier ('basic', 'pro', 'lifetime')
@@ -11,7 +13,7 @@
  */
 export async function createCheckoutSession(planId, userId, email) {
   try {
-    const response = await fetch('/api/checkout', {
+    const response = await authFetch('/api/checkout', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -75,7 +77,7 @@ export async function createCheckoutSession(planId, userId, email) {
  */
 export async function createCreditsCheckoutSession(creditsQuantity, userId, email) {
   try {
-    const response = await fetch('/api/checkout', {
+    const response = await authFetch('/api/checkout', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -127,7 +129,7 @@ export async function createCreditsCheckoutSession(creditsQuantity, userId, emai
  */
 export async function createPortalSession(userId) {
   try {
-    const response = await fetch('/api/create-portal-session', {
+    const response = await authFetch('/api/create-portal-session', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
