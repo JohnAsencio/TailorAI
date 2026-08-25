@@ -222,7 +222,15 @@ export default function MockInterviewPage({ user }) {
     }
   }, [isSpeaking, isListening]);
   
-  // When we have resume id from navigation, use passed data if any and fetch when paid
+  // When we have resume id from navigation, use passed data if any and fetch when paid.
+  // NOTE: this effect intentionally has no cleanup. It used to also tear down
+  // timers/audio/recognition in its cleanup, but creditStatusLoading (a
+  // dependency here, since we wait for it before loading) flips true->false
+  // right after notifyCreditsUpdated() fires post-interview-start (crediting
+  // the deduction) — which re-ran this effect mid-interview and its cleanup
+  // killed the just-started interview timer with nothing to ever restart it.
+  // True unmount teardown now lives in its own effect below with no
+  // dependencies, so it only fires on actual unmount.
   useEffect(() => {
     componentActiveRef.current = true;
     const resumeIdFromState = location.state?.resumeId;
@@ -237,9 +245,13 @@ export default function MockInterviewPage({ user }) {
     if (resumeIdFromState && user?.id) {
       loadResume(resumeIdFromState);
     }
+  }, [location, user, creditStatusLoading, upgradeRequired]);
+
+  // True-unmount-only teardown (e.g. browser back, navigating away). Empty
+  // dependency array so this never re-fires from unrelated state changes.
+  useEffect(() => {
     return () => {
       componentActiveRef.current = false;
-      // Ensure timers and audio are fully stopped on unmount (e.g., browser back)
       stopInterviewTimer();
       if (countdownIntervalRef.current) {
         clearInterval(countdownIntervalRef.current);
@@ -269,7 +281,7 @@ export default function MockInterviewPage({ user }) {
         try { recognitionRef.current.stop(); } catch {}
       }
     };
-  }, [location, user, creditStatusLoading, upgradeRequired]);
+  }, []);
 
   const stopInterviewerAudioAnalysis = () => {
     if (ttsAnimationFrameRef.current) {

@@ -50,6 +50,25 @@ export const supabase = hasValidConfig
     })
   : null;
 
+// supabase-js serializes auth.getSession() calls behind an internal lock with
+// no timeout. Several components independently calling it right after a page
+// navigation (very common — multiple things fetch data on mount) can queue
+// behind that lock indefinitely if anything upstream stalls, hanging the UI
+// forever with no error. onAuthStateChange hands us the current session for
+// free on every auth event, with no lock involved, so cache the access token
+// from that instead of re-deriving it via getSession() on every request.
+let cachedAccessToken = null;
+if (supabase) {
+  supabase.auth.onAuthStateChange((_event, session) => {
+    cachedAccessToken = session?.access_token || null;
+  });
+}
+
+/** Synchronously returns the last-known access token from auth state events, or null. */
+export function getCachedAccessToken() {
+  return cachedAccessToken;
+}
+
 // Export a function to check if Supabase is properly configured
 export const isSupabaseConfigured = () => {
   return hasValidConfig && supabase !== null;
